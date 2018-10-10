@@ -1,0 +1,97 @@
+# coding: UTF-8
+'''''''''''''''''''''''''''''''''''''''''''''''''''''
+   file name: alexnet.py
+   create time: 2018年09月5日 
+   author: wenqi Tang
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''
+# based on Frederik Kratzert's alexNet with tensorflow
+import tensorflow as tf
+import numpy as np
+# define different layer functions
+# we usually don't do convolution and pooling on batch and channel
+def maxPoolLayer(x, ksize,strides=[1,1], name='None', padding = "SAME"):
+    """max-pooling"""
+    return tf.nn.max_pool(x, ksize =[1]+ ksize+[1],
+                          strides = [1] +strides+[1], padding = padding, name = name)
+
+
+
+def fcLayer(x, input_size, output_size, reluFlag, name):
+    """fully-connect"""
+    with tf.variable_scope(name) as scope:
+        w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float")
+        b = tf.get_variable("b", [output_size], dtype = "float")
+        out = tf.nn.xw_plus_b(x, w, b, name = scope.name)
+        if reluFlag:
+            return tf.nn.relu(out)
+        else:
+            return out
+
+def convLayer(x, ksize, strides,out_channel, name, padding = "SAME"): 
+    """convolution"""
+    in_channel = int(x.get_shape()[-1])
+
+    conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
+
+    with tf.variable_scope(name) as scope:
+        w = tf.get_variable("w", shape = ksize+[in_channel,out_channel])
+        b = tf.get_variable("b", shape = [out_channel])
+        out_put = conv(x,w)
+        # print mergeFeatureMap.shape
+        out = tf.nn.bias_add(out_put, b)
+        return tf.nn.relu(out, name = scope.name)
+
+class alexNet(object):
+    """alexNet model"""
+    def __init__(self, x, classNum, skip=None, modelPath = "alexnet"):
+        self.X = x
+        self.CLASSNUM = classNum
+        self.SKIP = skip
+        self.MODELPATH = modelPath
+        self.training = True
+        #build CNN
+        self.buildCNN()
+
+    def buildCNN(self):
+        """build model"""
+        conv1 = convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "VALID")
+        pool1 = maxPoolLayer(conv1,[3, 3],[ 2, 2], "pool1", "VALID")
+
+        norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
+        conv2 = convLayer(norm_pool1, [5, 5], [1, 1], 64, "conv2")
+        pool2 = maxPoolLayer(conv2,[3, 3], [2, 2], "pool2", "SAME")
+
+        norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
+        conv3 = convLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3")
+        pool3 = maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "SAME")
+
+        batch_step = self.X.get_shape()[0].value
+        reshape = tf.reshape(pool3,[batch_step,-1])
+        dim = reshape.get_shape()[1].value
+
+        norm_reshape=tf.layers.batch_normalization(reshape,training=self.training)
+        fc1 = fcLayer(norm_reshape, dim, 512, reluFlag=True, name = "fc4")
+
+        norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
+        fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
+
+        norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
+        self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+
+    # def loadModel(self, sess):
+    #     """load model"""
+    #     wDict = np.load(self.MODELPATH, encoding = "bytes").item()
+    #     #for layers in model
+    #     for name in wDict:
+    #         if name not in self.SKIP:
+    #             with tf.variable_scope(name, reuse = True):
+    #                 for p in wDict[name]:
+    #                     if len(p.shape) == 1:
+    #                         #bias
+    #                         sess.run(tf.get_variable('b', trainable = False).assign(p))
+    #                     else:
+    #                         #weights
+    #                         sess.run(tf.get_variable('w', trainable = False).assign(p))
+
+
