@@ -6,7 +6,7 @@ import time
 import cifar10_input
 import math
 from model import alexNet
-
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 def main():
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
