@@ -15,7 +15,7 @@ def main():
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
 
-	max_epoch = 3
+	max_epoch = 3000
 	batch_step = 128
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-py')
 	# cifar10.maybe_download_and_extract()
