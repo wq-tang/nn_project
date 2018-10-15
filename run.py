@@ -8,7 +8,7 @@ import cifar10_input
 import math
 from model import alexNet
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-model_path = "bagging.ckpt"
+model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
@@ -22,8 +22,8 @@ def main():
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
-	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
-	x  = tf.placeholder(tf.float32,[None,32,32,3])
+	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
+	x  = tf.placeholder(tf.float32,[None,24,24,3])
 	y = tf.placeholder(tf.int32,[None])
 
 	model = alexNet(x,10)
