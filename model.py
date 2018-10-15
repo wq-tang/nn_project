@@ -62,8 +62,8 @@ class alexNet(object):
         pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
         norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
 
-        conv2 = convLayer(norm_pool1, [5, 5], [1, 1], 64, "conv2",'SAME')
-        pool2 = maxPoolLayer(conv2,[3, 3], [2, 2], "pool2", "SAME")
+        conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
+        pool2 = maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
         norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
 
         conv3 = convLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
