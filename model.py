@@ -70,8 +70,8 @@ class alexNet(object):
         pool3 = maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
         norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
 
-        conv4 = convLayer(norm_pool3, [3, 3], [1, 1], 64, "conv3",'VALID')
-        pool4 = maxPoolLayer(conv4, [3, 3], [2, 2], "pool3", "VALID")
+        conv4 = convLayer(norm_pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
+        pool4 = maxPoolLayer(conv4, [3, 3], [2, 2], "pool4", "VALID")
 
 
         shapes = pool4.get_shape().as_list()[1:]
