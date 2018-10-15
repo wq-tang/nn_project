@@ -60,24 +60,24 @@ class alexNet(object):
         """build model"""
         conv1 = convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
         pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
-
         norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
+
         conv2 = convLayer(norm_pool1, [5, 5], [1, 1], 64, "conv2",'SAME')
         pool2 = maxPoolLayer(conv2,[3, 3], [2, 2], "pool2", "SAME")
-
         norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
+
         conv3 = convLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
         pool3 = maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
-
         norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
-        conv3 = convLayer(norm_pool2, [3, 3], [1, 1], 64, "conv3",'VALID')
-        pool3 = maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
+
+        conv4 = convLayer(norm_pool3, [3, 3], [1, 1], 64, "conv3",'VALID')
+        pool4 = maxPoolLayer(conv4, [3, 3], [2, 2], "pool3", "VALID")
 
 
-        shapes = pool3.get_shape().as_list()[1:]
+        shapes = pool4.get_shape().as_list()[1:]
         mul = reduce(lambda x,y:x * y,shapes)
         
-        reshape = tf.reshape(pool3,[-1,mul])
+        reshape = tf.reshape(pool4,[-1,mul])
         dim = reshape.get_shape()[1].value
 
         norm_reshape=tf.layers.batch_normalization(reshape,training=self.training)
