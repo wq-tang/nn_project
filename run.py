@@ -23,7 +23,7 @@ def main():
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
 	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
-	x  = tf.placeholder(tf.float32,[None,24,24,3])
+	x  = tf.placeholder(tf.float32,[None,32,32,3])
 	y = tf.placeholder(tf.int32,[None])
 
 	model = alexNet(x,10)
