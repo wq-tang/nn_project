@@ -1,5 +1,4 @@
 # import cifar10
-import matplotlib.pyplot as plt
 import os
 import numpy as np 
 import tensorflow as tf 
@@ -41,10 +40,6 @@ def main():
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
 
-	fig = plt.figure()
-	ax = fig.add_subplot(1,1,1)
-	plt.ion()
-	plt.show()
 	train_list = []
 	test_list=[]
 
@@ -72,10 +67,7 @@ def main():
 			test_list.append(test_accuracy)
 
 	saver = tf.train.Saver()
-	x_axis = list(np.arange(1,max_epoch/100+1)*100)
 	save_path = saver.save(sess,model_path)
-	ax.plot(x_axis,train_list,'b-','o',lw =5)
-	ax.plot(x_axis,train_list,'r-','v',lw =5)
 	
 	for m in model:
 		m.training = False
