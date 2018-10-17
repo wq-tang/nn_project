@@ -6,7 +6,7 @@ import time
 import cifar10_input
 import math
 from model import alexNet
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "5"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
 	def loss(logits,y):
@@ -16,7 +16,7 @@ def main():
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
 
-	max_epoch = 3000
+	max_epoch = 6000
 	batch_step = 128
 	model_num=10
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
