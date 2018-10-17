@@ -30,8 +30,16 @@ def main():
 	model = []
 	for i in range(model_num):
 		model.append(alexNet(x,10,i))
-	models_result =sum(list(map(lambda x:x.fc3,model)))
-	loss  = loss(models_result,y)
+	models_result =list(map(lambda x:x.fc3,model))
+	angle =list(map(lambda x:np.pi*x/tf.reduce_sum(x),models_result))
+	vector = list(zip(models_result,angle))
+	vector_x = list(map(lambda x:x[0]*np.cos(x[1]),vector))
+	vector_y = list(map(lambda x:x[0]*np.sin(x[1]),vector))
+	
+	vector_x = tf.reduce_sum(vector_x,0)
+	vector_y = tf.reduce_sum(vector_y,0)
+	result = vector_x**2+vector_y**2
+	loss  = loss(result,y)
 
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 	with tf.control_dependencies(update_ops):
