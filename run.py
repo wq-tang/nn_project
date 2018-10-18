@@ -33,8 +33,8 @@ def main():
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:np.pi*x/tf.reduce_sum(x),models_result))
 	vector = list(zip(models_result,angle))
-	vector_x = list(map(lambda x:x[0]*np.cos(x[1]),vector))
-	vector_y = list(map(lambda x:x[0]*np.sin(x[1]),vector))
+	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
+	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
 	
 	vector_x = tf.reduce_sum(vector_x,0)
 	vector_y = tf.reduce_sum(vector_y,0)
