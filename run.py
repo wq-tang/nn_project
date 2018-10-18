@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np 
 import tensorflow as tf 
-import time
+import time 
 import cifar10_input
 import math
 from model import alexNet
@@ -17,7 +17,7 @@ def main():
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
 
-	max_epoch = 3000
+	max_epoch = 6000
 	batch_step = 128
 	model_num=10
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
@@ -31,7 +31,7 @@ def main():
 	for i in range(model_num):
 		model.append(alexNet(x,10,i))
 	models_result =list(map(lambda x:x.fc3,model))
-	angle =list(map(lambda x:np.pi*x/tf.reduce_sum(x,1),models_result))
+	angle =list(map(lambda x:np.pi*x/tf.reduce_sum(x,1,keep_dims = True),models_result))
 	vector = list(zip(models_result,angle))
 	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
 	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
@@ -44,7 +44,7 @@ def main():
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 	with tf.control_dependencies(update_ops):
 		train_op = tf.train.AdamOptimizer(0.1**3).minimize(loss)
-	top_k_op = tf.nn.in_top_k(models_result,y,1)
+	top_k_op = tf.nn.in_top_k(result,y,1)
 	accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
