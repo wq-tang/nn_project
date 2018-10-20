@@ -31,7 +31,7 @@ def main():
 	for i in range(model_num):
 		model.append(alexNet(x,10,i))
 	models_result =list(map(lambda x:x.fc3,model))
-	angle =list(map(lambda x:np.pi*x/tf.reduce_sum(x,1,keep_dims = True),models_result))
+	angle =list(map(lambda x:np.pi*tf.nn.softmax(x),models_result))
 	vector = list(zip(models_result,angle))
 	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
 	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
