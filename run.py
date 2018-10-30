@@ -6,7 +6,7 @@ import time
 import cifar10_input
 import math
 from model import alexNet
-os.environ["CUDA_VISIBLE_DEVICES"] = "5"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
 	def loss(logits,y):
