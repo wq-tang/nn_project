@@ -7,7 +7,7 @@ import time
 import cifar10_input
 import math
 from model import alexNet
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
 	def loss(logits,y):
@@ -31,7 +31,7 @@ def main():
 	for i in range(model_num):
 		model.append(alexNet(x,10,i))
 	models_result =list(map(lambda x:x.fc3,model))
-	angle =list(map(lambda x:np.pi*tf.nn.softmax(x),models_result))
+	angle =list(map(lambda x:0*tf.nn.softmax(x),models_result))
 	vector = list(zip(models_result,angle))
 	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
 	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
