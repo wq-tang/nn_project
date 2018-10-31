@@ -19,7 +19,7 @@ def main():
 
 	max_epoch = 6000
 	batch_step = 128
-	model_num=10
+	model_num=5
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
@@ -37,9 +37,9 @@ def main():
 	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
 	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
 	
-	vector_x = tf.reduce_sum(vector_x,0)
-	vector_y = tf.reduce_sum(vector_y,0)
-	result = vector_x**2+vector_y**2
+	vector_x_sum = tf.reduce_sum(vector_x,0)
+	vector_y_sum = tf.reduce_sum(vector_y,0)
+	result = vector_x_sum**2+vector_y_sum**2
 	loss  = loss(result,y)
 
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
