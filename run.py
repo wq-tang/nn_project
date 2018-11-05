@@ -30,26 +30,32 @@ def main():
 	model = []
 	for i in range(model_num):
 		model.append(alexNet(x,10,i))
-	models_result =list(map(lambda x:x.fc3,model))
-	#angle =list(map(lambda x:np.pi*tf.nn.softmax(x),models_result))
-	angle =list(map(lambda x:0*x,models_result))
+	models_result =list(map(lambda x:x.fc3+1e-10,model))
+	angle =list(map(lambda x:np.pi*tf.nn.softmax(x),models_result))
 	vector = list(zip(models_result,angle))
 	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
 	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
 	
 	vector_x_sum = tf.reduce_sum(vector_x,0)
 	vector_y_sum = tf.reduce_sum(vector_y,0)
-	result = vector_x_sum**2+vector_y_sum**2
+	result =tf.sqrt(tf.square(vector_x_sum)+tf.square(vector_y_sum))
 	loss  = loss(result,y)
 
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+	optimizer= tf.train.AdamOptimizer(0.1**3)
+	########
+	gradient_all = optimizer.compute_gradients(loss)
+	grads = [g for (g,v) in gradient_all if g is not None]
+	########
 	with tf.control_dependencies(update_ops):
-		train_op = tf.train.AdamOptimizer(0.1**3).minimize(loss)
+		train_op =optimizer.minimize(loss)
 	top_k_op = tf.nn.in_top_k(result,y,1)
 	accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
+
+
 
 	fig = plt.figure()
 	ax = fig.add_subplot(1,1,1)
@@ -62,7 +68,7 @@ def main():
 	for i in range(max_epoch):
 		start_time = time.time()
 		train_x,train_y = sess.run([train_images,train_labels])
-		_,loss_value = sess.run([train_op,loss],feed_dict={x:train_x,y:train_y})
+		_,loss_value,gradss = sess.run([train_op,loss,grads],feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
 		if i%100 ==0:
 			examples_per_sec = batch_step/duration
