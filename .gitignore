@@ -112,3 +112,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Python:
+*.py[cod]
+*.so
+*.egg
+*.egg-info
+dist
+build
+
+# My configurations:
+db.ini
+deploy_key_rsa
+*.csv
+*.docx
+*.xlsx
