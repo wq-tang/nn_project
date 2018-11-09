@@ -7,6 +7,8 @@ import time
 import cifar10_input
 import math
 from model import alexNet
+from model import dy_model
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
@@ -27,9 +29,11 @@ def main():
 	x  = tf.placeholder(tf.float32,[None,24,24,3])
 	y = tf.placeholder(tf.int32,[None])
 
+	shape_cnn=[[[5,1,256],[5,1,128],[5,1,64],[3,2,64],[3,2,64]],[[5,2,128],[5,1,64],[3,1,64],[3,2,64]]]
+	shape_pool=[[[3,2],[3,2],[3,1],[3,2],[3,1]],[[3,1],[3,2],[3,1],[3,2]]]
 	model = []
-	for i in range(model_num):
-		model.append(alexNet(x,10,i))
+	for i in range(len(shape_cnn)):
+		model.append(dy_model(x,10,i,shape_cnn[i],shape_pool[i]))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:np.pi*tf.nn.softmax(x),models_result))
 	vector = list(zip(models_result,angle))
