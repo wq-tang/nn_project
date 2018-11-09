@@ -39,6 +39,7 @@ def main():
 	vector_x = tf.reduce_sum(vector_x,0)
 	vector_y = tf.reduce_sum(vector_y,0)
 	result = vector_x**2+vector_y**2
+
 	loss  = loss(result,y)
 
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -98,3 +99,18 @@ def main():
 
 if __name__=='__main__':
 	main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
