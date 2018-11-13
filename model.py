@@ -18,7 +18,6 @@ def maxPoolLayer(x, ksize,strides=[1,1], name='None', padding = "SAME"):
                           strides = [1] +strides+[1], padding = padding, name = name)
 
 
-
 def fcLayer(x, input_size, output_size, reluFlag, name):
     """fully-connect"""
     with tf.variable_scope(name) as scope:
