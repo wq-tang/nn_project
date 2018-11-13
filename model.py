@@ -89,8 +89,9 @@ class alexNet(object):
             fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
 
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
-            self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
-
+            fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            w_expert = tf.get_variable("w_expert", shape = [1, self.CLASSNUM], dtype = "float")
+            self.fc3 = fc3*w_expert
     # def loadModel(self, sess):
     #     """load model"""
     #     wDict = np.load(self.MODELPATH, encoding = "bytes").item()
