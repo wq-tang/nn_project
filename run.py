@@ -17,9 +17,9 @@ def main():
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
 
-	max_epoch = 6000
-	batch_step = 128
-	model_num=10
+	max_epoch = 30000
+	batch_step = 100
+	model_num=12
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
@@ -28,10 +28,12 @@ def main():
 	y = tf.placeholder(tf.int32,[None])
 
 	model = []
+	angles = []
 	for i in range(model_num):
 		model.append(alexNet(x,10,i))
+		angles.append(angle_net(x,10,i))
 	models_result =list(map(lambda x:x.fc3,model))
-	angle =list(map(lambda x:np.pi*tf.nn.softmax(x),models_result))
+	angle =list(map(lambda x:x.fc3,angles))
 	vector = list(zip(models_result,angle))
 	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
 	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
