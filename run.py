@@ -7,6 +7,8 @@ import time
 import cifar10_input
 import math
 from model import alexNet
+from model import attention
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
@@ -17,9 +19,9 @@ def main():
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
 
-	max_epoch = 3000
-	batch_step = 128
-	model_num=10
+	max_epoch = 30000
+	batch_step = 100
+	model_num=5
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
@@ -29,7 +31,7 @@ def main():
 
 	model = []
 	for i in range(model_num):
-		model.append(alexNet(x,10,i))
+		model.append(alexNet(attention(x,i).attention,10,i))
 	models_result =sum(list(map(lambda x:x.fc3,model)))
 	loss  = loss(models_result,y)
 

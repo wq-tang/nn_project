@@ -91,19 +91,35 @@ class alexNet(object):
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
             self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
 
-    # def loadModel(self, sess):
-    #     """load model"""
-    #     wDict = np.load(self.MODELPATH, encoding = "bytes").item()
-    #     #for layers in model
-    #     for name in wDict:
-    #         if name not in self.SKIP:
-    #             with tf.variable_scope(name, reuse = True):
-    #                 for p in wDict[name]:
-    #                     if len(p.shape) == 1:
-    #                         #bias
-    #                         sess.run(tf.get_variable('b', trainable = False).assign(p))
-    #                     else:
-    #                         #weights
-    #                         sess.run(tf.get_variable('w', trainable = False).assign(p))
+
+class attention(object):
+    """alexNet model"""
+    def __init__(self, x, seed):
+        self.X = x
+        self.training = True
+        tf.set_random_seed(seed)  
+        self.seed = seed
+        #build CNN
+        self.buildCNN()
+
+    def buildCNN(self):
+        """build model"""
+        with tf.variable_scope('model_%d'%self.seed):
+            out_channel = int(self.X.get_shape()[-1])
+            conv1 = convLayer(self.X, [5, 5], [1, 1], 100, "conv1", "SAME")
+            pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
+            norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
+
+            conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
+            pool2 = maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
+            norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
+
+            conv3 = convLayer(norm_pool2, [3, 3], [1, 1], 16, "conv3",'VALID')
+            pool3 = maxPoolLayer(conv3, [3, 3], [1, 1], "pool3", "VALID")
+            norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
+
+            conv4 = convLayer(norm_pool3, [3, 3], [1, 1], out_channel, "conv4",'VALID')
+            self.attention = maxPoolLayer(conv4, [3, 3], [1, 1], "pool4", "VALID")
+
 
 
