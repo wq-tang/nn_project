@@ -108,20 +108,14 @@ class attention(object):
         """build model"""
         with tf.variable_scope('model_%d'%self.seed):
             out_channel = int(self.X.get_shape()[-1])
-            conv1 = convLayer(self.X, [5, 5], [1, 1], 100, "conv1", "SAME")
-            pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
-            norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
+            conv1 = convLayer(self.X, [3, 3], [1, 1], 64, "conv1", "SAME")
+            norm_pool1=tf.layers.batch_normalization(conv1,training=self.training)
 
-            conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
-            pool2 = maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
-            norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
+            conv2 = convLayer(norm_pool1, [1, 1], [1, 1], 16, "conv2",'SAME')
+            norm_pool2=tf.layers.batch_normalization(conv2,training=self.training)
 
-            conv3 = convLayer(norm_pool2, [3, 3], [1, 1], 16, "conv3",'VALID')
-            pool3 = maxPoolLayer(conv3, [3, 3], [1, 1], "pool3", "VALID")
-            norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
-
-            conv4 = convLayer(norm_pool3, [3, 3], [1, 1], out_channel, "conv4",'VALID')
-            self.attention = maxPoolLayer(conv4, [3, 3], [1, 1], "pool4", "VALID")
+            self.attention = convLayer(norm_pool2, [1, 1], [1, 1], 3, "conv3",'VALID')
+        
 
 
 
