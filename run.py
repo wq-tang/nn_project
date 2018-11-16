@@ -64,7 +64,7 @@ def main():
 	train_list = []
 	test_list=[]
 
-	test_x,test_y = sess.run([test_images,test_labels])
+	
 	for i in range(max_epoch):
 		start_time = time.time()
 		train_x,train_y = sess.run([train_images,train_labels])
@@ -80,6 +80,7 @@ def main():
 			for m,k in list(zip(model,angle)):
 				m.training = False
 				k.training = False
+			test_x,test_y = sess.run([test_images,test_labels])
 			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
 			for m,k in list(zip(model,angle)):
 				m.training = True
@@ -99,8 +100,10 @@ def main():
 		m.training = False
 		k.training = False
 	precision = []
-	for i in range(10):
+	for i in range(20):
+		test_x,test_y = sess.run([test_images,test_labels])
 		precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
+	print(precision)
 	precision = np.mean(precision)
 	for m,k in list(zip(model,angle)):
 		m.training = True
