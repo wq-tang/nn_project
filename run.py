@@ -7,6 +7,8 @@ import time
 import cifar10_input
 import math
 from model import alexNet
+from model import angle_net
+tf.set_random_seed(0)
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
 	def loss(logits,y):
@@ -18,19 +20,22 @@ def main():
 
 	max_epoch = 30000
 	batch_step = 100
-	model_num=12
+	model_num=2
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
-	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
-	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
-	x  = tf.placeholder(tf.float32,[None,24,24,3])
-	y = tf.placeholder(tf.int32,[None])
+	
+	
+	with tf.device('/cpu:0'):
+		train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
+		test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
+		x  = tf.placeholder(tf.float32,[None,24,24,3])
+		y = tf.placeholder(tf.int32,[None])
 
 	model = []
 	angles = []
 	for i in range(model_num):
 		model.append(alexNet(x,10,i))
-		angles.append(angle_net(x,10,i))
+		angles.append(angle_net(x,10,i+10))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
 	vector = list(zip(models_result,angle))
@@ -72,11 +77,13 @@ def main():
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
 
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
-			for m in model:
+			for m,k in list(zip(model,angle)):
 				m.training = False
+				k.training = False
 			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
-			for m in model:
+			for m,k in list(zip(model,angle)):
 				m.training = True
+				k.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
 			train_list.append(train_accuracy)
@@ -88,11 +95,16 @@ def main():
 	ax.plot(x_axis,train_list,'b-','o',lw =5)
 	ax.plot(x_axis,train_list,'r-','v',lw =5)
 	
-	for m in model:
+	for m,k in list(zip(model,angle)):
 		m.training = False
-	precision = accuracy.eval(feed_dict={x:test_x, y: test_y})
-	for m in model:
+		k.training = False
+	precision = []
+	for i in range(10):
+		precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
+	precision = np.mean(precision)
+	for m,k in list(zip(model,angle)):
 		m.training = True
+		k.training = True
 	print('precision @1 = %.3f'%precision)
 
 

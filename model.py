@@ -22,8 +22,9 @@ def maxPoolLayer(x, ksize,strides=[1,1], name='None', padding = "SAME"):
 def fcLayer(x, input_size, output_size, reluFlag, name):
     """fully-connect"""
     with tf.variable_scope(name) as scope:
-        w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float")
-        b = tf.get_variable("b", [output_size], dtype = "float")
+        with tf.device('/cpu:0'):        
+            w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float")
+            b = tf.get_variable("b", [output_size], dtype = "float")
         out = tf.nn.xw_plus_b(x, w, b, name = scope.name)
         if reluFlag:
             return tf.nn.relu(out)
@@ -37,8 +38,9 @@ def convLayer(x, ksize, strides,out_channel, name, padding = "SAME"):
     conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
 
     with tf.variable_scope(name) as scope:
-        w = tf.get_variable("w", shape = ksize+[in_channel,out_channel])
-        b = tf.get_variable("b", shape = [out_channel])
+        with tf.device('/cpu:0'):
+            w = tf.get_variable("w", shape = ksize+[in_channel,out_channel])
+            b = tf.get_variable("b", shape = [out_channel])
         out_put = conv(x,w)
         # print mergeFeatureMap.shape
         out = tf.nn.bias_add(out_put, b)
