@@ -32,12 +32,13 @@ def main():
 		y = tf.placeholder(tf.int32,[None])
 
 	model = []
-	angles = []
+	angle= []
+	angles = angle_net(x,model_num*10,11).fc3
 	for i in range(model_num):
 		model.append(alexNet(x,10,i))
-		angles.append(angle_net(x,10,i+10))
 	models_result =list(map(lambda x:x.fc3,model))
-	angle =list(map(lambda x:x.fc3,angles))
+	for i in range(model_num):
+		angle.append(tf.slice(angles,[0,i*10],[batch_step,10]))
 	vector = list(zip(models_result,angle))
 	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
 	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
