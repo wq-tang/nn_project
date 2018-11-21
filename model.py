@@ -93,28 +93,10 @@ class alexNet(object):
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
             self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
 
+            angle = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=False,name =  "fc6")
+            self.angle = np.pi*tf.nn.tanh(angle)
 
 
 
 
-class angle_net():
-    """alexNet model"""
-    def __init__(self, x, classNum, seed):
-        self.X = x
-        self.CLASSNUM = classNum
-        self.training = True
-        tf.set_random_seed(seed)  
-        self.seed = seed
-        self.buildCNN()
 
-    def buildCNN(self):
-        """build model"""
-        with tf.variable_scope('model_%d'%(self.seed+10)):
-            fc1 = fcLayer(self.x, 10, 512, reluFlag=True, name = "fc4")
-
-            norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
-            fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=False,name =  "fc5")
-            fc2 = tf.sigmoid(fc2)
-            norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
-            fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
-            self.fc3 = np.pi*tf.nn.tanh(fc3)
