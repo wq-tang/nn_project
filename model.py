@@ -110,7 +110,7 @@ class angle_net():
     def buildCNN(self):
         """build model"""
         with tf.variable_scope('model_%d'%(self.seed+10)):
-            fc1 = fcLayer(self.x, 10, 512, reluFlag=True, name = "fc4")
+            fc1 = fcLayer(self.X, 10, 512, reluFlag=True, name = "fc4")
 
             norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
             fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=False,name =  "fc5")
