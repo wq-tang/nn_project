@@ -99,8 +99,9 @@ class alexNet(object):
 
 class angle_net():
     """alexNet model"""
-    def __init__(self, x, classNum, seed):
+    def __init__(self, x,r, classNum, seed):
         self.X = x
+        self.R = r
         self.CLASSNUM = classNum
         self.training = True
         tf.set_random_seed(seed)  
@@ -110,7 +111,30 @@ class angle_net():
     def buildCNN(self):
         """build model"""
         with tf.variable_scope('model_%d'%(self.seed+10)):
-            fc1 = fcLayer(self.x, 10, 512, reluFlag=True, name = "fc4")
+            conv1 = convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
+            pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
+            norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
+
+            conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
+            pool2 = maxPoolLayer(conv2,[3, 3], [2, 2], "pool2", "SAME")
+            norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
+
+            conv3 = convLayer(norm_pool2, [3, 3], [1, 1], 64, "conv3",'VALID')
+            pool3 = maxPoolLayer(conv3, [3, 3], [1, 1], "pool3", "VALID")
+            norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
+
+            conv4 = convLayer(norm_pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
+            pool4 = maxPoolLayer(conv4, [3, 3], [2, 2], "pool4", "VALID")
+
+
+            shapes = pool4.get_shape().as_list()[1:]
+            mul = reduce(lambda x,y:x * y,shapes)
+            
+            reshapes = tf.reshape(pool4,[-1,mul])
+            reshape = tf.concat([reshapes,self.R],1,'concat') 
+            dim = reshape.get_shape()[1].value
+
+            fc1 = fcLayer(reshape, dim, 512, reluFlag=True, name = "fc4")
 
             norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
             fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=False,name =  "fc5")

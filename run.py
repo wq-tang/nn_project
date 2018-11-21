@@ -35,7 +35,7 @@ def main():
 	angles = []
 	for i in range(model_num):
 		model.append(alexNet(x,10,i))
-		angles.append(angle_net(model[i].fc3,10,i+10))
+		angles.append(angle_net(x,model[i].fc3,10,i+10))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
 	vector = list(zip(models_result,angle))
