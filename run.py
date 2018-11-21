@@ -20,14 +20,14 @@ def main():
 
 	max_epoch = 30000
 	batch_step = 100
-	model_num=3
+	model_num=4
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	
 	
 	with tf.device('/cpu:0'):
 		train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
-		test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
+		test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=100)
 		x  = tf.placeholder(tf.float32,[None,24,24,3])
 		y = tf.placeholder(tf.int32,[None])
 
@@ -101,7 +101,7 @@ def main():
 		m.training = False
 		k.training = False
 	precision = []
-	for i in range(20):
+	for i in range(200):
 		test_x,test_y = sess.run([test_images,test_labels])
 		precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 	print(precision)
@@ -110,6 +110,8 @@ def main():
 		m.training = True
 		k.training = True
 	print('precision @1 = %.3f'%precision)
+	delta = sess.run(angle[0]-angle[1],feed_dict={x:test_x, y: test_y})
+	print(np.mean(np.abs(delta)))
 
 
 
