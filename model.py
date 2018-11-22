@@ -130,15 +130,18 @@ class angle_net():
             shapes = pool4.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
             
-            reshapes = tf.reshape(pool4,[-1,mul])
-            reshape = tf.concat([reshapes,self.R],1,'concat') 
+            reshape = tf.reshape(pool4,[-1,mul])
             dim = reshape.get_shape()[1].value
 
-            fc1 = fcLayer(reshape, dim, 512, reluFlag=True, name = "fc4")
-
+            fc1 = fcLayer(reshape, dim, 256, reluFlag=True, name = "fc4")
             norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
-            fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=False,name =  "fc5")
-            fc2 = tf.sigmoid(fc2)
+            fc2 = fcLayer(norm_fc1, 256, 128, reluFlag=False,name =  "fc5")
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
             fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
-            self.fc3 = np.pi*tf.nn.tanh(fc3)
+            reshapes = tf.concat([fc3,self.R],1,'concat') 
+
+
+            fc4 = fcLayer(reshapes, 20, 100, reluFlag=True, name = "fc6")
+            norm_fc3=tf.layers.batch_normalization(fc4,training=self.training)
+            fc5 = fcLayer(norm_fc3, 100, self.CLASSNUM, reluFlag=False,name =  "fc7")
+            self.fc3 = np.pi*tf.nn.tanh(fc5)
