@@ -121,7 +121,8 @@ class attention(object):
             norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
 
             conv4 = convLayer(norm_pool3, [3, 3], [1, 1], out_channel, "conv4",'VALID')
-            self.attention = maxPoolLayer(conv4, [3, 3], [1, 1], "pool4", "VALID")
+            attention = maxPoolLayer(conv4, [3, 3], [1, 1], "pool4", "VALID")
+            self.attention = tf.nn.sigmoid(attention)
 
 
 
