@@ -29,11 +29,39 @@ def main():
 		test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
 		x  = tf.placeholder(tf.float32,[None,24,24,3])
 		y = tf.placeholder(tf.int32,[None])
-
+'''
 	model = []
+	angle= []
+	angles = angle_net(x,model_num*10,11).fc3
 	for i in range(model_num):
-		model.append(alexNet(attention(x,i).attention,10,i))
-	models_result =sum(list(map(lambda x:x.fc3,model)))
+		model.append(alexNet(x,10,i))
+	models_result =list(map(lambda x:x.fc3,model))
+	for i in range(model_num):
+		angle.append(tf.slice(angles,[0,i*10],[batch_step,10]))
+	vector = list(zip(models_result,angle))
+	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
+	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
+	
+	vector_x = tf.reduce_sum(vector_x,0)
+	vector_y = tf.reduce_sum(vector_y,0)
+	result = vector_x**2+vector_y**2
+'''
+	model = []
+	angles = []
+	model.append(alexNet(x*attention(x,0).attention,10,0))
+	model.append(alexNet(x*(1-attention(x,1).attention),10,1))
+	angles.append(angle_net(x*attention(x,0).attention,10,0))
+	angles.append(angle_net(x*(1-attention(x,1).attention),10,1))
+	models_result =list(map(lambda x:x.fc3,model))
+	angle =list(map(lambda x:x.fc3,angles))
+
+	vector = list(zip(models_result,angle))
+	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
+	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
+	
+	vector_x = tf.reduce_sum(vector_x,0)
+	vector_y = tf.reduce_sum(vector_y,0)
+	result = tf.sqrt(vector_x**2+vector_y**2)
 	loss  = loss(models_result,y)
 
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
