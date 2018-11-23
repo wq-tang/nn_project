@@ -9,7 +9,6 @@ import math
 from model import alexNet
 from model import attention
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
 	def loss(logits,y):
@@ -21,18 +20,17 @@ def main():
 
 	max_epoch = 30000
 	batch_step = 100
-	model_num=5
+	model_num=4
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
-	with tf.device('/cpu:0'):
-		train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
-		test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
-		x  = tf.placeholder(tf.float32,[None,24,24,3])
-		y = tf.placeholder(tf.int32,[None])
+	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
+	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
+	x  = tf.placeholder(tf.float32,[None,24,24,3])
+	y = tf.placeholder(tf.int32,[None])
 
 	model = []
 	for i in range(model_num):
-		model.append(alexNet(attention(x,i).attention,10,i))
+		model.append(alexNet(x*attention(x,i+10).attention,10,i))
 	models_result =sum(list(map(lambda x:x.fc3,model)))
 	loss  = loss(models_result,y)
 
@@ -52,7 +50,7 @@ def main():
 	train_list = []
 	test_list=[]
 
-	test_x,test_y = sess.run([test_images,test_labels])
+	
 	for i in range(max_epoch):
 		start_time = time.time()
 		train_x,train_y = sess.run([train_images,train_labels])
@@ -67,6 +65,7 @@ def main():
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			for m in model:
 				m.training = False
+			test_x,test_y = sess.run([test_images,test_labels])
 			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
 			for m in model:
 				m.training = True
