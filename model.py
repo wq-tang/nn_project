@@ -135,7 +135,7 @@ class dy_model(object):
 
     def buildCNN(self):
         """build model"""
-        
+            
         conv_name,pool_name,norm_pool_name = getname()
         norm_pool_name[0] = self.X
         with tf.variable_scope('model_%d'%self.seed):
