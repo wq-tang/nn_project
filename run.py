@@ -7,9 +7,10 @@ import time
 import cifar10_input
 import math
 from model import alexNet
+from model import angle_net
 from model import attention
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
 	def loss(logits,y):
@@ -26,32 +27,17 @@ def main():
 	# cifar10.maybe_download_and_extract()
 	with tf.device('/cpu:0'):
 		train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
-		test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
+		test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
 		x  = tf.placeholder(tf.float32,[None,24,24,3])
 		y = tf.placeholder(tf.int32,[None])
-'''
-	model = []
-	angle= []
-	angles = angle_net(x,model_num*10,11).fc3
-	for i in range(model_num):
-		model.append(alexNet(x,10,i))
-	models_result =list(map(lambda x:x.fc3,model))
-	for i in range(model_num):
-		angle.append(tf.slice(angles,[0,i*10],[batch_step,10]))
-	vector = list(zip(models_result,angle))
-	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
-	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
-	
-	vector_x = tf.reduce_sum(vector_x,0)
-	vector_y = tf.reduce_sum(vector_y,0)
-	result = vector_x**2+vector_y**2
-'''
+
 	model = []
 	angles = []
-	model.append(alexNet(x*attention(x,0).attention,10,0))
-	model.append(alexNet(x*(1-attention(x,1).attention),10,1))
-	angles.append(angle_net(x*attention(x,0).attention,10,0))
-	angles.append(angle_net(x*(1-attention(x,1).attention),10,1))
+	attentions = attention(x,0).attention
+	model.append(alexNet(x*attentions,10,0))
+	model.append(alexNet(x*(1-attentions),10,1))
+	angles.append(angle_net(x*attentions,10,0))
+	angles.append(angle_net(x*(1-attentions),10,1))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
 
@@ -62,12 +48,12 @@ def main():
 	vector_x = tf.reduce_sum(vector_x,0)
 	vector_y = tf.reduce_sum(vector_y,0)
 	result = tf.sqrt(vector_x**2+vector_y**2)
-	loss  = loss(models_result,y)
+	loss  = loss(result,y)
 
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 	with tf.control_dependencies(update_ops):
 		train_op = tf.train.AdamOptimizer(0.1**3).minimize(loss)
-	top_k_op = tf.nn.in_top_k(models_result,y,1)
+	top_k_op = tf.nn.in_top_k(result,y,1)
 	accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
