@@ -141,7 +141,7 @@ class angle_net():
             reshapes = tf.concat([fc3,self.R],1,'concat') 
 
 
-            fc4 = fcLayer(reshapes, 20, 100, reluFlag=True, name = "fc6")
+            fc4 = fcLayer(reshapes, 20, 100, reluFlag=True, name = "fc7")
             norm_fc3=tf.layers.batch_normalization(fc4,training=self.training)
-            fc5 = fcLayer(norm_fc3, 100, self.CLASSNUM, reluFlag=False,name =  "fc7")
+            fc5 = fcLayer(norm_fc3, 100, self.CLASSNUM, reluFlag=False,name =  "fc8")
             self.fc3 = np.pi*tf.nn.tanh(fc5)
