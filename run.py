@@ -20,7 +20,7 @@ def main():
 
 	max_epoch = 30000
 	batch_step = 100
-	model_num=2
+	model_num=3
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	
@@ -34,8 +34,8 @@ def main():
 	model = []
 	angles = []
 	for i in range(model_num):
-		model.append(alexNet(x,10,i))
-		angles.append(angle_net(x,10,i+10))
+		model.append(alexNet(x[:,:,:,model_num:model_num+1],10,i))
+		angles.append(angle_net(x[:,:,:,model_num:model_num+1],10,i+10))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
 	vector = list(zip(models_result,angle))
