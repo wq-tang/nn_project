@@ -110,7 +110,7 @@ class angle_net():
 
     def buildCNN(self):
         """build model"""
-        with tf.variable_scope('model_%d'%(self.seed+10)):
+        with tf.variable_scope('angle_%d'%(self.seed+10)):
             conv1 = convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
             pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
             norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
