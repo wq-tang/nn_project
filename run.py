@@ -33,7 +33,8 @@ def main():
 
 	model = []
 	angles = []
-	attentions = attention(x,0).attention
+	attention_model = attention(x,0)
+	attentions = attention_model.attention
 	model.append(alexNet(x*attentions,10,0))
 	model.append(alexNet(x*(1-attentions),10,1))
 	angles.append(angle_net(x*attentions,10,0))
@@ -47,7 +48,7 @@ def main():
 	
 	vector_x = tf.reduce_sum(vector_x,0)
 	vector_y = tf.reduce_sum(vector_y,0)
-	result = tf.sqrt(vector_x**2+vector_y**2)
+	result = (vector_x**2+vector_y**2)
 	loss  = loss(result,y)
 
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -95,12 +96,23 @@ def main():
 	ax.plot(x_axis,train_list,'b-','o',lw =5)
 	ax.plot(x_axis,train_list,'r-','v',lw =5)
 	
-	for m in model:
+	for m,k in list(zip(model,angle)):
 		m.training = False
-	precision = accuracy.eval(feed_dict={x:test_x, y: test_y})
-	for m in model:
+		k.training = False
+	attention_model.training  = False
+	precision = []
+	for i in range(20):
+		test_x,test_y = sess.run([test_images,test_labels])
+		precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
+	print(precision)
+	precision = np.mean(precision)
+	for m,k in list(zip(model,angle)):
 		m.training = True
+		k.training = True
+	attention_model.training  = True
 	print('precision @1 = %.3f'%precision)
+	delta = sess.run(angle[0]-angle[1],feed_dict={x:test_x, y: test_y})
+	print(np.mean(np.abs(delta)))
 
 
 
