@@ -8,7 +8,7 @@ import cifar10_input
 import math
 from model import alexNet
 from model import dy_model
-from model import angle
+from model import angle_net
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
@@ -32,7 +32,7 @@ def main():
 	cnn1 = [[5,1,256],[5,1,128],[5,1,64],[3,2,64],[3,2,64]]
 	pool1 = [[3,2],[3,2],[3,1],[3,2],[3,1]]
 	cnn2 = [[5,2,128],[5,1,64],[3,1,64],[3,2,64]]
-	poo2 = [[3,1],[3,2],[3,1],[3,2]]
+	pool2 = [[3,1],[3,2],[3,1],[3,2]]
 	cnn3=[[5,1,256],[3,1,128],[3,1,64],[3,2,64],[3,2,64]]
 	pool3 = [[3,2],[3,2],[3,1],[3,2],[3,1]]
 
@@ -42,13 +42,13 @@ def main():
 	pool5 = [[3,2],[3,1],[3,2],[3,2]]
 	
 	shape_cnn=[cnn1,cnn2,cnn3,cnn4,cnn5]
-	shape_pool=[pool1,poll2,pool3,pool4,pool5]
+	shape_pool=[pool1,pool2,pool3,pool4,pool5]
 
 	model = []
 	angles = []
 	for i in range(len(shape_cnn[:2])):
 		model.append(dy_model(x,10,i,shape_cnn[i],shape_pool[i]))
-		angles.append(angle(x,10,i+10,shape_cnn[i+3],shape_pool[i+3]))
+		angles.append(angle_net(x,10,i+10,shape_cnn[i+3],shape_pool[i+3]))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
 	vector = list(zip(models_result,angle))
