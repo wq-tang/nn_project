@@ -31,7 +31,7 @@ def main():
 	cnn1 = [[5,1,256],[5,1,128],[5,1,64],[3,2,64],[3,2,64]]
 	pool1 = [[3,2],[3,2],[3,1],[3,2],[3,1]]
 	cnn2 = [[5,2,128],[5,1,64],[3,1,64],[3,2,64]]
-	poo2 = [[3,1],[3,2],[3,1],[3,2]]
+	pool2 = [[3,1],[3,2],[3,1],[3,2]]
 	cnn3=[[5,1,256],[3,1,128],[3,1,64],[3,2,64],[3,2,64]]
 	pool3 = [[3,2],[3,2],[3,1],[3,2],[3,1]]
 
@@ -40,10 +40,10 @@ def main():
 	cnn5 = [[5,1,256],[3,1,128],[5,1,64],[3,2,64]]
 	pool5 = [[3,2],[3,1],[3,2],[3,2]]
 	
-	shape_cnn=[cnn1,cnn2,cnn3,cnn4,]
-	shape_pool=[pool1,poll2,pool3,pool4,pool5]
+	shape_cnn=[cnn1,cnn2,cnn3,cnn4,cnn5]
+	shape_pool=[pool1,pool2,pool3,pool4,pool5]
 	model = []
-	for i in range(len(shape_cnn)):
+	for i in range(len(shape_cnn[:2])):
 		model.append(dy_model(x,10,i,shape_cnn[i],shape_pool[i]))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:np.pi*tf.nn.softmax(x),models_result))
