@@ -43,18 +43,10 @@ def main():
 	shape_cnn=[cnn1,cnn2,cnn3,cnn4,]
 	shape_pool=[pool1,poll2,pool3,pool4,pool5]
 	model = []
-	for i in range(len(shape_cnn)):
+	for i in range(len(shape_cnn[:2])):
 		model.append(dy_model(x,10,i,shape_cnn[i],shape_pool[i]))
-	models_result =list(map(lambda x:x.fc3,model))
-	angle =list(map(lambda x:np.pi*tf.nn.softmax(x),models_result))
-	vector = list(zip(models_result,angle))
-	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
-	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
+	result =sum(list(map(lambda x:x.fc3,model)))
 	
-	vector_x = tf.reduce_sum(vector_x,0)
-	vector_y = tf.reduce_sum(vector_y,0)
-	result = vector_x**2+vector_y**2
-
 	loss  = loss(result,y)
 
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
