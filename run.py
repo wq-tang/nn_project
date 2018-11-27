@@ -9,7 +9,7 @@ import math
 from model import alexNet
 from model import dy_model
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
 	def loss(logits,y):
@@ -19,19 +19,29 @@ def main():
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
 
-	max_epoch = 10000
+	max_epoch = 30000
 	batch_step = 100
-	model_num=10
+	model_num=2
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
 	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
 	x  = tf.placeholder(tf.float32,[None,24,24,3])
 	y = tf.placeholder(tf.int32,[None])
+	cnn1 = [[5,1,256],[5,1,128],[5,1,64],[3,2,64],[3,2,64]]
+	pool1 = [[3,2],[3,2],[3,1],[3,2],[3,1]]
+	cnn2 = [[5,2,128],[5,1,64],[3,1,64],[3,2,64]]
+	poo2 = [[3,1],[3,2],[3,1],[3,2]]
+	cnn3=[[5,1,256],[3,1,128],[3,1,64],[3,2,64],[3,2,64]]
+	pool3 = [[3,2],[3,2],[3,1],[3,2],[3,1]]
 
-	shape_cnn=[[[5,1,256],[5,1,128],[5,1,64],[3,2,64],[3,2,64]],[[5,2,128],[5,1,64],[3,1,64],[3,2,64]],[[5,1,256],[3,1,128],[3,1,64],[3,2,64],[3,2,64]],\
-	[[3,1,256],[3,1,128],[5,1,64],[3,1,64],[3,2,64]],[[5,1,256],[3,1,128],[5,1,64],[3,2,64]]]
-	shape_pool=[[[3,2],[3,2],[3,1],[3,2],[3,1]],[[3,1],[3,2],[3,1],[3,2]],[[3,2],[3,2],[3,1],[3,2],[3,1]],[[3,1],[3,2],[3,2],[3,2],[3,1]],[[3,2],[3,1],[3,2],[3,2]]]
+	cnn4 = [[3,1,256],[3,1,128],[5,1,64],[3,1,64],[3,2,64]]
+	pool4 = [[3,1],[3,2],[3,2],[3,2],[3,1]]
+	cnn5 = [[5,1,256],[3,1,128],[5,1,64],[3,2,64]]
+	pool5 = [[3,2],[3,1],[3,2],[3,2]]
+	
+	shape_cnn=[cnn1,cnn2,cnn3,cnn4,]
+	shape_pool=[pool1,poll2,pool3,pool4,pool5]
 	model = []
 	for i in range(len(shape_cnn)):
 		model.append(dy_model(x,10,i,shape_cnn[i],shape_pool[i]))
