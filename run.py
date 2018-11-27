@@ -8,6 +8,7 @@ import cifar10_input
 import math
 from model import alexNet
 from model import dy_model
+from model import angle
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
@@ -40,13 +41,16 @@ def main():
 	cnn5 = [[5,1,256],[3,1,128],[5,1,64],[3,2,64]]
 	pool5 = [[3,2],[3,1],[3,2],[3,2]]
 	
-	shape_cnn=[cnn1,cnn2,cnn3,cnn4,]
+	shape_cnn=[cnn1,cnn2,cnn3,cnn4,cnn5]
 	shape_pool=[pool1,poll2,pool3,pool4,pool5]
+
 	model = []
-	for i in range(len(shape_cnn)):
+	angles = []
+	for i in range(len(shape_cnn[:2])):
 		model.append(dy_model(x,10,i,shape_cnn[i],shape_pool[i]))
+		angles.append(angle(x,10,i+10,shape_cnn[i+3],shape_pool[i+3]))
 	models_result =list(map(lambda x:x.fc3,model))
-	angle =list(map(lambda x:np.pi*tf.nn.softmax(x),models_result))
+	angle =list(map(lambda x:x.fc3,angles))
 	vector = list(zip(models_result,angle))
 	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
 	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
@@ -86,11 +90,13 @@ def main():
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
 
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
-			for m in model:
+			for m,n in model,angles:
 				m.training = False
+				n.training = False
 			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
-			for m in model:
+			for m,n in model,angles:
 				m.training = True
+				n.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
 			train_list.append(train_accuracy)
@@ -102,11 +108,13 @@ def main():
 	ax.plot(x_axis,train_list,'b-','o',lw =5)
 	ax.plot(x_axis,train_list,'r-','v',lw =5)
 	
-	for m in model:
+	for m,n in model,angles:
 		m.training = False
+		n.training = False
 	precision = accuracy.eval(feed_dict={x:test_x, y: test_y})
-	for m in model:
+	for m,n in model,angles:
 		m.training = True
+		n.training = True
 	print('precision @1 = %.3f'%precision)
 
 
