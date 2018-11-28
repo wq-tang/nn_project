@@ -39,6 +39,7 @@ def main():
 	model.append(alexNet(x*attention(x,1).attention,10,1))
 	angles.append(angle_net(x*attention(x,2).attention,10,0))
 	angles.append(angle_net(x*attention(x,3).attention,10,1))
+
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
 
@@ -48,7 +49,7 @@ def main():
 	
 	vector_x = tf.reduce_sum(vector_x,0)
 	vector_y = tf.reduce_sum(vector_y,0)
-	result = (vector_x**2+vector_y**2)
+	result = vector_x**2+vector_y**2
 	loss  = loss(result,y)
 
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
