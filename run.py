@@ -9,7 +9,7 @@ import math
 from model import alexNet
 from model import dy_model
 from model import angle_net
-
+from model import attention
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
@@ -47,8 +47,8 @@ def main():
 	model = []
 	angles = []
 	for i in range(len(shape_cnn[:2])):
-		model.append(dy_model(x,10,i,shape_cnn[i],shape_pool[i]))
-		angles.append(angle_net(x,10,i+10,shape_cnn[i+3],shape_pool[i+3]))
+		model.append(dy_model(x*attention(x,i).attention,10,i,shape_cnn[i],shape_pool[i]))
+		angles.append(angle_net(x*attention(x,i+10).attention,10,i+10,shape_cnn[i+3],shape_pool[i+3]))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
 	vector = list(zip(models_result,angle))
@@ -111,11 +111,15 @@ def main():
 	for m,n in model,angles:
 		m.training = False
 		n.training = False
-	precision = accuracy.eval(feed_dict={x:test_x, y: test_y})
+	precision = []
+	for i in range(20):
+		test_x,test_y = sess.run([test_images,test_labels])
+		precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 	for m,n in model,angles:
 		m.training = True
 		n.training = True
-	print('precision @1 = %.3f'%precision)
+	print(precision)
+	print('precision @1 = %.3f'%np.mean(precision))
 
 
 

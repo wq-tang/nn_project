@@ -205,3 +205,30 @@ class angle_net(object):
             fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
             self.fc3 = np.pi*tf.nn.tanh(fc3)
 
+class attention(object):
+    """alexNet model"""
+    def __init__(self, x, seed):
+        self.X = x
+        self.training = True
+        tf.set_random_seed(seed)  
+        self.seed = seed
+        #build CNN
+        self.buildCNN()
+
+    def buildCNN(self):
+        """build model"""
+        with tf.variable_scope('attention_%d'%self.seed):
+            out_channel = int(self.X.get_shape()[-1])
+            conv1 = convLayer(self.X, [5, 5], [1, 1], 80, "conv1", "SAME")
+            pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
+            norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
+
+            conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 24, "conv2",'SAME')
+            pool2 = maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
+            norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
+
+            conv3 = convLayer(norm_pool2, [3, 3], [1, 1], 3, "conv3",'SAME')
+            pool3 = maxPoolLayer(conv3, [3, 3], [1, 1], "pool3", "SAME")
+            norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
+
+            self.attention = tf.nn.sigmoid(norm_pool3)
