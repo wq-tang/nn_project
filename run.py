@@ -21,7 +21,7 @@ def main():
 
 	max_epoch = 30000
 	batch_step = 100
-	model_num=2
+	model_num=4
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
@@ -43,7 +43,7 @@ def main():
 	shape_cnn=[cnn1,cnn2,cnn3,cnn4,cnn5]
 	shape_pool=[pool1,pool2,pool3,pool4,pool5]
 	model = []
-	for i in range(len(shape_cnn[:2])):
+	for i in range(len(shape_cnn[:model_num])):
 		model.append(dy_model(x,10,i,shape_cnn[i],shape_pool[i]))
 	result =sum(list(map(lambda x:x.fc3,model)))
 
@@ -96,10 +96,14 @@ def main():
 	
 	for m in model:
 		m.training = False
-	precision = accuracy.eval(feed_dict={x:test_x, y: test_y})
+	precision =[]
+	for i in range(20):
+		test_x,test_y = sess.run([test_images,test_labels])
+		precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 	for m in model:
 		m.training = True
-	print('precision @1 = %.3f'%precision)
+	print(precision)
+	print('precision @1 = %.3f'%np.mean(precision))
 
 
 
