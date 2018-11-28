@@ -33,12 +33,12 @@ def main():
 
 	model = []
 	angles = []
-	attention_model = attention(x,0)
-	attentions = attention_model.attention
-	model.append(alexNet(x*attentions,10,0))
-	model.append(alexNet(x*(1-attentions),10,1))
-	angles.append(angle_net(x*attentions,10,0))
-	angles.append(angle_net(x*(1-attentions),10,1))
+	# attention_model = attention(x,0)
+	# attentions = attention_model.attention
+	model.append(alexNet(x*attention(x,0).attention,10,0))
+	model.append(alexNet(x*attention(x,1).attention,10,1))
+	angles.append(angle_net(x*attention(x,2).attention,10,0))
+	angles.append(angle_net(x*attention(x,3).attention,10,1))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
 
