@@ -49,9 +49,9 @@ def main():
 	att = []
 	for i in range(model_num):
 		att.append(attention(x,i))
-	for i in range(len(shape_cnn[:2])):
+	for i in range(model_num):
 		model.append(dy_model(x*att[i].attention,10,i,shape_cnn[i],shape_pool[i]))
-		angles.append(angle_net(x*att[i+model_num//2].attention,10,i+10,shape_cnn[i+3],shape_pool[i+3]))
+		angles.append(angle_net(x*att[i+model_num].attention,10,i+10,shape_cnn[i+3],shape_pool[i+3]))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
 	vector = list(zip(models_result,angle))
