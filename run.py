@@ -18,7 +18,7 @@ def main():
 
 	max_epoch = 30000
 	batch_step = 100
-	model_num=4
+	model_num=2
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
@@ -28,7 +28,9 @@ def main():
 
 	model = []
 	for i in range(model_num):
-		model.append(alexNet(x,10,i))
+		model.append(alexNet(x[:,:,:,:1],10,i))
+		model.append(alexNet(x[:,:,:,1:2],10,i+model_num))
+		model.append(alexNet(x[:,:,:,2:],10,i+model_num*2))
 	models_result =sum(list(map(lambda x:x.fc3,model)))
 	loss  = loss(models_result,y)
 
