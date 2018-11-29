@@ -33,12 +33,15 @@ def main():
 
 	model = []
 	angles = []
+	att = []
+	for i in range(2*model_num):
+		att.append(attention(x,i))
 	# attention_model = attention(x,0)
 	# attentions = attention_model.attention
-	model.append(alexNet(x*attention(x,0).attention,10,0))
-	model.append(alexNet(x*attention(x,1).attention,10,1))
-	angles.append(angle_net(x*attention(x,2).attention,10,0))
-	angles.append(angle_net(x*attention(x,3).attention,10,1))
+	model.append(alexNet(x*att[0].attention,10,0))
+	model.append(alexNet(x*att[1].attention,10,1))
+	angles.append(angle_net(x*att[2].attention,10,0))
+	angles.append(angle_net(x*att[3].attention,10,1))
 
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
@@ -81,11 +84,13 @@ def main():
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
 
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
-			for m in model:
-				m.training = False
+			for it in model,angles,att:
+				for m in it:
+					m.training = False
 			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
-			for m in model:
-				m.training = True
+			for it in model,angles,att:
+				for m in it:
+					m.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
 			train_list.append(train_accuracy)
@@ -97,20 +102,18 @@ def main():
 	ax.plot(x_axis,train_list,'b-','o',lw =5)
 	ax.plot(x_axis,train_list,'r-','v',lw =5)
 	
-	for m,k in list(zip(model,angle)):
-		m.training = False
-		k.training = False
-	attention_model.training  = False
+	for it in model,angles,att:
+		for m in it:
+			m.training = False
 	precision = []
 	for i in range(20):
 		test_x,test_y = sess.run([test_images,test_labels])
 		precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 	print(precision)
 	precision = np.mean(precision)
-	for m,k in list(zip(model,angle)):
-		m.training = True
-		k.training = True
-	attention_model.training  = True
+	for it in model,angles,att:
+		for m in it:
+			m.training = True
 	print('precision @1 = %.3f'%precision)
 	delta = sess.run(angle[0]-angle[1],feed_dict={x:test_x, y: test_y})
 	print(np.mean(np.abs(delta)))
