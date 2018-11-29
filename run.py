@@ -47,7 +47,7 @@ def main():
 	model = []
 	angles = []
 	att = []
-	for i in range(model_num):
+	for i in range(2*model_num):
 		att.append(attention(x,i))
 	for i in range(model_num):
 		model.append(dy_model(x*att[i].attention,10,i,shape_cnn[i],shape_pool[i]))
