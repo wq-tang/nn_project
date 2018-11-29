@@ -46,9 +46,12 @@ def main():
 
 	model = []
 	angles = []
+	att = []
+	for i in range(model_num):
+		att.append(attention(x,i))
 	for i in range(len(shape_cnn[:2])):
-		model.append(dy_model(x*attention(x,i).attention,10,i,shape_cnn[i],shape_pool[i]))
-		angles.append(angle_net(x*attention(x,i+10).attention,10,i+10,shape_cnn[i+3],shape_pool[i+3]))
+		model.append(dy_model(x*att[i].attention,10,i,shape_cnn[i],shape_pool[i]))
+		angles.append(angle_net(x*att[i+model_num//2].attention,10,i+10,shape_cnn[i+3],shape_pool[i+3]))
 	models_result =list(map(lambda x:x.fc3,model))
 	angle =list(map(lambda x:x.fc3,angles))
 	vector = list(zip(models_result,angle))
@@ -90,13 +93,15 @@ def main():
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
 
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
-			for m,n in model,angles:
+			for m,n,k in model,angles,att:
 				m.training = False
 				n.training = False
+				k.training = False
 			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
-			for m,n in model,angles:
+			for m,n,k in model,angles,att:
 				m.training = True
 				n.training = True
+				k.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
 			train_list.append(train_accuracy)
@@ -108,16 +113,18 @@ def main():
 	ax.plot(x_axis,train_list,'b-','o',lw =5)
 	ax.plot(x_axis,train_list,'r-','v',lw =5)
 	
-	for m,n in model,angles:
+	for m,n,k in model,angles,att:
 		m.training = False
 		n.training = False
+		k.training = False
 	precision = []
 	for i in range(20):
 		test_x,test_y = sess.run([test_images,test_labels])
 		precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
-	for m,n in model,angles:
+	for m,n,k in model,angles,att:
 		m.training = True
 		n.training = True
+		k.training = True
 	print(precision)
 	print('precision @1 = %.3f'%np.mean(precision))
 
