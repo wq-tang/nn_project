@@ -48,11 +48,9 @@ def convLayer(x, ksize, strides,out_channel, name, padding = "SAME"):
 
 class alexNet(object):
     """alexNet model"""
-    def __init__(self, x, classNum, seed,skip=None, modelPath = "alexnet"):
+    def __init__(self, x, classNum, seed):
         self.X = x
         self.CLASSNUM = classNum
-        self.SKIP = skip
-        self.MODELPATH = modelPath
         self.training = True
         tf.set_random_seed(seed)  
         self.seed = seed
@@ -62,36 +60,26 @@ class alexNet(object):
     def buildCNN(self):
         """build model"""
         with tf.variable_scope('model_%d'%self.seed):
-            conv1 = convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
-            pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
-            norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
-
-            conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
-            pool2 = maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
-            norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
-
-            conv3 = convLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
-            pool3 = maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
-            norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
-
-            conv4 = convLayer(norm_pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
-            pool4 = maxPoolLayer(conv4, [3, 3], [2, 2], "pool4", "VALID")
-
-
-            shapes = pool4.get_shape().as_list()[1:]
+            shapes = self.X.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
             
-            reshape = tf.reshape(pool4,[-1,mul])
+            reshape = tf.reshape(self.X,[-1,mul])
             dim = reshape.get_shape()[1].value
 
             norm_reshape=tf.layers.batch_normalization(reshape,training=self.training)
-            fc1 = fcLayer(norm_reshape, dim, 512, reluFlag=True, name = "fc4")
+            fc1 = fcLayer(norm_reshape, dim, 1024, reluFlag=True, name = "fc1")
 
             norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
-            fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
+            fc2 = fcLayer(norm_fc1, 1024, 512, reluFlag=True,name =  "fc2")
 
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
-            self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            fc3 = fcLayer(norm_fc2, 512, 256, reluFlag=True,name =  "fc3")
+
+            norm_fc3=tf.layers.batch_normalization(fc3,training=self.training)
+            fc4 = fcLayer(norm_fc3, 256, 64, reluFlag=True,name =  "fc4")
+
+            norm_fc4=tf.layers.batch_normalization(fc4,training=self.training)
+            self.fc3 = fcLayer(norm_fc4, 64, self.CLASSNUM, reluFlag=True,name =  "fc5")
 
 
 class attention(object):
