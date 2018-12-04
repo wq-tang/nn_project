@@ -123,7 +123,7 @@ class alexNet(object):
 
 class dy_model(object):
     """dy_model """
-    def __init__(self, x, classNum, seed,shape_cnn,shape_pool):
+    def __init__(self, x, classNum, seed,shape_cnn,shape_pool,shape_fc):
         self.X = x
         self.CLASSNUM = classNum
         self.training = True
@@ -131,11 +131,12 @@ class dy_model(object):
         self.seed = seed
         self.shape_cnn =shape_cnn   #[[shape,strid,output]..]
         self.shape_pool=shape_pool  #[[shape,strid]..]
+        self.shape_fc =shape_fc 
         self.buildCNN()
 
     def buildCNN(self):
         """build model"""
-            
+        fc = self.shape_fc
         conv_name,pool_name,norm_pool_name = getname()
         norm_pool_name[0] = self.X
         with tf.variable_scope('model_%d'%self.seed):
@@ -154,13 +155,16 @@ class dy_model(object):
             dim = reshape.get_shape()[1].value
 
             norm_reshape=tf.layers.batch_normalization(reshape,training=self.training)
-            fc1 = fcLayer(norm_reshape, dim, 512, reluFlag=True, name = "fc4")
+            fc1 = fcLayer(norm_reshape, dim, fc[0], reluFlag=True, name = "fc0")
+            for i in range(1,len(fc)):
+                name  = 'fc'+str(i)
+                norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
+                dim =norm_fc1.get_shape()[1].value
+                fc1 = fcLayer(norm_fc1, dim, fc[i], reluFlag=True,name =  name)
 
-            norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
-            fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
-
-            norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
-            self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            norm_fc2=tf.layers.batch_normalization(fc1,training=self.training)
+            dim =norm_fc2.get_shape()[1].value
+            self.fc3 = fcLayer(norm_fc2, dim, self.CLASSNUM, reluFlag=True,name =  "fc6")
 
 
 

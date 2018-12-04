@@ -10,18 +10,17 @@ from model import alexNet
 from model import dy_model
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
-def main():
+def main(i):
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
 		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels = y,name='cross_entropy_per_example')
 		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
-
+	modelname = 'model' +str(i)
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),modelname) 
 	max_epoch = 30000
 	batch_step = 100
-	model_num=2
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
@@ -30,30 +29,40 @@ def main():
 	y = tf.placeholder(tf.int32,[None])
 	cnn1 = [[5,1,256],[5,1,128],[5,1,64],[3,2,64],[3,2,64]]
 	pool1 = [[3,2],[3,2],[3,1],[3,2],[3,1]]
+	shape_fc1 = [512,256,128,64]
+
 	cnn2 = [[5,2,128],[5,1,64],[3,1,64],[3,2,64]]
 	pool2 = [[3,1],[3,2],[3,1],[3,2]]
+	shape_fc2 = [512,256,128,64]
+
 	cnn3=[[5,1,256],[3,1,128],[3,1,64],[3,2,64],[3,2,64]]
 	pool3 = [[3,2],[3,2],[3,1],[3,2],[3,1]]
+	shape_fc3 = [512,256,128,64]
 
 	cnn4 = [[3,1,256],[3,1,128],[5,1,64],[3,1,64],[3,2,64]]
 	pool4 = [[3,1],[3,2],[3,2],[3,2],[3,1]]
+	shape_fc4 = [512,128,64]
+
 	cnn5 = [[5,1,256],[3,1,128],[5,1,64],[3,2,64]]
 	pool5 = [[3,2],[3,1],[3,2],[3,2]]
+	shape_fc5 = [512,256,128,64,64]
+
+	cnn6 = [[5,1,256],[3,1,128],[5,1,64],[3,1,64],[3,1,64],[3,1,64],[3,1,32]]
+	pool6 = [[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1]]
+	shape_fc6 = [256,128,64,64]
 	
-	shape_cnn=[cnn1,cnn2,cnn3,cnn4,cnn5]
-	shape_pool=[pool1,pool2,pool3,pool4,pool5]
-	model = []
-	for i in range(len(shape_cnn[:2])):
-		model.append(dy_model(x,10,i,shape_cnn[i],shape_pool[i]))
-	models_result =list(map(lambda x:x.fc3,model))
-	angle =list(map(lambda x:np.pi*tf.nn.softmax(x),models_result))
-	vector = list(zip(models_result,angle))
-	vector_x = list(map(lambda x:x[0]*tf.cos(x[1]),vector))
-	vector_y = list(map(lambda x:x[0]*tf.sin(x[1]),vector))
+	cnn7 = [[5,1,256],[3,1,128],[5,1,64],[3,2,64]]
+	pool7 = [[3,2],[3,1],[3,2],[3,2]]
+	shape_fc7 = [1024,512,256,128,64,64]
+
+	cnn8 = [[5,2,128],[5,1,64],[3,1,64],[3,2,64]]
+	pool8 = [[3,1],[3,2],[3,1],[3,2]]
+	shape_fc8 = [1024,512,256,128,64,64]
 	
-	vector_x = tf.reduce_sum(vector_x,0)
-	vector_y = tf.reduce_sum(vector_y,0)
-	result = vector_x**2+vector_y**2
+	shape_cnn=[cnn1,cnn2,cnn3,cnn4,cnn5,cnn6,cnn7,cnn8]
+	shape_pool=[pool1,pool2,pool3,pool4,pool5,pool6,pool7,pool8]
+	fc = [shape_fc1,shape_fc2,shape_fc3,shape_fc4,shape_fc5,shape_fc6,shape_fc7,shape_fc8]
+	result = dy_model(x,10,i,shape_cnn[i],shape_pool[i],shape_fc[i]).fc3
 
 	loss  = loss(result,y)
 
@@ -96,7 +105,8 @@ def main():
 			train_list.append(train_accuracy)
 			test_list.append(test_accuracy)
 
-	saver = tf.train.Saver()
+	saver = tf.train.Saver(max_to_keep=1)
+	tf.add_to_collection('pred_network'+str(i), result)
 	x_axis = list(np.arange(1,max_epoch/100+1)*100)
 	save_path = saver.save(sess,model_path)
 	ax.plot(x_axis,train_list,'b-','o',lw =5)
@@ -113,7 +123,8 @@ def main():
 
 
 if __name__=='__main__':
-	main()
+	for i in range(8):
+		main(i)
 
 
 
