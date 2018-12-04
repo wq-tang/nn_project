@@ -87,9 +87,11 @@ class alexNet(object):
 
             norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
             fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
-
+            self.fc2 = fc2
+  
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
-            self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            self.fc3 =fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            
 
     # def loadModel(self, sess):
     #     """load model"""
