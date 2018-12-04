@@ -7,7 +7,7 @@ import time
 import cifar10_input
 import math
 from model import alexNet
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
 	def loss(logits,y):
@@ -17,9 +17,9 @@ def main():
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
 
-	max_epoch = 6000
-	batch_step = 128
-	model_num=10
+	max_epoch = 30000
+	batch_step = 100
+	model_num=8
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
@@ -38,7 +38,7 @@ def main():
 	
 	vector_x = tf.reduce_sum(vector_x,0)
 	vector_y = tf.reduce_sum(vector_y,0)
-	result = vector_x**2+vector_y**2
+	result = tf.sqrt(vector_x**2+vector_y**2)
 
 	loss  = loss(result,y)
 
@@ -89,10 +89,14 @@ def main():
 	
 	for m in model:
 		m.training = False
-	precision = accuracy.eval(feed_dict={x:test_x, y: test_y})
+	precision = []
+	for i in range(20):
+		test_x,test_y = sess.run([test_images,test_labels])
+		precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 	for m in model:
 		m.training = True
-	print('precision @1 = %.3f'%precision)
+	print(precision)
+	print('precision @1 = %.3f'%np.mean(precision))
 
 
 
