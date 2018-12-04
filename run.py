@@ -1,5 +1,4 @@
 # import cifar10
-import matplotlib.pyplot as plt
 import os
 import numpy as np 
 import tensorflow as tf 
@@ -8,7 +7,7 @@ import cifar10_input
 import math
 from model import alexNet
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'bagging.ckpt') 
 def main():
 	def loss(logits,y):
@@ -21,6 +20,7 @@ def main():
 	max_epoch = 30000
 	batch_step = 100
 	model_num=8
+
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
@@ -43,10 +43,6 @@ def main():
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
 
-	fig = plt.figure()
-	ax = fig.add_subplot(1,1,1)
-	plt.ion()
-	plt.show()
 	train_list = []
 	test_list=[]
 
@@ -74,10 +70,7 @@ def main():
 			test_list.append(test_accuracy)
 
 	saver = tf.train.Saver()
-	x_axis = list(np.arange(1,max_epoch/100+1)*100)
 	save_path = saver.save(sess,model_path)
-	ax.plot(x_axis,train_list,'b-','o',lw =5)
-	ax.plot(x_axis,train_list,'r-','v',lw =5)
 	
 	for m in model:
 		m.training = False
