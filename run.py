@@ -8,7 +8,6 @@ import cifar10_input
 import math
 from model import alexNet
 from model import dy_model
-
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 def main(i):
 	def loss(logits,y):
@@ -62,7 +61,8 @@ def main(i):
 	shape_cnn=[cnn1,cnn2,cnn3,cnn4,cnn5,cnn6,cnn7,cnn8]
 	shape_pool=[pool1,pool2,pool3,pool4,pool5,pool6,pool7,pool8]
 	fc = [shape_fc1,shape_fc2,shape_fc3,shape_fc4,shape_fc5,shape_fc6,shape_fc7,shape_fc8]
-	result = dy_model(x,10,i,shape_cnn[i],shape_pool[i],shape_fc[i]).fc3
+	model = dy_model(x,10,i,shape_cnn[i],shape_pool[i],fc[i])
+	result = model.fc3
 
 	loss  = loss(result,y)
 
@@ -95,11 +95,9 @@ def main(i):
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
 
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
-			for m in model:
-				m.training = False
+			model.training = False
 			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
-			for m in model:
-				m.training = True
+			model.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
 			train_list.append(train_accuracy)
@@ -112,18 +110,16 @@ def main(i):
 	ax.plot(x_axis,train_list,'b-','o',lw =5)
 	ax.plot(x_axis,train_list,'r-','v',lw =5)
 	
-	for m in model:
-		m.training = False
+	model.training = False
 	precision = accuracy.eval(feed_dict={x:test_x, y: test_y})
-	for m in model:
-		m.training = True
+	model.training = True
 	print('precision @1 = %.3f'%precision)
 
 
 
 
 if __name__=='__main__':
-	for i in range(8):
+	for i in range(5,8):
 		main(i)
 
 
