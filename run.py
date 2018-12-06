@@ -24,7 +24,7 @@ class Predict():
 
 
 	def predict(self,x):
-		sess.run(self.y,feed_dict={self.X:x})
+		return  sess.run(self.y,feed_dict={self.X:x})
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 def main(i):
@@ -141,27 +141,31 @@ def main(i):
 def get_path(name):
 	return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),name)
 
-
+def de(array):
+	ans = []
+	for k in array:
+		 k = list(k)
+		 ans.append(k.index(max(k)))
+	return ans 
 if __name__=='__main__':
-	# graph_name = []
-	# model_name = []
-	# result = []
-	# for i in range(8):
-	# 	graph_name.append(get_path('model'+str(i)+'.meta'))
-	# 	model_name.append(get_path('model'+str(i)+'data-00000-of-00001'))
-	# net = Predict()
-	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
-	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = 10)
-	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10)
-
-	sess = tf.Session()
-	tf.global_variables_initializer().run()
-	for i in range(3):
-		train_x,train_y = sess.run([train_images,train_labels])
-		print(sess.run(tf.reduce_sum(train_x)))
-		print(sess.run(train_y))
-	print('--------------')
-	for i in range(3):
+	graph_name = []
+	model_name = []
+	result = []
+	target = []
+	model_num = 2
+	for i in range(model_num):
+		graph_name.append(get_path('model'+str(i)+'.meta'))
+		model_name.append(get_path('model'+str(i)+'data-00000-of-00001'))
+	data_dir =get_path('cifar-10-batches-bin')
+	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
+	with tf.Session() as sess():
 		test_x,test_y = sess.run([test_images,test_labels])
-		print(sess.run(tf.reduce_sum(test_x)))
-		print(sess.run(test_y))
+	for i in range(model_num):
+		result.append(Predict(graph_name[i],model_name[i]).predict(test_x))
+	for i in range(model_num):
+		target = de(result[i])
+	print(target)
+	print(test_y)
+
+
+
