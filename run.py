@@ -87,19 +87,4 @@ def main():
 
 
 if __name__=='__main__':
-	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
-	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = 10)
-	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10)
-
-	sess = tf.Session()
-	# tf.global_variables_initializer().run()
-	for i in range(3):
-		train_x,train_y = sess.run([train_images,train_labels])
-		print(sess.run(tf.reduce_sum(train_x)))
-		print(sess.run(train_y))
-	print('--------------')
-	for i in range(3):
-		test_x,test_y = sess.run([test_images,test_labels])
-		print(sess.run(tf.reduce_sum(test_x)))
-		print(sess.run(test_y))
 	main()
