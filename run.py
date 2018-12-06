@@ -10,21 +10,21 @@ from model import alexNet
 from model import dy_model
 
 class Predict():
-    def __init__(self,graph_name,model_name):
-        self.graph=tf.Graph()#为每个类(实例)单独创建一个graph
-        with self.graph.as_default():
-             self.saver=tf.train.import_meta_graph(graph_name)#创建恢复器
-             #注意！恢复器必须要在新创建的图里面生成,否则会出错。
-        self.sess=tf.Session(graph=self.graph)#创建新的sess
-        with self.sess.as_default():
+	def __init__(self,graph_name,model_name):
+		self.graph=tf.Graph()#为每个类(实例)单独创建一个graph
+		with self.graph.as_default():
+			self.saver=tf.train.import_meta_graph(graph_name)#创建恢复器
+			#注意！恢复器必须要在新创建的图里面生成,否则会出错。
+			self.sess=tf.Session(graph=self.graph)#创建新的sess
+		with self.sess.as_default():
 			with self.graph.as_default():
 				self.saver.restore(self.sess,model_name)#从恢复点恢复参数
 				self.y = tf.get_collection('pred_network'+modelname[5])[0]
 				self.X = graph.get_operation_by_name('input_x').outputs[0]
 
 
-   def predict(self,x):
-        sess.run(self.y,feed_dict={self.X:x})
+	def predict(self,x):
+		sess.run(self.y,feed_dict={self.X:x})
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 def main(i):
@@ -138,7 +138,33 @@ def main(i):
 
 
 
+def get_path(name):
+	return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),name)
+
 
 if __name__=='__main__':
-	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),modelname)
-	net = Predict()
+	# graph_name = []
+	# model_name = []
+	# result = []
+	# for i in range(8):
+	# 	graph_name.append(get_path('model'+str(i)+'.meta'))
+	# 	model_name.append(get_path('model'+str(i)+'data-00000-of-00001'))
+	# net = Predict()
+	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
+	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = 10)
+	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10)
+	x  = tf.placeholder(tf.float32,[None,24,24,3])
+	y = tf.placeholder(tf.int32,[None])
+	outx = tf.reduce_sum(x)
+	outy = y
+	sess = tf.InteractiveSession()
+	tf.global_variables_initializer().run()
+	for i in range(3):
+		train_x,train_y = sess.run([train_images,train_labels])
+		print(outx.eval(feed_dict={x:train_x, y:train_y}))
+		print(outy.eval(feed_dict={x:train_x, y:train_y}))
+	print('--------------')
+	for i in range(3):
+		test_x,test_y = sess.run([test_images,test_labels])
+		print(outx.eval(feed_dict={x:test_x, y:test_y}))
+		print(outy.eval(feed_dict={x:test_x, y:test_y}))
