@@ -19,7 +19,7 @@ def main():
 
 	max_epoch = 30000
 	batch_step = 100
-	model_num=8
+	model_num=1
 
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	# cifar10.maybe_download_and_extract()
