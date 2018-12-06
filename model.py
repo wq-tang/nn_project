@@ -44,6 +44,25 @@ def convLayer(x, ksize, strides,out_channel, name, padding = "SAME"):
         out = tf.nn.bias_add(out_put, b)
         return tf.nn.relu(out, name = scope.name)
 
+def myconvLayer(x, ksize, strides,out_channel, name, padding = "SAME"): 
+    """convolution"""
+    in_channel = int(x.get_shape()[-1])
+
+    conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
+
+    with tf.variable_scope(name) as scope:
+        w = tf.get_variable("w", shape = ksize+[in_channel,out_channel])
+        wT = tf.transpose(w,perm= [1,0,2,3],name='transpose_w') 
+        b = tf.get_variable("b", shape = [out_channel])
+        cos = tf.cos(w-wT)
+        sin = tf.sin(w-wT)
+        out_cos = tf.square(conv(x,cos))
+        out_sin = tf.square(conv(x,sin))
+        out_put = tf.sqrt(out_sin+out_cos)
+        # print mergeFeatureMap.shape
+        out = tf.nn.bias_add(out_put, b)
+        return tf.nn.relu(out, name = scope.name)
+        
 class alexNet(object):
     """alexNet model"""
     def __init__(self, x, classNum, seed,skip=None, modelPath = "alexnet"):
@@ -60,19 +79,19 @@ class alexNet(object):
     def buildCNN(self):
         """build model"""
         with tf.variable_scope('model_%d'%self.seed):
-            conv1 = convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
+            conv1 = myconvLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
             pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
             norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
 
-            conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
+            conv2 = myconvLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
             pool2 = maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
             norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
 
-            conv3 = convLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
+            conv3 = myconvLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
             pool3 = maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
             norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
 
-            conv4 = convLayer(norm_pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
+            conv4 = myconvLayer(norm_pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
             pool4 = maxPoolLayer(conv4, [3, 3], [2, 2], "pool4", "VALID")
 
 
