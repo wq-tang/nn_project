@@ -73,6 +73,26 @@ def convLayer(x, ksize, strides,out_channel, name, padding = "SAME"):
         out = tf.nn.bias_add(out_put, b)
         return tf.nn.relu(out, name = scope.name)
 
+
+def myconvLayer(x, ksize, strides,out_channel, name, padding = "SAME"): 
+    """convolution"""
+    in_channel = int(x.get_shape()[-1])
+
+    conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
+
+    with tf.variable_scope(name) as scope:
+        w = tf.get_variable("w", shape = ksize+[in_channel,out_channel])
+        wT = tf.transpose(w,perm= [1,0,2,3],name='transpose_w') 
+        b = tf.get_variable("b", shape = [out_channel])
+        cos = tf.cos(w-wT)
+        sin = tf.sin(w-wT)
+        out_cos = tf.square(conv(x,cos))
+        out_sin = tf.square(conv(x,sin))
+        out_put = tf.sqrt(out_sin+out_cos)
+        # print mergeFeatureMap.shape
+        out = tf.nn.bias_add(out_put, b)
+        return tf.nn.relu(out, name = scope.name)
+
 class alexNet(object):
     """alexNet model"""
     def __init__(self, x, classNum, seed,skip=None, modelPath = "alexnet"):

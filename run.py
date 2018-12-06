@@ -9,6 +9,23 @@ import math
 from model import alexNet
 from model import dy_model
 
+class Predict():
+    def __init__(self,graph_name,model_name):
+        self.graph=tf.Graph()#为每个类(实例)单独创建一个graph
+        with self.graph.as_default():
+             self.saver=tf.train.import_meta_graph(graph_name)#创建恢复器
+             #注意！恢复器必须要在新创建的图里面生成,否则会出错。
+        self.sess=tf.Session(graph=self.graph)#创建新的sess
+        with self.sess.as_default():
+			with self.graph.as_default():
+				self.saver.restore(self.sess,model_name)#从恢复点恢复参数
+				self.y = tf.get_collection('pred_network'+modelname[5])[0]
+				self.X = graph.get_operation_by_name('input_x').outputs[0]
+
+
+   def predict(self,x):
+        sess.run(self.y,feed_dict={self.X:x})
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 def main(i):
 	def loss(logits,y):
@@ -123,20 +140,5 @@ def main(i):
 
 
 if __name__=='__main__':
-	for i in range(8):
-		main(i)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),modelname)
+	net = Predict()
