@@ -137,7 +137,6 @@ def main(i):
 	print('precision @1 = %.3f'%precision)
 
 
-
 def get_path(name):
 	return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),name)
 
@@ -169,6 +168,4 @@ if __name__=='__main__':
 	# 	target = de(result[i])
 	# print(target)
 	# print(test_y)
-
-
 
