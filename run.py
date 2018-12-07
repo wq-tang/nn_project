@@ -19,8 +19,8 @@ class Predict():
 		with self.sess.as_default():
 			with self.graph.as_default():
 				self.saver.restore(self.sess,model_name)#从恢复点恢复参数
-				self.y = tf.get_collection('pred_network'+modelname[5])[0]
-				self.X = graph.get_operation_by_name('input_x').outputs[0]
+				self.y = tf.get_collection('pred_network'+graph_name[5])[0]
+				self.X = self.graph.get_operation_by_name('input_x').outputs[0]
 
 
 	def predict(self,x):
@@ -155,17 +155,20 @@ if __name__=='__main__':
 	model_num = 2
 	for i in range(model_num):
 		graph_name.append(get_path('model'+str(i)+'.meta'))
-		model_name.append(get_path('model'+str(i)+'data-00000-of-00001'))
+		model_name.append(get_path('model'+str(i)))
 	data_dir =get_path('cifar-10-batches-bin')
-	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
-	with tf.Session() as sess():
+	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10)
+	with tf.Session() as sess:
+		tf.global_variables_initializer().run()
+		tf.train.start_queue_runners()
 		test_x,test_y = sess.run([test_images,test_labels])
 	for i in range(model_num):
 		result.append(Predict(graph_name[i],model_name[i]).predict(test_x))
-	for i in range(model_num):
-		target = de(result[i])
-	print(target)
-	print(test_y)
+	print('2')
+	# for i in range(model_num):
+	# 	target = de(result[i])
+	# print(target)
+	# print(test_y)
 
 
 
