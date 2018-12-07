@@ -52,10 +52,15 @@ def myconvLayer(x, ksize, strides,out_channel, name, padding = "SAME"):
 
     with tf.variable_scope(name) as scope:
         w = tf.get_variable("w", shape = ksize+[in_channel,out_channel])
-        wT = tf.transpose(w,perm= [1,0,2,3],name='transpose_w') 
+        wT = tf.transpose(w,perm= [1,0,2,3],name='transpose_w')
+
+        pi = np.ones([in_channel,out_channel] +ksize)*np.pi
+        pi = np.triu(pi,1)
+        pi = np.transpose(pi,[2,3,0,1])
+        pi = tf.constant(pi,shape = [in_channel,out_channel] +ksize,name = 'pi')
         b = tf.get_variable("b", shape = [out_channel])
-        cos = tf.cos(w-wT)
-        sin = tf.sin(w-wT)
+        cos = tf.cos(w+wT+pi)
+        sin = tf.sin(w+wT+pi)
         out_cos = tf.square(conv(x,cos))
         out_sin = tf.square(conv(x,sin))
         out_put = tf.sqrt(out_sin+out_cos)
@@ -76,23 +81,23 @@ class alexNet(object):
         #build CNN
         self.buildCNN()
 
-    def buildCNN(self):
+def buildCNN(self):
         """build model"""
         with tf.variable_scope('model_%d'%self.seed):
-            conv1 = myconvLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
-            pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
+            conv1 = convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
+            pool1 = myconvLayer(conv1,[3, 3],[ 1,1], 128,"pool1", "SAME")
             norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
 
-            conv2 = myconvLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
-            pool2 = maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
+            conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
+            pool2 = myconvLayer(conv2,[3, 3], [1, 1], 64,"pool2", "SAME")
             norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
 
-            conv3 = myconvLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
-            pool3 = maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
+            conv3 = convLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
+            pool3 = myconvLayer(conv3, [3, 3], [2, 2],64 ,"pool3", "VALID")
             norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
 
-            conv4 = myconvLayer(norm_pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
-            pool4 = maxPoolLayer(conv4, [3, 3], [2, 2], "pool4", "VALID")
+            conv4 = convLayer(norm_pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
+            pool4 = myconvLayer(conv4, [3, 3], [2, 2], 64,"pool4", "VALID")
 
 
             shapes = pool4.get_shape().as_list()[1:]
@@ -109,6 +114,40 @@ class alexNet(object):
 
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
             self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+
+   # def buildCNN(self):
+   #      """build model"""
+   #      with tf.variable_scope('model_%d'%self.seed):
+   #          conv1 = convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
+   #          pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
+   #          norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
+
+   #          conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
+   #          pool2 = maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
+   #          norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
+
+   #          conv3 = convLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
+   #          pool3 = maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
+   #          norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
+
+   #          conv4 = convLayer(norm_pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
+   #          pool4 = maxPoolLayer(conv4, [3, 3], [2, 2], "pool4", "VALID")
+
+
+   #          shapes = pool4.get_shape().as_list()[1:]
+   #          mul = reduce(lambda x,y:x * y,shapes)
+            
+   #          reshape = tf.reshape(pool4,[-1,mul])
+   #          dim = reshape.get_shape()[1].value
+
+   #          norm_reshape=tf.layers.batch_normalization(reshape,training=self.training)
+   #          fc1 = fcLayer(norm_reshape, dim, 512, reluFlag=True, name = "fc4")
+
+   #          norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
+   #          fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
+
+   #          norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
+   #          self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
 
 
 class attention(object):
