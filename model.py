@@ -57,10 +57,10 @@ def myconvLayer(x, ksize, strides,out_channel, name, padding = "SAME"):
         pi = np.ones([in_channel,out_channel] +ksize)*np.pi
         pi = np.triu(pi,1)
         pi = np.transpose(pi,[2,3,0,1])
-        pi = tf.constant(pi,shape = [in_channel,out_channel] +ksize,name = 'pi')
+        pis = tf.constant(pi,shape =ksize+[in_channel,out_channel],name = 'pi',dtype='float32')
         b = tf.get_variable("b", shape = [out_channel])
-        cos = tf.cos(w+wT+pi)
-        sin = tf.sin(w+wT+pi)
+        cos = tf.cos(w+wT+pis)
+        sin = tf.sin(w+wT+pis)
         out_cos = tf.square(conv(x,cos))
         out_sin = tf.square(conv(x,sin))
         out_put = tf.sqrt(out_sin+out_cos)
@@ -81,7 +81,7 @@ class alexNet(object):
         #build CNN
         self.buildCNN()
 
-def buildCNN(self):
+    def buildCNN(self):
         """build model"""
         with tf.variable_scope('model_%d'%self.seed):
             conv1 = convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
