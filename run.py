@@ -28,10 +28,8 @@ def main():
 	x  = tf.placeholder(tf.float32,[None,24,24,3])
 	y = tf.placeholder(tf.int32,[None])
 
-	model = []
-	for i in range(model_num):
-		model.append(alexNet(x,10,i))
-	models_result =sum(list(map(lambda x:x.fc3,model)))
+	model = [alexNet(x,10,0)]
+	models_result =model[0].fc3
 	loss  = loss(models_result,y)
 
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
