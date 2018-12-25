@@ -150,7 +150,8 @@ class alexNet(object):
             fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
 
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
-            self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            self.fc3 = tf.complex_abs(fc3,'out')
 
 
 
@@ -187,8 +188,8 @@ class alexNet(object):
             fc2 = complex_fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
 
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
-            fc3 = complex_fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
-            self.fc3 = tf.complex_abs(fc3,'out')
+            self.fc3 = complex_fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+
 
 
 class attention(object):
