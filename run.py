@@ -16,6 +16,12 @@ def main():
 		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
+	def test():
+		precision=[]
+		for i in range(20):
+			test_x,test_y = sess.run([test_images,test_labels])
+			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
+		return np.mean(precision)
 
 	max_epoch = 30000
 	batch_step = 100
@@ -59,29 +65,27 @@ def main():
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			for m in model:
 				m.training = False
-			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
+			test_accuracy = test()
+			pre = accuracy.eval(feed_dict={x:test_x, y: test_y})
 			for m in model:
 				m.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
+			print('pre:%g'%pre)
 			train_list.append(train_accuracy)
 			test_list.append(test_accuracy)
+			if test_accuracy>0.95:
+				break
 
 	saver = tf.train.Saver()
 	save_path = saver.save(sess,model_path)
 	
 	for m in model:
 		m.training = False
-	precision=[]
-	for i in range(20):
-		test_x,test_y = sess.run([test_images,test_labels])
-		precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
+	pre= test()
 	for m in model:
 		m.training = True
-	print(precision)
-	print('precision @1 = %.3f'%np.mean(precision))
-
-
+	print('precision @1 = %.3f'%pre)
 
 
 if __name__=='__main__':

@@ -79,14 +79,14 @@ def complex_fcLayer(x, input_size, output_size, reluFlag, name):
         R = tf.nn.xw_plus_b(x[0], wr, br)- tf.nn.xw_plus_b(x[1], wi, bi)
         I = tf.nn.xw_plus_b(x[0], wi, bi)+ tf.nn.xw_plus_b(x[1], wr, br)
         if reluFlag:
-            # f = tf.complex(R,I)
-            # f = tf.tanh(f)
-            # return [tf.real(f),tf.imag(f)]
+        #     f = tf.complex(R,I)
+        #     f = tf.tanh(f)
+        #     return [tf.real(f),tf.imag(f)]
             return [tf.nn.relu(R),tf.nn.relu(I)]
         else:
-            return [R,I]
+            return [tf.log(1+tf.exp(R)),tf.log(1+tf.exp(I))]
 
-def complex_convLayer(x, ksize, strides,out_channel, name, padding = "SAME"): 
+def complex_convLayer(x, ksize, strides,out_channel, name, padding = "SAME",act_flag=False): 
     """convolution"""
     in_channel = int(x[0].get_shape()[-1])
 
@@ -101,11 +101,15 @@ def complex_convLayer(x, ksize, strides,out_channel, name, padding = "SAME"):
 
         R = conv(x[0],wr)-conv(x[1],wi) +br
         I= conv(x[1],wr)+conv(x[0],wi) +bi
-        # f = tf.complex(R,I)
-        # f = tf.tanh(f)
-        # return [tf.real(f),tf.imag(f)]
+        f = tf.complex(R,I)
+        f = tf.tanh(f)
+        if act_flag:
+            return [tf.log(1+tf.exp(tf.real(f))),tf.log(1+tf.exp(tf.imag(f)))]
+        else:
+            return [tf.nn.relu(tf.real(f)),tf.nn.relu(tf.imag(f))]
+
         # print mergeFeatureMap.shape
-        return [tf.nn.relu(R),tf.nn.relu(I)]
+        # return [tf.nn.relu(R),tf.nn.relu(I)]
 
 def complex_maxPoolLayer(x, ksize,strides=[1,1], name='None', padding = "SAME"):
     """max-pooling"""
@@ -118,7 +122,8 @@ def complex_maxPoolLayer(x, ksize,strides=[1,1], name='None', padding = "SAME"):
 class alexNet(object):
     """alexNet model"""
     def __init__(self, x, classNum, seed,skip=None, modelPath = "alexnet"):
-        self.X = [x,x*0]
+        self.X_com = [x,x*0]
+        self.X = x
         self.CLASSNUM = classNum
         self.SKIP = skip
         self.MODELPATH = modelPath
@@ -126,12 +131,13 @@ class alexNet(object):
         tf.set_random_seed(seed)  
         self.seed = seed
         #build CNN
+        # self.buildCNN()
         self.build_complex_CNN()
 
     def build_complex_CNN(self):
         """build model"""
         with tf.variable_scope('model_%d'%self.seed):
-            conv1 = complex_convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
+            conv1 = complex_convLayer(self.X_com, [5, 5], [1, 1], 128, "conv1", "SAME")
             pool1 = complex_maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
             norm_pool1_R=tf.layers.batch_normalization(pool1[0],training=self.training)
             norm_pool1_I=tf.layers.batch_normalization(pool1[1],training=self.training)
@@ -182,6 +188,7 @@ class alexNet(object):
             conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
             pool2 = maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
             norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
+            
 
             conv3 = convLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
             pool3 = maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
@@ -198,13 +205,13 @@ class alexNet(object):
             dim = reshape.get_shape()[1].value
 
             norm_reshape=tf.layers.batch_normalization(reshape,training=self.training)
-            fc1 = complex_fcLayer(norm_reshape, dim, 512, reluFlag=True, name = "fc4")
+            fc1 = fcLayer(norm_reshape, dim, 512, reluFlag=True, name = "fc4")
 
             norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
-            fc2 = complex_fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
+            fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
 
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
-            self.fc3 = complex_fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
 
 
 
