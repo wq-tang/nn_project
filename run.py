@@ -97,7 +97,23 @@ def de(array):
 		 k = list(k)
 		 ans.append(k.index(max(k)))
 	return ans 
+	
+class Predict():
+	def __init__(self,graph_name,model_name):
+		self.graph=tf.Graph()#为每个类(实例)单独创建一个graph
+		with self.graph.as_default():
+			self.saver=tf.train.import_meta_graph(graph_name)#创建恢复器
+			#注意！恢复器必须要在新创建的图里面生成,否则会出错。
+			self.sess=tf.Session(graph=self.graph)#创建新的sess
+		with self.sess.as_default():
+			with self.graph.as_default():
+				self.saver.restore(self.sess,model_name)#从恢复点恢复参数
+				self.y = tf.get_collection('pred_network'+modelname[5])[0]
+				self.X = graph.get_operation_by_name('input_x').outputs[0]
 
+
+	def predict(self,x):
+		return  sess.run(self.y,feed_dict={self.X:x})
 
 if __name__=='__main__':
 	# main()
