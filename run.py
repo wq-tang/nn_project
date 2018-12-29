@@ -74,8 +74,8 @@ def main():
 			print('pre:%g'%pre)
 			train_list.append(train_accuracy)
 			test_list.append(test_accuracy)
-			if test_accuracy>0.95:
-				break
+			# if test_accuracy>0.95:
+			# 	break
 
 	saver = tf.train.Saver()
 	save_path = saver.save(sess,model_path)
@@ -98,23 +98,42 @@ def de(array):
 		 ans.append(k.index(max(k)))
 	return ans 
 
+
 if __name__=='__main__':
-	graph_name = []
-	model_name = []
+	# main()
+
 	result = []
 	target = []
-	model_num = 2
-	for i in range(model_num):
-		graph_name.append(get_path('model'+str(i)+'.meta'))
-		model_name.append(get_path('model'+str(i)+'data-00000-of-00001'))
+
+	graph_name=get_path('bagging.ckpt.meta')
+	model_name.append(get_path('bagging.ckpt.data-00000-of-00001'))
 	data_dir =get_path('cifar-10-batches-bin')
 	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
 	with tf.Session() as sess():
 		test_x,test_y = sess.run([test_images,test_labels])
-	for i in range(model_num):
-		result.append(Predict(graph_name[i],model_name[i]).predict(test_x))
-	for i in range(model_num):
+		result= Predict(graph_name,model_name).predict(test_x)
 		target = de(result[i])
 	print(target)
 	print(test_y)
+
+
+
+	# graph_name = []
+	# model_name = []
+	# result = []
+	# target = []
+	# model_num = 2
+	# for i in range(model_num):
+	# 	graph_name.append(get_path('model'+str(i)+'.meta'))
+	# 	model_name.append(get_path('model'+str(i)+'data-00000-of-00001'))
+	# data_dir =get_path('cifar-10-batches-bin')
+	# test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
+	# with tf.Session() as sess():
+	# 	test_x,test_y = sess.run([test_images,test_labels])
+	# for i in range(model_num):
+	# 	result.append(Predict(graph_name[i],model_name[i]).predict(test_x))
+	# for i in range(model_num):
+	# 	target = de(result[i])
+	# print(target)
+	# print(test_y)
 
