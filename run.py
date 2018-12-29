@@ -88,6 +88,33 @@ def main():
 	print('precision @1 = %.3f'%pre)
 
 
+def get_path(name):
+	return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),name)
+
+def de(array):
+	ans = []
+	for k in array:
+		 k = list(k)
+		 ans.append(k.index(max(k)))
+	return ans 
+
 if __name__=='__main__':
-	main()
+	graph_name = []
+	model_name = []
+	result = []
+	target = []
+	model_num = 2
+	for i in range(model_num):
+		graph_name.append(get_path('model'+str(i)+'.meta'))
+		model_name.append(get_path('model'+str(i)+'data-00000-of-00001'))
+	data_dir =get_path('cifar-10-batches-bin')
+	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
+	with tf.Session() as sess():
+		test_x,test_y = sess.run([test_images,test_labels])
+	for i in range(model_num):
+		result.append(Predict(graph_name[i],model_name[i]).predict(test_x))
+	for i in range(model_num):
+		target = de(result[i])
+	print(target)
+	print(test_y)
 
