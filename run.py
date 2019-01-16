@@ -65,13 +65,15 @@ def main():
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			for m in model:
 				m.training = False
-			test_accuracy = test()
-			pre = accuracy.eval(feed_dict={x:test_x, y: test_y})
+			# pre = test()
+			y_hat = models_result[:10].eval(feed_dict={x:test_x, y: test_y})
+			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
 			for m in model:
 				m.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
-			print('pre:%g'%pre)
+			# print('pre:%g'%pre)
+			# print(y_hat)
 			train_list.append(train_accuracy)
 			test_list.append(test_accuracy)
 			# if test_accuracy>0.95:
@@ -116,21 +118,20 @@ class Predict():
 		return  sess.run(self.y,feed_dict={self.X:x})
 
 if __name__=='__main__':
-	# main()
+	main()
 
-	result = []
-	target = []
 
-	graph_name=get_path('bagging.ckpt.meta')
-	model_name.append(get_path('bagging.ckpt.data-00000-of-00001'))
-	data_dir =get_path('cifar-10-batches-bin')
-	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=10000)
-	with tf.Session() as sess():
-		test_x,test_y = sess.run([test_images,test_labels])
-		result= Predict(graph_name,model_name).predict(test_x)
-		target = de(result[i])
-	print(target)
-	print(test_y)
+
+	# graph_name=get_path('bagging.ckpt.meta')
+	# model_name=get_path('bagging.ckpt.data-00000-of-00001')
+	# data_dir =get_path('cifar-10-batches-bin')
+	# test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
+	# sess = tf.InteractiveSession()
+	# test_x,test_y = sess.run([test_images,test_labels])
+	# result= Predict(graph_name,model_name).predict(test_x)
+	# target = de(result)
+	# print(target)
+	# print(test_y)
 
 
 

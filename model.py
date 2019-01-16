@@ -82,10 +82,11 @@ def complex_fcLayer(x, input_size, output_size, reluFlag, name):
         #     f = tf.complex(R,I)
         #     f = tf.tanh(f)
         #     return [tf.real(f),tf.imag(f)]
-            return [tf.nn.relu(R),tf.nn.relu(I)]
+            return [tf.nn.relu(R*I),tf.nn.relu(R*I)]
         else:
-            return [tf.log(1+tf.exp(R)),tf.log(1+tf.exp(I))]
-
+            Z = tf.complex(R,I)
+            Z=1/Z
+            return [tf.real(Z),tf.imag(Z)]
 def complex_convLayer(x, ksize, strides,out_channel, name, padding = "SAME",act_flag=False): 
     """convolution"""
     in_channel = int(x[0].get_shape()[-1])
@@ -101,12 +102,12 @@ def complex_convLayer(x, ksize, strides,out_channel, name, padding = "SAME",act_
 
         R = conv(x[0],wr)-conv(x[1],wi) +br
         I= conv(x[1],wr)+conv(x[0],wi) +bi
-        f = tf.complex(R,I)
-        f = tf.tanh(f)
         if act_flag:
-            return [tf.log(1+tf.exp(tf.real(f))),tf.log(1+tf.exp(tf.imag(f)))]
+            Z = tf.complex(R,I)
+            Z=1/Z
+            return [tf.real(Z),tf.imag(Z)]
         else:
-            return [tf.nn.relu(tf.real(f)),tf.nn.relu(tf.imag(f))]
+            return [tf.nn.relu(R),I]
 
         # print mergeFeatureMap.shape
         # return [tf.nn.relu(R),tf.nn.relu(I)]
@@ -131,8 +132,8 @@ class alexNet(object):
         tf.set_random_seed(seed)  
         self.seed = seed
         #build CNN
-        # self.buildCNN()
-        self.build_complex_CNN()
+        self.buildCNN()
+        # self.build_complex_CNN()
 
     def build_complex_CNN(self):
         """build model"""
@@ -163,18 +164,30 @@ class alexNet(object):
             I = tf.reshape(pool4[1],[-1,mul])
             dim = R.get_shape()[1].value
 
-            R=tf.layers.batch_normalization(R,training=self.training)
-            I=tf.layers.batch_normalization(I,training=self.training)
-            fc1 = complex_fcLayer([R,I], dim, 512, reluFlag=True, name = "fc4")
-
-            R=tf.layers.batch_normalization(fc1[0],training=self.training)
-            I=tf.layers.batch_normalization(fc1[1],training=self.training)
-            fc2 = complex_fcLayer([R,I], 512, 128, reluFlag=True,name =  "fc5")
-
-            R=tf.layers.batch_normalization(fc2[0],training=self.training)
-            I=tf.layers.batch_normalization(fc2[1],training=self.training)
-            fc3 = complex_fcLayer([R,I], 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
-            self.fc3 = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
+            reshape = tf.sqrt(tf.square(R)+tf.square(I))
+            norm_reshape=tf.layers.batch_normalization(reshape,training=self.training)
+            fc1 = fcLayer(norm_reshape, dim, 512, reluFlag=True, name = "fc4")
+            self.out1 = fc1[0]
+            norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
+            fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
+            self.out2 = fc2[0]
+            norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
+            self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            
+       
+            # R=tf.layers.batch_normalization(R,training=self.training)
+            # I=tf.layers.batch_normalization(I,training=self.training)
+            # fc1 = complex_fcLayer([R,I], dim, 512, reluFlag=True, name = "fc4")
+            # self.out1 = fc1[0]
+            # R=tf.layers.batch_normalization(fc1[0],training=self.training)
+            # I=tf.layers.batch_normalization(fc1[1],training=self.training)
+            # fc2 = complex_fcLayer([R,I], 512, 128, reluFlag=True,name =  "fc5")
+            # self.out2 = fc2[0]
+            # R=tf.layers.batch_normalization(fc2[0],training=self.training)
+            # I=tf.layers.batch_normalization(fc2[1],training=self.training)
+            # fc3 = complex_fcLayer([R,I], 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            # self.out3 = fc3[0]
+            # self.fc3 = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
 
 
 
