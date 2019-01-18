@@ -16,10 +16,7 @@ def sign(x):
     e = 0.1**8
     return tf.nn.relu(x)/(tf.nn.relu(x)+e)
 
-def maxPoolLayer(x, ksize,strides=[1,1], name='None', padding = "SAME"):
-    """max-pooling"""
-    return tf.nn.max_pool(x, ksize =[1]+ ksize+[1],
-                          strides = [1] +strides+[1], padding = padding, name = name)
+
 
 
 
@@ -70,17 +67,17 @@ class alexNet(object):
     def build_complex_CNN(self):
         """build model"""
         with tf.variable_scope('model_%d'%self.seed):
-            conv1 = complex_convLayer(self.X_com, [5, 5], [1, 1], 128, "conv1", "SAME")
-            pool1 = complex_maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
+            conv1 = self.complex_convLayer(self.X_com, [5, 5], [1, 1], 128, "conv1", "SAME")
+            pool1 = self.complex_maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
 
-            conv2 = complex_convLayer(pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
-            pool2 = complex_maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
+            conv2 = self.complex_convLayer(pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
+            pool2 = self.complex_maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
 
-            conv3 = complex_convLayer(pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
-            pool3 = complex_maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
+            conv3 = self.complex_convLayer(pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
+            pool3 = self.complex_maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
 
-            conv4 = complex_convLayer(pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
-            pool4 = complex_maxPoolLayer(conv4, [3, 3], [2, 2], "pool4", "VALID")
+            conv4 = self.complex_convLayer(pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
+            pool4 = self.complex_maxPoolLayer(conv4, [3, 3], [2, 2], "pool4", "VALID")
 
 
             shapes = pool4[0].get_shape().as_list()[1:]
@@ -94,14 +91,14 @@ class alexNet(object):
 
     def real_fc(self,R,I,dim):
         reshape = tf.sqrt(tf.square(R)+tf.square(I))
-        fc1 = fcLayer(reshape, dim, 512, reluFlag=True, name = "fc4")
-        fc2 = fcLayer(fc1, 512, 128, reluFlag=True,name =  "fc5")
+        fc1 = self.fcLayer(reshape, dim, 512, reluFlag=True, name = "fc4")
+        fc2 = self.fcLayer(fc1, 512, 128, reluFlag=True,name =  "fc5")
         self.fc3 = fcLayer(fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6",norm=False)
             
     def complex_fc(self,R,I,dim):
-        fc1 = complex_fcLayer([R,I], dim, 512, reluFlag=True, name = "fc4")
-        fc2 = complex_fcLayer(fc1, 512, 128, reluFlag=True,name =  "fc5")
-        fc3 = complex_fcLayer(fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6",norm=False)
+        fc1 = self.complex_fcLayer([R,I], dim, 512, reluFlag=True, name = "fc4")
+        fc2 = self.complex_fcLayer(fc1, 512, 128, reluFlag=True,name =  "fc5")
+        fc3 = self.complex_fcLayer(fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6",norm=False)
         self.fc3 = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
 
     def Learnable_relu(self,C,name):
@@ -110,6 +107,11 @@ class alexNet(object):
             beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
             return [C[0]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha)),
             C[1]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha))]
+    
+    def Learnable_relu2(self,C,name):
+        with tf.variable_scope(name) as scope:
+            radius = tf.get_variable("radius",shape = [1],dtype=tf.float32)
+            return [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
 
 
 
@@ -136,7 +138,7 @@ class alexNet(object):
                 Z = tf.complex(R,I)
                 Z=1/Z
                 return [tf.real(Z),tf.imag(Z)]
-    def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",act_flag=False): 
+    def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",act_flag=True): 
         """convolution"""
         in_channel = int(x[0].get_shape()[-1])
 
@@ -154,11 +156,9 @@ class alexNet(object):
             R=tf.layers.batch_normalization(R,training=self.training)
             I=tf.layers.batch_normalization(I,training=self.training)
             if act_flag:
-                Z = tf.complex(R,I)
-                Z=1/Z
-                return [tf.real(Z),tf.imag(Z)]
+                return [tf.nn.relu(R),tf.nn.relu(I)]
             else:
-                return Learnable_relu([R,I],'relu')
+                return self.Learnable_relu([R,I],'relu')
 
             # print mergeFeatureMap.shape
             # return [tf.nn.relu(R),tf.nn.relu(I)]
@@ -171,17 +171,17 @@ class alexNet(object):
 
 
     def fcLayer(self,x, input_size, output_size, reluFlag, name,norm=True):
-    """fully-connect"""
-    with tf.variable_scope(name) as scope:
-        w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float")
-        b = tf.get_variable("b", [output_size], dtype = "float")
-        out = tf.nn.xw_plus_b(x, w, b, name = scope.name)
-        if norm:
-            out=tf.layers.batch_normalization(out,training=self.training)
-        if reluFlag:
-            return tf.nn.relu(out)
-        else:
-            return out
+        """fully-connect"""
+        with tf.variable_scope(name) as scope:
+            w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float")
+            b = tf.get_variable("b", [output_size], dtype = "float")
+            out = tf.nn.xw_plus_b(x, w, b, name = scope.name)
+            if norm:
+                out=tf.layers.batch_normalization(out,training=self.training)
+            if reluFlag:
+                return tf.nn.relu(out)
+            else:
+                return out
 
     def convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME"): 
         """convolution"""
@@ -198,6 +198,10 @@ class alexNet(object):
             out = tf.layers.batch_normalization(out,training=self.training)
             return tf.nn.relu(out, name = scope.name)
 
+    def maxPoolLayer(self,x, ksize,strides=[1,1], name='None', padding = "SAME"):
+        """max-pooling"""
+        return tf.nn.max_pool(x, ksize =[1]+ ksize+[1],
+                            strides = [1] +strides+[1], padding = padding, name = name)
 
 
 
@@ -208,21 +212,21 @@ class alexNet(object):
     def buildCNN(self):
         """build model"""
         with tf.variable_scope('model_%d'%self.seed):
-            conv1 = convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
-            pool1 = maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
+            conv1 = self.convLayer(self.X, [5, 5], [1, 1], 128, "conv1", "SAME")
+            pool1 = self.maxPoolLayer(conv1,[3, 3],[ 1,1], "pool1", "SAME")
             norm_pool1=tf.layers.batch_normalization(pool1,training=self.training)
 
-            conv2 = convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
-            pool2 = maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
+            conv2 = self.convLayer(norm_pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
+            pool2 = self.maxPoolLayer(conv2,[3, 3], [1, 1], "pool2", "SAME")
             norm_pool2=tf.layers.batch_normalization(pool2,training=self.training)
             
 
-            conv3 = convLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
-            pool3 = maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
+            conv3 = self.convLayer(norm_pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
+            pool3 = self.maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
             norm_pool3=tf.layers.batch_normalization(pool3,training=self.training)
 
-            conv4 = convLayer(norm_pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
-            pool4 = maxPoolLayer(conv4, [3, 3], [2, 2], "pool4", "VALID")
+            conv4 = self.convLayer(norm_pool3, [3, 3], [1, 1], 64, "conv4",'VALID')
+            pool4 = self.maxPoolLayer(conv4, [3, 3], [2, 2], "pool4", "VALID")
 
 
             shapes = pool4.get_shape().as_list()[1:]
@@ -232,13 +236,13 @@ class alexNet(object):
             dim = reshape.get_shape()[1].value
 
             norm_reshape=tf.layers.batch_normalization(reshape,training=self.training)
-            fc1 = fcLayer(norm_reshape, dim, 512, reluFlag=True, name = "fc4")
+            fc1 = self.fcLayer(norm_reshape, dim, 512, reluFlag=True, name = "fc4")
 
             norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
-            fc2 = fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
+            fc2 = self.fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
 
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
-            self.fc3 = fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            self.fc3 = self.fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
 
 
 
