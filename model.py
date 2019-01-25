@@ -52,6 +52,7 @@ def myconvLayer(x, ksize, strides,out_channel, name, padding = "SAME"):
 class alexNet(object):
     """alexNet model"""
     def __init__(self, x, classNum, seed,skip=None, modelPath = "alexnet"):
+        self.keep_prob = 0.5
         self.X_com = [x,x*0]
         self.X = x
         self.CLASSNUM = classNum
@@ -101,19 +102,30 @@ class alexNet(object):
         fc3 = self.complex_fcLayer(fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6",norm=False)
         self.fc3 = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
 
-    def Learnable_relu(self,C,name):
+    def Learnable_angle_relu(self,C,name):
         with tf.variable_scope(name) as scope:
             alpha = tf.get_variable("alpha",shape = [1],dtype=tf.float32)
             beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
             return [C[0]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha)),
             C[1]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha))]
     
-    def Learnable_relu2(self,C,name):
+    def Learnable_angle_relu_per_neural(self,C,name):
+        with tf.variable_scope(name) as scope:
+            alpha = tf.get_variable("alpha",shape = C[0].get_shape().as_list(),dtype=tf.float32)
+            beita = tf.get_variable("beita",shape = C[0].get_shape().as_list(),dtype=tf.float32)
+            return [C[0]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha)),
+            C[1]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha))]
+
+    def Learnable_radius_relu(self,C,name):
         with tf.variable_scope(name) as scope:
             radius = tf.get_variable("radius",shape = [1],dtype=tf.float32)
             return [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
 
 
+    def Learnable_radius_relu_per_neural(self,C,name):
+        with tf.variable_scope(name) as scope:
+            radius = tf.get_variable("radius",shape = C[0].get_shape().as_list(),dtype=tf.float32)
+            return [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
 
 
 
@@ -138,7 +150,7 @@ class alexNet(object):
                 Z = tf.complex(R,I)
                 Z=1/Z
                 return [tf.real(Z),tf.imag(Z)]
-    def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",act_flag=True): 
+    def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",act_flag=True,norm=True): 
         """convolution"""
         in_channel = int(x[0].get_shape()[-1])
 
@@ -153,12 +165,13 @@ class alexNet(object):
 
             R = conv(x[0],wr)-conv(x[1],wi) +br
             I= conv(x[1],wr)+conv(x[0],wi) +bi
-            R=tf.layers.batch_normalization(R,training=self.training)
-            I=tf.layers.batch_normalization(I,training=self.training)
+            if norm:
+                R=tf.layers.batch_normalization(R,training=self.training)
+                I=tf.layers.batch_normalization(I,training=self.training)
             if act_flag:
                 return [tf.nn.relu(R),tf.nn.relu(I)]
             else:
-                return self.Learnable_relu([R,I],'relu')
+                return self.Learnable_angle_relu_per_neural([R,I],'relu')
 
             # print mergeFeatureMap.shape
             # return [tf.nn.relu(R),tf.nn.relu(I)]
