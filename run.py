@@ -23,7 +23,7 @@ def main():
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
-	max_epoch = 30000
+	max_epoch = 20000
 	batch_step = 100
 	model_num=1
 
