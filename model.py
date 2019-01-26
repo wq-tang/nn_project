@@ -51,12 +51,11 @@ def myconvLayer(x, ksize, strides,out_channel, name, padding = "SAME"):
 
 class alexNet(object):
     """alexNet model"""
-    def __init__(self, x, classNum, seed,skip=None, modelPath = "alexnet"):
+    def __init__(self, x, classNum, seed,modelPath = "alexnet"):
         self.keep_prob = 0.5
-        self.X_com = [x,x*0]
+        self.X_com = [x,x]
         self.X = x
         self.CLASSNUM = classNum
-        self.SKIP = skip
         self.MODELPATH = modelPath
         self.training = True
         tf.set_random_seed(seed)  
@@ -147,9 +146,7 @@ class alexNet(object):
             #     return [tf.real(f),tf.imag(f)]
                 return [tf.nn.relu(R*I),tf.nn.relu(R*I)]
             else:
-                Z = tf.complex(R,I)
-                Z=1/Z
-                return [tf.real(Z),tf.imag(Z)]
+                return [tf.nn.sigmoid(R),tf.nn.sigmoid(I)]
     def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",act_flag=True,norm=True): 
         """convolution"""
         in_channel = int(x[0].get_shape()[-1])
@@ -171,7 +168,7 @@ class alexNet(object):
             if act_flag:
                 return [tf.nn.relu(R),tf.nn.relu(I)]
             else:
-                return self.Learnable_angle_relu_per_neural([R,I],'relu')
+                return self.Learnable_radius_relu_per_neural([R,I],'relu')
 
             # print mergeFeatureMap.shape
             # return [tf.nn.relu(R),tf.nn.relu(I)]
