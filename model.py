@@ -61,7 +61,7 @@ class alexNet(object):
         tf.set_random_seed(seed)  
         self.seed = seed
         #build CNN
-        self.buildCNN()
+        # self.buildCNN()
         # self.build_complex_CNN()
 
     def build_complex_CNN(self):

@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from model import alexNet
+from functools import reduce
 
 
 def sign(x):
@@ -82,7 +83,7 @@ class complex_net(alexNet):
             fc2 = self.complex_fcLayer(fc1, 384, 192, reluFlag=False,name =  "fc5")
             fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, reluFlag=True,name =  "fc6",norm=False)
             self.out = fc3
-            self.out = tf.sqrt(tf.square(out[0])+tf.square(out[1]))
+            self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
 
     def buildCNN_real_CNN_for_cifar10(self):
