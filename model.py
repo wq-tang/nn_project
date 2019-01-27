@@ -144,7 +144,7 @@ class alexNet(object):
             #     f = tf.complex(R,I)
             #     f = tf.tanh(f)
             #     return [tf.real(f),tf.imag(f)]
-                return [tf.nn.relu(R*I),tf.nn.relu(R*I)]
+                return [tf.nn.relu(R),tf.nn.relu(I)]
             else:
                 return [tf.nn.sigmoid(R),tf.nn.sigmoid(I)]
     def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",act_flag=True,norm=True): 
