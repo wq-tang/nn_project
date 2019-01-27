@@ -81,7 +81,7 @@ class complex_net(alexNet):
 
             fc1 = self.complex_fcLayer([R,I], dim, 384, reluFlag=True, name = "fc4")
             fc2 = self.complex_fcLayer(fc1, 384, 192, reluFlag=True,name =  "fc5")
-            fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, reluFlag=False,name =  "fc6",norm=False)
+            fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, reluFlag=True,name =  "fc6",norm=False)
             self.out = fc3
             self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
