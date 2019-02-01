@@ -101,6 +101,6 @@ class complex_net(alexNet):
             Res = tf.reshape(cnnout,[-1,mul])
             fc1 = self.fcLayer(Res, mul, 384, reluFlag=True, name = "fc4")
             fc2 = self.fcLayer(fc1, 384, 192, reluFlag=True,name =  "fc5")
-            fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, reluFlag=False,name =  "fc6",norm=False)
+            fc3 = self.fcLayer(fc2, 192, self.CLASSNUM, reluFlag=False,name =  "fc6",norm=False)
             self.out = fc3
             self.out = tf.sqrt(tf.square(out[0])+tf.square(out[1]))
