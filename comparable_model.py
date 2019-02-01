@@ -15,7 +15,7 @@ class complex_net(alexNet):
     def __init__(self, x, classNum, seed,modelPath = "complexnet"):
         super(complex_net,self).__init__(x, classNum, seed,modelPath)
         tf.set_random_seed(seed) 
-        self.build_complex_CNN_for_cifar10()
+        self.buildCNN_real_CNN_for_cifar10()
 
 
     def build_complex_CNN_for_mnist(self):
@@ -54,8 +54,7 @@ class complex_net(alexNet):
             shapes = cnnout.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
             Res = tf.reshape(cnnout,[-1,mul])
-            dim = R.get_shape()[1].value
-            fc1 = self.fcLayer(Res, dim, 512, reluFlag=True, name = "fc4")
+            fc1 = self.fcLayer(Res, mul, 512, reluFlag=True, name = "fc4")
             fc2 = self.fcLayer(fc1, 512, self.CLASSNUM, reluFlag=False,name =  "fc5")
             self.out = self.fc2
             self.out = tf.sqrt(tf.square(out[0])+tf.square(out[1]))
@@ -100,8 +99,7 @@ class complex_net(alexNet):
             shapes = cnnout.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
             Res = tf.reshape(cnnout,[-1,mul])
-            dim = R.get_shape()[1].value
-            fc1 = self.fcLayer(Res, dim, 384, reluFlag=True, name = "fc4")
+            fc1 = self.fcLayer(Res, mul, 384, reluFlag=True, name = "fc4")
             fc2 = self.fcLayer(fc1, 384, 192, reluFlag=True,name =  "fc5")
             fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, reluFlag=False,name =  "fc6",norm=False)
             self.out = fc3
