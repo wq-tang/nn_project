@@ -78,9 +78,6 @@ def main():
 			test_list.append(test_accuracy)
 			# if test_accuracy>0.95:
 			# 	break
-		if i>20000:
-			with tf.control_dependencies(update_ops):
-				train_op = tf.train.AdamOptimizer(0.1**4).minimize(loss)
 
 	saver = tf.train.Saver()
 	save_path = saver.save(sess,model_path)
