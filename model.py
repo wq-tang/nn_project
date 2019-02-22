@@ -152,9 +152,6 @@ class alexNet(object):
     def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",act_flag=True,norm=True): 
         """convolution"""
         in_channel = int(x[0].get_shape()[-1])
-        if mnist:
-            in_channel=1
-            out_channel=1
         conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
 
         with tf.variable_scope(name) as scope:
