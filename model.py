@@ -147,7 +147,7 @@ class alexNet(object):
                 return [tf.nn.relu(R),tf.nn.relu(I)]
             else:
                 return [tf.nn.sigmoid(R),tf.nn.sigmoid(I)]
-    def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",act_flag=False,norm=True): 
+    def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",act_flag=True,norm=True): 
         """convolution"""
         in_channel = int(x[0].get_shape()[-1])
 
