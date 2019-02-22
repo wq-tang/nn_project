@@ -5,12 +5,12 @@ import time
 import cifar10_input
 import math
 from comparable_model import complex_net
+from tensorflow.examples.tutorials.mnist import input_data
 ##cifar batch =128  epoch = 50000
 ##mnist epoch=50  bathch = 60000
 
 
-model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'romania_complex.ckpt') 
-def main():
+def cifar10():
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
 		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels = y,name='cross_entropy_per_example')
@@ -24,11 +24,11 @@ def main():
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'romania_complex.ckpt')
 	max_epoch = 50000
 	batch_step = 128
 
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
-	# cifar10.maybe_download_and_extract()
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
 	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
 	x  = tf.placeholder(tf.float32,[None,24,24,3])
@@ -66,7 +66,6 @@ def main():
 			for m in model:
 				m.training = False
 			# pre = test()
-			y_hat = models_result[:10].eval(feed_dict={x:test_x, y: test_y})
 			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
 			for m in model:
 				m.training = True
@@ -89,9 +88,48 @@ def main():
 		m.training = True
 	print('precision @1 = %.3f'%pre)
 
+def mnist():
+	mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
+	mnist=input_data.read_data_sets(mnist_data_folder,one_hot=True)
+	epoch = 50
+	batch = 100
+	x  = tf.placeholder(tf.float32,[None,28,28])
+	y = tf.placeholder(tf.int32,[None])
+
+	model = [complex_net(x,10,0)]
+	models_result =model[0].out
+	correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(models_result, 1))
+	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+	cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=models_result))
+	train_step = tf.train.AdamOptimizer(0.1**3).minimize(cross_entropy) #tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+	sess = tf.InteractiveSession()
+	tf.global_variables_initializer().run()
+	tf.train.start_queue_runners()
 
 
+	for i in range(epoch*600):
+		start_time = time.time()
+		train_x, train_y = mnist.train.next_batch(batch)
+		_,loss_value = sess.run([train_step,cross_entropy],feed_dict={x:train_x,y:train_y})
+		duration = time.time() - start_time
+		if i%100 ==0:
+			examples_per_sec = batch_step/duration
+			sec_per_batch = float(duration)
+			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch)')
+			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
 
+			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
+			for m in model:
+				m.training = False
+			# pre = test()
+			test_accuracy = accuracy.eval(feed_dict={x:mnist.test.images, y: mnist.test.labels})
+			for m in model:
+				m.training = True
+			print( "step %d, training accuracy %g"%(i, train_accuracy))
+			print( "step %d,test accuracy %g"%(i,test_accuracy))
+
+	pre = accuracy.eval(feed_dict={x:mnist.test.images, y: mnist.test.labels})
+	print('precision @1 = %.3f'%pre)
 if __name__=='__main__':
-	main()
+	mnist()
 
