@@ -109,7 +109,7 @@ def mnist():
 	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 	cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=models_result))
 	train_step = tf.train.AdamOptimizer(0.1**3).minimize(cross_entropy) 
-	#train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+	#train_step = tf.train.GradientDescentOptimizer(0.1).minimize(cross_entropy)
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
