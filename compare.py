@@ -50,6 +50,7 @@ def cifar10():
 	train_list = []
 	test_list=[]
 
+	ans = []
 	test_x,test_y = sess.run([test_images,test_labels])
 	for i in range(max_epoch):
 		start_time = time.time()
@@ -65,8 +66,9 @@ def cifar10():
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			for m in model:
 				m.training = False
-			# pre = test()
-			test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
+			test_accuracy = test()
+			ans.append(test_accuracy)
+			# test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
 			for m in model:
 				m.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
@@ -81,12 +83,8 @@ def cifar10():
 	saver = tf.train.Saver()
 	save_path = saver.save(sess,model_path)
 	
-	for m in model:
-		m.training = False
-	pre= test()
-	for m in model:
-		m.training = True
-	print('precision @1 = %.3f'%pre)
+
+	print('precision @1 = %.5f'%np.mean(ans[-100:]))
 
 def mnist():
 	def test(images,labels,accuracy):
@@ -108,8 +106,8 @@ def mnist():
 	correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(models_result, 1))
 	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 	cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=models_result))
-	train_step = tf.train.AdamOptimizer(0.1**3).minimize(cross_entropy) 
-	#train_step = tf.train.GradientDescentOptimizer(0.1).minimize(cross_entropy)
+	# train_step = tf.train.AdamOptimizer(0.1**3).minimize(cross_entropy) 
+	train_step = tf.train.GradientDescentOptimizer(0.1).minimize(cross_entropy)
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
@@ -136,7 +134,7 @@ def mnist():
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
 
-	print('precision @1 = %.3f'%max(ans))
+	print('precision @1 = %.5f'%np.mean(ans[-100:]))
 if __name__=='__main__':
-	mnist()
+	cifar10()
 
