@@ -65,7 +65,7 @@ class complex_net(alexNet):
             conv1 = self.complex_convLayer(self.X_com, [5, 5], [1, 1], 64, "conv1", "SAME")
             pool1 = self.complex_maxPoolLayer(conv1,[2, 2],[ 1,1], "pool1", "SAME")
 
-            conv2 = self.complex_convLayer(pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
+            conv2 = self.complex_convLayer(pool1, [5, 5], [1, 1], 64, "conv2",'SAME')
             pool2 = self.complex_maxPoolLayer(conv2,[2, 2], [1, 1], "pool2", "SAME")
 
             # conv3 = self.complex_convLayer(pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
@@ -89,7 +89,7 @@ class complex_net(alexNet):
             conv1 = self.convLayer(self.X, [5, 5], [1, 1], int(64*1.41)+1, "conv1", "SAME")
             pool1 = self.maxPoolLayer(conv1,[2, 2],[ 1,1], "pool1", "SAME")
 
-            conv2 = self.convLayer(pool1, [3, 3], [1, 1], int(64*1.41)+1, "conv2",'SAME')
+            conv2 = self.convLayer(pool1, [5, 5], [1, 1], int(64*1.41)+1, "conv2",'SAME')
             pool2 = self.maxPoolLayer(conv2,[2, 2], [1, 1], "pool2", "SAME")
 
             # conv3 = self.complex_convLayer(pool2, [5, 5], [1, 1], int(64*1.41)+1, "conv3",'VALID')

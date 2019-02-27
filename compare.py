@@ -41,6 +41,7 @@ def cifar10():
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 	with tf.control_dependencies(update_ops):
 		train_op = tf.train.AdamOptimizer(0.1**3).minimize(loss)
+		# train_op = tf.train.GradientDescentOptimizer(0.1).minimize(loss)
 	top_k_op = tf.nn.in_top_k(models_result,y,1)
 	accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
 	sess = tf.InteractiveSession()
