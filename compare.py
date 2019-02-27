@@ -57,7 +57,7 @@ def cifar10():
 		train_x,train_y = sess.run([train_images,train_labels])
 		_,loss_value = sess.run([train_op,loss],feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
-		if i%100 ==0:
+		if i%200 ==0:
 			examples_per_sec = batch_step/duration
 			sec_per_batch = float(duration)
 			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch)')

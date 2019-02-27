@@ -112,8 +112,10 @@ class alexNet(object):
     
     def Learnable_angle_relu_per_neural(self,C,name):
         with tf.variable_scope(name) as scope:
-            alpha = tf.get_variable("alpha",shape = C[0].get_shape().as_list(),dtype=tf.float32)
-            beita = tf.get_variable("beita",shape = C[0].get_shape().as_list(),dtype=tf.float32)
+            alpha = tf.get_variable("alpha",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
+                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+            beita = tf.get_variable("beita",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
+                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
             return [C[0]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha)),
             C[1]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha))]
 
@@ -125,7 +127,8 @@ class alexNet(object):
 
     def Learnable_radius_relu_per_neural(self,C,name):
         with tf.variable_scope(name) as scope:
-            radius = tf.get_variable("radius",shape = C[0].get_shape().as_list(),dtype=tf.float32)
+            radius = tf.get_variable("radius",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
+                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
             return [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
 
 
@@ -133,10 +136,14 @@ class alexNet(object):
     def complex_fcLayer(self,x, input_size, output_size, reluFlag, name,norm=True):
         """fully-connect"""
         with tf.variable_scope(name) as scope:
-            wr = tf.get_variable("wr", shape = [input_size, output_size], dtype = tf.float32)
-            wi = tf.get_variable("wi", shape = [input_size, output_size], dtype = tf.float32)
-            br = tf.get_variable("br", [output_size], dtype = tf.float32)
-            bi = tf.get_variable("bi", [output_size], dtype = tf.float32)
+            wr = tf.get_variable("wr", shape = [input_size, output_size], dtype = tf.float32,\
+                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+            wi = tf.get_variable("wi", shape = [input_size, output_size], dtype = tf.float32,\
+                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+            br = tf.get_variable("br", [output_size], dtype = tf.float32,\
+                initializer=tf.zeros_initializer())
+            bi = tf.get_variable("bi", [output_size], dtype = tf.float32,\
+                initializer=tf.zeros_initializer())
             R = tf.nn.xw_plus_b(x[0], wr, br)- tf.nn.xw_plus_b(x[1], wi, bi)
             I = tf.nn.xw_plus_b(x[0], wi, bi)+ tf.nn.xw_plus_b(x[1], wr, br)
             if norm :
@@ -155,11 +162,15 @@ class alexNet(object):
         conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
 
         with tf.variable_scope(name) as scope:
-            wr = tf.get_variable("wr", shape = ksize+[in_channel,out_channel],dtype=tf.float32)
-            wi = tf.get_variable("wi", shape = ksize+[in_channel,out_channel],dtype=tf.float32)
+            wr = tf.get_variable("wr", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
+                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+            wi = tf.get_variable("wi", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
+                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
 
-            br = tf.get_variable("br", shape = [out_channel],dtype=tf.float32)
-            bi = tf.get_variable("bi", shape = [out_channel],dtype=tf.float32)
+            br = tf.get_variable("br", shape = [out_channel],dtype=tf.float32,\
+                initializer=tf.zeros_initializer())
+            bi = tf.get_variable("bi", shape = [out_channel],dtype=tf.float32,\
+                initializer=tf.zeros_initializer())
 
             R = conv(x[0],wr)-conv(x[1],wi) +br
             I= conv(x[1],wr)+conv(x[0],wi) +bi
@@ -184,8 +195,10 @@ class alexNet(object):
     def fcLayer(self,x, input_size, output_size, reluFlag, name,norm=True):
         """fully-connect"""
         with tf.variable_scope(name) as scope:
-            w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float")
-            b = tf.get_variable("b", [output_size], dtype = "float")
+            w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float",\
+                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+            b = tf.get_variable("b", [output_size], dtype = "float",\
+                initializer=tf.zeros_initializer())
             out = tf.nn.xw_plus_b(x, w, b, name = scope.name)
             if norm:
                 out=tf.layers.batch_normalization(out,training=self.training)
@@ -204,8 +217,10 @@ class alexNet(object):
         conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
 
         with tf.variable_scope(name) as scope:
-            w = tf.get_variable("w", shape = ksize+[in_channel,out_channel])
-            b = tf.get_variable("b", shape = [out_channel])
+            w = tf.get_variable("w", shape = ksize+[in_channel,out_channel],\
+                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+            b = tf.get_variable("b", shape = [out_channel],\
+                initializer=tf.zeros_initializer())
             out_put = conv(x,w)
             # print mergeFeatureMap.shape
             out = tf.nn.bias_add(out_put, b)
