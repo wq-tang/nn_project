@@ -21,13 +21,13 @@ class complex_net(alexNet):
     def build_complex_CNN_for_mnist(self):
         with tf.variable_scope('model_%d'%self.seed):
             conv1 = self.complex_convLayer(self.X_com, [5, 5], [1, 1], 16, "conv1", "SAME")
-            pool1 = self.complex_maxPoolLayer(conv1,[2, 2],[ 1,1], "pool1", "SAME")
+            pool1 = self.complex_maxPoolLayer(conv1,[2, 2],[ 2,2], "pool1", "SAME")
 
             conv2 = self.complex_convLayer(pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
-            pool2 = self.complex_maxPoolLayer(conv2,[2, 2], [1, 1], "pool2", "SAME")
+            pool2 = self.complex_maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
             # conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 256, "conv3",'VALID')
-            # pool3 = self.complex_maxPoolLayer(conv3, [2, 2], [1, 1], "pool3", "VALID")
+            # pool3 = self.complex_maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
             cnnout = pool3
             shapes = cnnout[0].get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
@@ -43,13 +43,13 @@ class complex_net(alexNet):
     def buildCNN_real_CNN_for_mnist(self):
         with tf.variable_scope('model_%d'%self.seed):
             conv1 = self.convLayer(self.X, [5, 5], [1, 1], int(16*1.41)+1, "conv1", "SAME")
-            pool1 = self.maxPoolLayer(conv1,[2, 2],[ 1,1], "pool1", "SAME")
+            pool1 = self.maxPoolLayer(conv1,[2, 2],[ 2,2], "pool1", "SAME")
 
             conv2 = self.convLayer(pool1, [3, 3], [1, 1], int(64*1.41)+1, "conv2",'SAME')
-            pool2 = self.maxPoolLayer(conv2,[2, 2], [1, 1], "pool2", "SAME")
+            pool2 = self.maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
             # conv3 = self.convLayer(pool2, [2, 2], [1, 1], int(256*1.41)+1, "conv3",'VALID')
-            # pool3 = self.maxPoolLayer(conv3, [2, 2], [1, 1], "pool3", "VALID")
+            # pool3 = self.maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
             cnnout = pool3
             shapes = cnnout.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
@@ -63,10 +63,10 @@ class complex_net(alexNet):
     def build_complex_CNN_for_cifar10(self):
         with tf.variable_scope('model_%d'%self.seed):
             conv1 = self.complex_convLayer(self.X_com, [5, 5], [1, 1], 64, "conv1", "SAME")
-            pool1 = self.complex_maxPoolLayer(conv1,[2, 2],[ 1,1], "pool1", "SAME")
+            pool1 = self.complex_maxPoolLayer(conv1,[2, 2],[ 2,2], "pool1", "SAME")
 
             conv2 = self.complex_convLayer(pool1, [5, 5], [1, 1], 64, "conv2",'SAME')
-            pool2 = self.complex_maxPoolLayer(conv2,[2, 2], [1, 1], "pool2", "SAME")
+            pool2 = self.complex_maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
             # conv3 = self.complex_convLayer(pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
             # pool3 = self.complex_maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
@@ -87,10 +87,10 @@ class complex_net(alexNet):
     def buildCNN_real_CNN_for_cifar10(self):
         with tf.variable_scope('model_%d'%self.seed):
             conv1 = self.convLayer(self.X, [5, 5], [1, 1], int(64*1.41)+1, "conv1", "SAME")
-            pool1 = self.maxPoolLayer(conv1,[2, 2],[ 1,1], "pool1", "SAME")
+            pool1 = self.maxPoolLayer(conv1,[2, 2],[ 2,2], "pool1", "SAME")
 
             conv2 = self.convLayer(pool1, [5, 5], [1, 1], int(64*1.41)+1, "conv2",'SAME')
-            pool2 = self.maxPoolLayer(conv2,[2, 2], [1, 1], "pool2", "SAME")
+            pool2 = self.maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
             # conv3 = self.convLayer(pool2, [5, 5], [1, 1], int(64*1.41)+1, "conv3",'VALID')
             # pool3 = self.maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
