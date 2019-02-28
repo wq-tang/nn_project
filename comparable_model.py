@@ -26,8 +26,8 @@ class complex_net(alexNet):
             conv2 = self.complex_convLayer(pool1, [3, 3], [1, 1], 64, "conv2",'SAME')
             pool2 = self.complex_maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
-            # conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 256, "conv3",'VALID')
-            # pool3 = self.complex_maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
+            conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 256, "conv3",'VALID')
+            pool3 = self.complex_maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
             cnnout = pool3
             shapes = cnnout[0].get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
@@ -48,8 +48,8 @@ class complex_net(alexNet):
             conv2 = self.convLayer(pool1, [3, 3], [1, 1], int(64*1.41)+1, "conv2",'SAME')
             pool2 = self.maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
-            # conv3 = self.convLayer(pool2, [2, 2], [1, 1], int(256*1.41)+1, "conv3",'VALID')
-            # pool3 = self.maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
+            conv3 = self.convLayer(pool2, [2, 2], [1, 1], int(256*1.41)+1, "conv3",'VALID')
+            pool3 = self.maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
             cnnout = pool3
             shapes = cnnout.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
@@ -68,8 +68,8 @@ class complex_net(alexNet):
             conv2 = self.complex_convLayer(pool1, [5, 5], [1, 1], 64, "conv2",'SAME')
             pool2 = self.complex_maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
-            # conv3 = self.complex_convLayer(pool2, [5, 5], [1, 1], 64, "conv3",'VALID')
-            # pool3 = self.complex_maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
+            conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 64, "conv3",'VALID')
+            pool3 = self.complex_maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
             cnnout = pool2
             shapes = cnnout[0].get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
@@ -92,8 +92,8 @@ class complex_net(alexNet):
             conv2 = self.convLayer(pool1, [5, 5], [1, 1], int(64*1.41)+1, "conv2",'SAME')
             pool2 = self.maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
-            # conv3 = self.convLayer(pool2, [5, 5], [1, 1], int(64*1.41)+1, "conv3",'VALID')
-            # pool3 = self.maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
+            conv3 = self.convLayer(pool2, [2, 2], [1, 1], int(64*1.41)+1, "conv3",'VALID')
+            pool3 = self.maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
             cnnout = pool2
             shapes = cnnout.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
