@@ -11,14 +11,14 @@ def sign(x):
     e = 0.1**8
     return tf.nn.relu(x)/(tf.nn.relu(x)+e)
 
-class wavelet(object):
+class wavelet(alexNet):
 	"""docstring for wavelet"""
-    def __init__(self, x, classNum, seed,modelPath = "complexnet"):
-        super(complex_net,self).__init__(x, classNum, seed,modelPath)
-        tf.set_random_seed(seed) 
-        self.build_net(False)
+	def __init__(self, x, classNum, seed,modelPath = "wavelet"):
+		super(wavelet,self).__init__(x, classNum, seed,modelPath)
+		tf.set_random_seed(seed) 
+		self.build_net(False)
     
-    def build_net(self,complex = False):
+	def build_net(self,complex = False):
 		if not complex:
 			convLayer = self.convLayer
 			maxPoolLayer = self.maxPoolLayer
@@ -87,10 +87,10 @@ class wavelet(object):
 					reshape(pool22[1]),reshape(pool23[1]),reshape(pool31[1]),reshape(pool32[1]),reshape(pool33[1]),\
 					reshape(pool34[1])],axis = 1)
 				mul = convoutI.get_shape().as_list()[-1]
-	            fc1 = fcLayer([convoutR,convoutI], dim, 384, reluFlag=True, name = "fc1")
-	            fc2 = fcLayer(fc1, 384, 192, reluFlag=True,name =  "fc2")
-	            fc3 = fcLayer(fc2, 192, self.CLASSNUM, reluFlag=True,name =  "fc3",norm=False)
-	            self.out = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
+				fc1 = fcLayer([convoutR,convoutI], dim, 384, reluFlag=True, name = "fc1")
+				fc2 = fcLayer(fc1, 384, 192, reluFlag=True,name =  "fc2")
+				fc3 = fcLayer(fc2, 192, self.CLASSNUM, reluFlag=True,name =  "fc3",norm=False)
+				self.out = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
 			self.out = fc3
 
 
