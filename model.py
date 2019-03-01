@@ -93,14 +93,14 @@ class alexNet(object):
 
     def real_fc(self,R,I,dim):
         reshape = tf.sqrt(tf.square(R)+tf.square(I))
-        fc1 = self.fcLayer(reshape, dim, 512, reluFlag=True, name = "fc4")
-        fc2 = self.fcLayer(fc1, 512, 128, reluFlag=True,name =  "fc5")
-        self.fc3 = fcLayer(fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6",norm=False)
+        fc1 = self.fcLayer(reshape, dim, 512,  name = "fc4")
+        fc2 = self.fcLayer(fc1, 512, 128, name =  "fc5")
+        self.fc3 = fcLayer(fc2, 128, self.CLASSNUM, name =  "fc6",norm=False)
             
     def complex_fc(self,R,I,dim):
-        fc1 = self.complex_fcLayer([R,I], dim, 512, reluFlag=True, name = "fc4")
-        fc2 = self.complex_fcLayer(fc1, 512, 128, reluFlag=True,name =  "fc5")
-        fc3 = self.complex_fcLayer(fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6",norm=False)
+        fc1 = self.complex_fcLayer([R,I], dim, 512,  name = "fc4")
+        fc2 = self.complex_fcLayer(fc1, 512, 128, name =  "fc5")
+        fc3 = self.complex_fcLayer(fc2, 128, self.CLASSNUM, name =  "fc6",norm=False)
         self.fc3 = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
 
     def Learnable_angle_relu(self,C,name):
@@ -251,13 +251,13 @@ class alexNet(object):
             dim = reshape.get_shape()[1].value
 
             norm_reshape=tf.layers.batch_normalization(reshape,training=self.training)
-            fc1 = self.fcLayer(norm_reshape, dim, 512, reluFlag=True, name = "fc4")
+            fc1 = self.fcLayer(norm_reshape, dim, 512, name = "fc4")
 
             norm_fc1=tf.layers.batch_normalization(fc1,training=self.training)
-            fc2 = self.fcLayer(norm_fc1, 512, 128, reluFlag=True,name =  "fc5")
+            fc2 = self.fcLayer(norm_fc1, 512, 128, name =  "fc5")
 
             norm_fc2=tf.layers.batch_normalization(fc2,training=self.training)
-            self.fc3 = self.fcLayer(norm_fc2, 128, self.CLASSNUM, reluFlag=True,name =  "fc6")
+            self.fc3 = self.fcLayer(norm_fc2, 128, self.CLASSNUM, name =  "fc6")
 
 
 

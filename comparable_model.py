@@ -35,8 +35,8 @@ class complex_net(alexNet):
             I = tf.reshape(cnnout[1],[-1,mul])
             dim = R.get_shape()[1].value
 
-            fc1 = self.complex_fcLayer([R,I], dim, 512, reluFlag=True, name = "fc4",relu_fun = self.Learnable_angle_relu)
-            self.fc2 = self.complex_fcLayer(fc1, 512, self.CLASSNUM, reluFlag=False,name =  "fc5",relu_fun = self.Learnable_angle_relu)
+            fc1 = self.complex_fcLayer([R,I], dim, 512,  name = "fc4",relu_fun = self.Learnable_angle_relu)
+            self.fc2 = self.complex_fcLayer(fc1, 512, self.CLASSNUM,name =  "fc5",relu_fun = self.Learnable_angle_relu)
             self.out = self.fc2
             self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
@@ -54,8 +54,8 @@ class complex_net(alexNet):
             shapes = cnnout.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
             Res = tf.reshape(cnnout,[-1,mul])
-            fc1 = self.fcLayer(Res, mul, int(512*1.41)+1, reluFlag=True, name = "fc4")
-            self.fc2 = self.fcLayer(fc1, int(512*1.41)+1, self.CLASSNUM, reluFlag=True,name =  "fc5")
+            fc1 = self.fcLayer(Res, mul, int(512*1.41)+1,  name = "fc4")
+            self.fc2 = self.fcLayer(fc1, int(512*1.41)+1, self.CLASSNUM, name =  "fc5")
             self.out = self.fc2
 
 
@@ -77,9 +77,9 @@ class complex_net(alexNet):
             I = tf.reshape(cnnout[1],[-1,mul])
             dim = R.get_shape()[1].value
 
-            fc1 = self.complex_fcLayer([R,I], dim, 384, reluFlag=True, name = "fc4",relu_fun = self.Learnable_angle_relu)
-            fc2 = self.complex_fcLayer(fc1, 384, 192, reluFlag=True,name =  "fc5",relu_fun = self.Learnable_angle_relu)
-            fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, reluFlag=True,name =  "fc6",norm=False,relu_fun = self.Learnable_angle_relu)
+            fc1 = self.complex_fcLayer([R,I], dim, 384,  name = "fc4",relu_fun = self.Learnable_angle_relu)
+            fc2 = self.complex_fcLayer(fc1, 384, 192, name =  "fc5",relu_fun = self.Learnable_angle_relu)
+            fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, name =  "fc6",norm=False,relu_fun = self.Learnable_angle_relu)
             self.out = fc3
             self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
@@ -98,7 +98,7 @@ class complex_net(alexNet):
             shapes = cnnout.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
             Res = tf.reshape(cnnout,[-1,mul])
-            fc1 = self.fcLayer(Res, mul, int(384*1.41)+1, reluFlag=True, name = "fc4")
-            fc2 = self.fcLayer(fc1, int(384*1.41)+1, int(192*1.41)+1, reluFlag=True,name =  "fc5")
-            fc3 = self.fcLayer(fc2, int(192*1.41)+1, self.CLASSNUM, reluFlag=True,name =  "fc6",norm=False)
+            fc1 = self.fcLayer(Res, mul, int(384*1.41)+1, name = "fc4")
+            fc2 = self.fcLayer(fc1, int(384*1.41)+1, int(192*1.41)+1, name =  "fc5")
+            fc3 = self.fcLayer(fc2, int(192*1.41)+1, self.CLASSNUM, name =  "fc6",norm=False)
             self.out = fc3
