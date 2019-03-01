@@ -107,7 +107,7 @@ class alexNet(object):
         with tf.variable_scope(name) as scope:
             alpha = tf.get_variable("alpha",shape = [1],dtype=tf.float32)
             beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
-            return [C[0]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha)),
+            return [C[0]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha)),\
             C[1]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha))]
     
     def Learnable_angle_relu_per_neural(self,C,name):
@@ -116,7 +116,7 @@ class alexNet(object):
                 initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
             beita = tf.get_variable("beita",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
                 initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-            return [C[0]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha)),
+            return [C[0]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha)),\
             C[1]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha))]
 
     def Learnable_radius_relu(self,C,name):
@@ -149,7 +149,9 @@ class alexNet(object):
             if norm :
                 R=tf.layers.batch_normalization(R,training=self.training)
                 I=tf.layers.batch_normalization(I,training=self.training)
-            return [relu_fun(R,'reluR'),relu_fun(I,'reluI')]
+            if relu_fun == tf.nn.relu:
+                return [relu_fun(R,'reluR'),relu_fun(I,'reluI')]
+            return relu_fun([R,I],scope)
 
     def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",norm=True,relu_fun = tf.nn.relu): 
         """convolution"""
@@ -172,8 +174,9 @@ class alexNet(object):
             if norm:
                 R=tf.layers.batch_normalization(R,training=self.training)
                 I=tf.layers.batch_normalization(I,training=self.training)
-
-            return [relu_fun(R,'reluR'),relu_fun(I,'reluI')]
+            if relu_fun == tf.nn.relu:
+                return [relu_fun(R,'reluR'),relu_fun(I,'reluI')]
+            return  relu_fun([R,I],scope)
 
 
 
