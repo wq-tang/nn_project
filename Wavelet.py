@@ -27,7 +27,7 @@ class wavelet(alexNet):
 		else:
 			convLayer = self.complex_convLayer
 			maxPoolLayer = self.complex_maxPoolLayer
-			fclayer = self.complex_fcLayer
+			fcLayer = self.complex_fcLayer
 			inputs = self.X_com			
 		with tf.variable_scope("wavelet_net"):
 			layer11 = convLayer(inputs,[2,2],[1,1],256,"layer11","SAME")
