@@ -112,9 +112,9 @@ class alexNet(object):
     
     def Learnable_angle_relu_per_neural(self,C,name):
         with tf.variable_scope(name) as scope:
-            alpha = tf.get_variable("alpha",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
+            alpha = tf.get_variable("alpha",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
                 initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-            beita = tf.get_variable("beita",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
+            beita = tf.get_variable("beita",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
                 initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
             return [C[0]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha)),\
             C[1]*sign(tf.atan(C[1]/C[0]-alpha))*sign(alpha+beita-tf.atan(C[1]/C[0]-alpha))]
