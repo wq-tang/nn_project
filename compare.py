@@ -6,6 +6,7 @@ import cifar10_input
 import math
 from comparable_model import complex_net
 from tensorflow.examples.tutorials.mnist import input_data
+from Wavelet import wavelet
 ##cifar batch =128  epoch = 50000
 ##mnist epoch=50  bathch = 60000
 
@@ -34,7 +35,7 @@ def cifar10():
 	x  = tf.placeholder(tf.float32,[None,24,24,3])
 	y = tf.placeholder(tf.int32,[None])
 
-	model = [complex_net(x,10,0)]
+	model = [wavelet(x,10,0)]
 	models_result =model[0].out
 	loss  = loss(models_result,y)
 
