@@ -133,7 +133,7 @@ class alexNet(object):
 
 
 
-    def complex_fcLayer(self,x, input_size, output_size, reluFlag, name,norm=True):
+    def complex_fcLayer(self,x, input_size, output_size, name,norm=True, relu_fun =tf.nn.relu):
         """fully-connect"""
         with tf.variable_scope(name) as scope:
             wr = tf.get_variable("wr", shape = [input_size, output_size], dtype = tf.float32,\
@@ -149,14 +149,9 @@ class alexNet(object):
             if norm :
                 R=tf.layers.batch_normalization(R,training=self.training)
                 I=tf.layers.batch_normalization(I,training=self.training)
-            if reluFlag:
-            #     f = tf.complex(R,I)
-            #     f = tf.tanh(f)
-            #     return [tf.real(f),tf.imag(f)]
-                return [tf.nn.relu(R),tf.nn.relu(I)]
-            else:
-                return [tf.nn.sigmoid(R),tf.nn.sigmoid(I)]
-    def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",act_flag=True,norm=True): 
+            return [relu_fun(R,'reluR'),relu_fun(I,'reluI')]
+
+    def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",norm=True,relu_fun = tf.nn.relu): 
         """convolution"""
         in_channel = int(x[0].get_shape()[-1])
         conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
@@ -177,13 +172,10 @@ class alexNet(object):
             if norm:
                 R=tf.layers.batch_normalization(R,training=self.training)
                 I=tf.layers.batch_normalization(I,training=self.training)
-            if act_flag:
-                return [tf.nn.relu(R),tf.nn.relu(I)]
-            else:
-                return self.Learnable_angle_relu([R,I],'relu')
 
-            # print mergeFeatureMap.shape
-            # return [tf.nn.relu(R),tf.nn.relu(I)]
+            return [relu_fun(R,'reluR'),relu_fun(I,'reluI')]
+
+
 
     def complex_maxPoolLayer(self,x, ksize,strides=[1,1], name='None', padding = "SAME"):
         """max-pooling"""
@@ -192,7 +184,7 @@ class alexNet(object):
                               strides = [1] +strides+[1], padding = padding, name = name)]
 
 
-    def fcLayer(self,x, input_size, output_size, reluFlag, name,norm=True):
+    def fcLayer(self,x, input_size, output_size, name,norm=True, relu_fun = tf.nn.relu):
         """fully-connect"""
         with tf.variable_scope(name) as scope:
             w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float",\
@@ -202,17 +194,11 @@ class alexNet(object):
             out = tf.nn.xw_plus_b(x, w, b, name = scope.name)
             if norm:
                 out=tf.layers.batch_normalization(out,training=self.training)
-            if reluFlag:
-                return tf.nn.relu(out)
-            else:
-                return out
+            return relu_fun(out,'relu')
 
-    def convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",mnist=False): 
+    def convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",relu_fun = tf.nn.relu): 
         """convolution"""
         in_channel = int(x.get_shape()[-1])
-        if mnist:
-            in_channel=1
-            out_channel=1
 
         conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
 
@@ -225,7 +211,7 @@ class alexNet(object):
             # print mergeFeatureMap.shape
             out = tf.nn.bias_add(out_put, b)
             out = tf.layers.batch_normalization(out,training=self.training)
-            return tf.nn.relu(out, name = scope.name)
+            return relu_fun(out, name = scope.name)
 
     def maxPoolLayer(self,x, ksize,strides=[1,1], name='None', padding = "SAME"):
         """max-pooling"""

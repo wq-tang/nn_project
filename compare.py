@@ -108,8 +108,8 @@ def mnist():
 	correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(models_result, 1))
 	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 	cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=models_result))
-	# train_step = tf.train.AdamOptimizer(0.1**3).minimize(cross_entropy) 
-	train_step = tf.train.GradientDescentOptimizer(0.1).minimize(cross_entropy)
+	train_step = tf.train.AdamOptimizer(0.1**3).minimize(cross_entropy) 
+	# train_step = tf.train.GradientDescentOptimizer(0.1).minimize(cross_entropy)
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
@@ -138,5 +138,5 @@ def mnist():
 
 	print('precision @1 = %.5f'%np.mean(ans[-100:]))
 if __name__=='__main__':
-	cifar10()
+	mnist()
 
