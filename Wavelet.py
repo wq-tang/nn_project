@@ -88,7 +88,7 @@ class wavelet(alexNet):
 					reshape(pool34[1])],axis = 1)
 				mul = convoutI.get_shape().as_list()[-1]
 				fc1 = fcLayer([convoutR,convoutI], dim, 384,  name = "fc1")
-				fc2 = fcLayer(fc1, 384, 192, ,name =  "fc2")
+				fc2 = fcLayer(fc1, 384, 192, name =  "fc2")
 				fc3 = fcLayer(fc2, 192, self.CLASSNUM, name =  "fc3",norm=False)
 				self.out = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
 			self.out = fc3
