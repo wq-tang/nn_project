@@ -138,5 +138,5 @@ def mnist():
 
 	print('precision @1 = %.5f'%np.mean(ans[-100:]))
 if __name__=='__main__':
-	mnist()
+	cifar10()
 
