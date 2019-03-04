@@ -35,7 +35,7 @@ def cifar10():
 	x  = tf.placeholder(tf.float32,[None,24,24,3])
 	y = tf.placeholder(tf.int32,[None])
 
-	model = [complex_net(x,10,0)]
+	model = [wavelet(x,10,0)]
 	models_result =model[0].out
 	loss  = loss(models_result,y)
 
