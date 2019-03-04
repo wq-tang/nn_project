@@ -24,11 +24,13 @@ class wavelet(alexNet):
 			maxPoolLayer = self.maxPoolLayer
 			fcLayer = self.fcLayer
 			inputs = self.X
+			relu_fun =tf.nn.relu
 		else:
 			convLayer = self.complex_convLayer
 			maxPoolLayer = self.complex_maxPoolLayer
 			fcLayer = self.complex_fcLayer
-			inputs = self.X_com			
+			inputs = self.X_com
+			relu_fun =self.Learnable_angle_relu		
 		with tf.variable_scope("wavelet_net"):
 			layer11 = convLayer(inputs,[2,2],[1,1],16,"layer11","SAME")
 			pool11 = maxPoolLayer(layer11,[2, 2],[ 2,2], "pool11", "SAME")

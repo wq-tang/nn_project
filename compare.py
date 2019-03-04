@@ -14,7 +14,7 @@ from Wavelet import wavelet
 def cifar10():
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
-		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels = y,name='cross_entropy_per_example')
+		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
 		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
@@ -35,7 +35,7 @@ def cifar10():
 	x  = tf.placeholder(tf.float32,[None,24,24,3])
 	y = tf.placeholder(tf.int32,[None])
 
-	model = [wavelet(x,10,0)]
+	model = [complex_net(x,10,0)]
 	models_result =model[0].out
 	loss  = loss(models_result,y)
 

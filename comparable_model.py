@@ -14,19 +14,20 @@ class complex_net(alexNet):
     """docstring for complex_net"""
     def __init__(self, x, classNum, seed,modelPath = "complexnet"):
         super(complex_net,self).__init__(x, classNum, seed,modelPath)
-        tf.set_random_seed(seed) 
-        self.build_complex_CNN_for_mnist()
+        tf.set_random_seed(seed)
+        self.relu_fun = self.Learnable_angle_relu
+        self.build_complex_CNN_for_cifar10()
 
 
     def build_complex_CNN_for_mnist(self):
         with tf.variable_scope('model_%d'%self.seed):
-            conv1 = self.complex_convLayer(self.X_com, [5, 5], [1, 1], 16, "conv1", "SAME",relu_fun = self.Learnable_angle_relu_per_neural)
+            conv1 = self.complex_convLayer(self.X_com, [5, 5], [1, 1], 16, "conv1", "SAME",relu_fun = self.relu_fun)
             pool1 = self.complex_maxPoolLayer(conv1,[2, 2],[ 2,2], "pool1", "SAME")
 
-            conv2 = self.complex_convLayer(pool1, [3, 3], [1, 1], 64, "conv2",'SAME',relu_fun = self.Learnable_angle_relu_per_neural)
+            conv2 = self.complex_convLayer(pool1, [3, 3], [1, 1], 64, "conv2",'SAME',relu_fun = self.relu_fun)
             pool2 = self.complex_maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
-            conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 256, "conv3",'VALID',relu_fun = self.Learnable_angle_relu_per_neural)
+            conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 256, "conv3",'VALID',relu_fun = self.relu_fun)
             pool3 = self.complex_maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
             cnnout = pool3
             shapes = cnnout[0].get_shape().as_list()[1:]
@@ -35,8 +36,8 @@ class complex_net(alexNet):
             I = tf.reshape(cnnout[1],[-1,mul])
             dim = R.get_shape()[1].value
 
-            fc1 = self.complex_fcLayer([R,I], dim, 512,  name = "fc4",relu_fun = self.Learnable_angle_relu_per_neural)
-            self.fc2 = self.complex_fcLayer(fc1, 512, self.CLASSNUM,name =  "fc5",relu_fun = self.Learnable_angle_relu_per_neural)
+            fc1 = self.complex_fcLayer([R,I], dim, 512,  name = "fc4",relu_fun = self.relu_fun)
+            self.fc2 = self.complex_fcLayer(fc1, 512, self.CLASSNUM,name =  "fc5",relu_fun = self.relu_fun)
             self.out = self.fc2
             self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
@@ -62,13 +63,13 @@ class complex_net(alexNet):
 
     def build_complex_CNN_for_cifar10(self):
         with tf.variable_scope('model_%d'%self.seed):
-            conv1 = self.complex_convLayer(self.X_com, [5, 5], [1, 1], 64, "conv1", "SAME",relu_fun = self.Learnable_angle_relu)
+            conv1 = self.complex_convLayer(self.X_com, [5, 5], [1, 1], 64, "conv1", "SAME",relu_fun = self.relu_fun)
             pool1 = self.complex_maxPoolLayer(conv1,[2, 2],[ 2,2], "pool1", "SAME")
 
-            conv2 = self.complex_convLayer(pool1, [5, 5], [1, 1], 64, "conv2",'SAME',relu_fun = self.Learnable_angle_relu)
+            conv2 = self.complex_convLayer(pool1, [5, 5], [1, 1], 64, "conv2",'SAME',relu_fun = self.relu_fun)
             pool2 = self.complex_maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
-            conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 64, "conv3",'VALID',relu_fun = self.Learnable_angle_relu)
+            conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 64, "conv3",'VALID',relu_fun = self.relu_fun)
             pool3 = self.complex_maxPoolLayer(conv3, [3, 3], [2, 2], "pool3", "VALID")
             cnnout = pool2
             shapes = cnnout[0].get_shape().as_list()[1:]
@@ -77,9 +78,9 @@ class complex_net(alexNet):
             I = tf.reshape(cnnout[1],[-1,mul])
             dim = R.get_shape()[1].value
 
-            fc1 = self.complex_fcLayer([R,I], dim, 384,  name = "fc4",relu_fun = self.Learnable_angle_relu)
-            fc2 = self.complex_fcLayer(fc1, 384, 192, name =  "fc5",relu_fun = self.Learnable_angle_relu)
-            fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, name =  "fc6",norm=False,relu_fun = self.Learnable_angle_relu)
+            fc1 = self.complex_fcLayer([R,I], dim, 384,  name = "fc4",relu_fun = self.relu_fun)
+            fc2 = self.complex_fcLayer(fc1, 384, 192, name =  "fc5",relu_fun = self.relu_fun)
+            fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, name =  "fc6",norm=False,relu_fun = self.relu_fun)
             self.out = fc3
             self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
