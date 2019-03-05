@@ -16,7 +16,7 @@ class wavelet(alexNet):
 	def __init__(self, x, classNum, seed,modelPath = "wavelet"):
 		super(wavelet,self).__init__(x, classNum, seed,modelPath)
 		tf.set_random_seed(seed) 
-		self.build_net(False)
+		self.build_net_share(True)
     
 	def build_net(self,complex = True):
 		if not complex:
