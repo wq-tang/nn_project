@@ -19,8 +19,8 @@ def sign(x):
 def variable_summaries(var):
     """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
     with tf.name_scope('summaries'):
-            mean = tf.reduce_mean(var)
-            tf.summary.scalar('mean', mean)
+        mean = tf.reduce_mean(var)
+        tf.summary.scalar('mean', mean)
         with tf.name_scope('stddev'):
             stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
         tf.summary.scalar('stddev', stddev)
@@ -245,7 +245,7 @@ class alexNet(object):
 
     def complex_maxPoolLayer(self,x, ksize,strides=[1,1], name='None', padding = "SAME"):
         """max-pooling"""
-        with variable_scope(name)
+        with variable_scope(name):
             activations= [tf.nn.max_pool(x[0], ksize =[1]+ ksize+[1],
                                   strides = [1] +strides+[1], padding = padding, name = name+'0'),tf.nn.max_pool(x[1], ksize =[1]+ ksize+[1],
                                   strides = [1] +strides+[1], padding = padding, name = name)]
