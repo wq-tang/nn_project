@@ -53,10 +53,10 @@ def mnist():
 	with tf.name_scope('train'):
 		train_step = tf.train.AdamOptimizer(0.1**3).minimize(cross_entropy) 
 	# train_step = tf.train.GradientDescentOptimizer(0.1).minimize(cross_entropy)
+	sess = tf.InteractiveSession()
 	merged = tf.summary.merge_all()
 	train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
 	test_writer = tf.summary.FileWriter(log_dir + '/test')
-	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
 
