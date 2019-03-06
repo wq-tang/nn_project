@@ -115,10 +115,10 @@ class alexNet(object):
 
     def Learnable_angle_relu(self,C,name):
         with tf.variable_scope(name) as scope:
-            with tf.name_scope('alpha'):
+            with tf.variable_scope('alpha'):
                 alpha = tf.get_variable("alpha",shape = [1],dtype=tf.float32)
                 tf.summary.scalar(alpha)
-            with tf.name_scope('beita'):
+            with tf.variable_scope('beita'):
                 beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
                 tf.summary.scalar(beita)
             activations= [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
@@ -128,11 +128,11 @@ class alexNet(object):
     
     def Learnable_angle_relu_per_neural(self,C,name):
         with tf.variable_scope(name) as scope:
-            with tf.name_scope('alpha'):
+            with tf.variable_scope('alpha'):
                 alpha = tf.get_variable("alpha",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
                 variable_summaries(alpha)
-            with  tf.name_scope('beita'):
+            with  tf.variable_scope('beita'):
                 beita = tf.get_variable("beita",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
                 variable_summaries(beita)
@@ -143,7 +143,7 @@ class alexNet(object):
 
     def Learnable_radius_relu(self,C,name):
         with tf.variable_scope(name) as scope:
-            with  tf.name_scope('radius'):
+            with  tf.variable_scope('radius'):
                 radius = tf.get_variable("radius",shape = [1],dtype=tf.float32)
                 tf.summary.scalar(radius)
             activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
@@ -152,7 +152,7 @@ class alexNet(object):
 
     def Learnable_radius_relu_per_neural(self,C,name):
         with tf.variable_scope(name) as scope:
-            with tf.name_scope('radius'):
+            with tf.variable_scope('radius'):
                 radius = tf.get_variable("radius",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
                 variable_summaries(radius)
@@ -257,11 +257,11 @@ class alexNet(object):
     def fcLayer(self,x, input_size, output_size, name,norm=True, relu_fun = tf.nn.relu):
         """fully-connect"""
         with tf.variable_scope(name) as scope:
-            with name_scope('wight'):
+            with tf.variable_scope('wight'):
                 w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float",\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
                 variable_summaries(w)
-            with name_scope('bias'):
+            with tf.variable_scope('bias'):
                 b = tf.get_variable("b", [output_size], dtype = "float",\
                 initializer=tf.zeros_initializer())
                 variable_summaries(b)
@@ -281,11 +281,11 @@ class alexNet(object):
         conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
 
         with tf.variable_scope(name) as scope:
-            with name_scope('wight'):
+            with tf.variable_scope('wight'):
                 w = tf.get_variable("w", shape = ksize+[in_channel,out_channel],\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
                 variable_summaries(w)
-            with name_scope('bias'):
+            with tf.variable_scope('bias'):
                 b = tf.get_variable("b", shape = [out_channel],\
                     initializer=tf.zeros_initializer())
                 variable_summaries(b)
@@ -300,7 +300,7 @@ class alexNet(object):
             return relu
 
     def maxPoolLayer(self,x, ksize,strides=[1,1], name='None', padding = "SAME"):
-        with name_scope(name):
+        with tf.variable_scope(name):
             """max-pooling"""
             activations= tf.nn.max_pool(x, ksize =[1]+ ksize+[1],
                             strides = [1] +strides+[1], padding = padding, name = name)
