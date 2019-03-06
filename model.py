@@ -16,7 +16,17 @@ def sign(x):
     e = 0.1**8
     return tf.nn.relu(x)/(tf.nn.relu(x)+e)
 
-
+def variable_summaries(var):
+    """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
+    with tf.name_scope('summaries'):
+            mean = tf.reduce_mean(var)
+            tf.summary.scalar('mean', mean)
+        with tf.name_scope('stddev'):
+            stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+        tf.summary.scalar('stddev', stddev)
+        tf.summary.scalar('max', tf.reduce_max(var))
+        tf.summary.scalar('min', tf.reduce_min(var))
+        tf.summary.histogram('histogram', var)
 
 
 
@@ -105,53 +115,89 @@ class alexNet(object):
 
     def Learnable_angle_relu(self,C,name):
         with tf.variable_scope(name) as scope:
-            alpha = tf.get_variable("alpha",shape = [1],dtype=tf.float32)
-            beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
-            return [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
+            with tf.name_scope('alpha'):
+                alpha = tf.get_variable("alpha",shape = [1],dtype=tf.float32)
+                tf.summary.scalar(alpha)
+            with tf.name_scope('beita'):
+                beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
+                tf.summary.scalar(beita)
+            activations= [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
             C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
+            tf.summary.histogram('activations', activations)
+            return activations
     
     def Learnable_angle_relu_per_neural(self,C,name):
         with tf.variable_scope(name) as scope:
-            alpha = tf.get_variable("alpha",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
-                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-            beita = tf.get_variable("beita",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
-                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-            return [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
+            with tf.name_scope('alpha'):
+                alpha = tf.get_variable("alpha",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                variable_summaries(alpha)
+            with  tf.name_scope('beita'):
+                beita = tf.get_variable("beita",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                variable_summaries(beita)
+            activations =  [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
             C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
+            tf.summary.histogram('activations', activations)
+            return activations
 
     def Learnable_radius_relu(self,C,name):
         with tf.variable_scope(name) as scope:
-            radius = tf.get_variable("radius",shape = [1],dtype=tf.float32)
-            return [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
-
+            with  tf.name_scope('radius'):
+                radius = tf.get_variable("radius",shape = [1],dtype=tf.float32)
+                tf.summary.scalar(radius)
+            activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
+            tf.summary.histogram('activations', activations)
+            return activations
 
     def Learnable_radius_relu_per_neural(self,C,name):
         with tf.variable_scope(name) as scope:
-            radius = tf.get_variable("radius",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
-                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-            return [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
-
+            with tf.name_scope('radius'):
+                radius = tf.get_variable("radius",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                variable_summaries(radius)
+            activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
+            tf.summary.histogram('activations', activations)
+            return activations
 
 
     def complex_fcLayer(self,x, input_size, output_size, name,norm=True, relu_fun =tf.nn.relu):
         """fully-connect"""
         with tf.variable_scope(name) as scope:
-            wr = tf.get_variable("wr", shape = [input_size, output_size], dtype = tf.float32,\
-                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-            wi = tf.get_variable("wi", shape = [input_size, output_size], dtype = tf.float32,\
-                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-            br = tf.get_variable("br", [output_size], dtype = tf.float32,\
+            with tf.variable_scope('wightr'):
+                wr = tf.get_variable("wr", shape = [input_size, output_size], dtype = tf.float32,\
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                variable_summaries(wr)
+            with tf.variable_scope('wighti'):
+                wi = tf.get_variable("wi", shape = [input_size, output_size], dtype = tf.float32,\
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                variable_summaries(wi)
+            with tf.variable_scope('biasr'):
+                br = tf.get_variable("br", [output_size], dtype = tf.float32,\
+                    initializer=tf.zeros_initializer())
+                variable_summaries(br)
+            with tf.variable_scope('biasi'):
+                bi = tf.get_variable("bi", [output_size], dtype = tf.float32,\
                 initializer=tf.zeros_initializer())
-            bi = tf.get_variable("bi", [output_size], dtype = tf.float32,\
-                initializer=tf.zeros_initializer())
+                variable_summaries(bi)
             R = tf.nn.xw_plus_b(x[0], wr, br)- tf.nn.xw_plus_b(x[1], wi, bi)
             I = tf.nn.xw_plus_b(x[0], wi, bi)+ tf.nn.xw_plus_b(x[1], wr, br)
+            tf.summary.histogram('R',R)
+            tf.summary.histogram('I',I)
             if norm :
                 R=tf.layers.batch_normalization(R,training=self.training)
                 I=tf.layers.batch_normalization(I,training=self.training)
+            tf.summary.histogram('normR',R)
+            tf.summary.histogram('normI',I)            
             if relu_fun == tf.nn.relu:
-                return [relu_fun(R,'reluR'),relu_fun(I,'reluI')]
-            return relu_fun([R,I],scope)
+                R,I=relu_fun(R,'reluR'),relu_fun(I,'reluI')
+                tf.summary.histogram('fcR',R)
+                tf.summary.histogram('fcI',I)                 
+                return [R,I]
+            relu =  relu_fun([R,I],scope)
+            tf.summary.histogram('fcR',relu[0])
+            tf.summary.histogram('fcI',relu[1])            
+            return relu
 
     def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",norm=True,relu_fun = tf.nn.relu): 
         """convolution"""
@@ -159,45 +205,74 @@ class alexNet(object):
         conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
 
         with tf.variable_scope(name) as scope:
-            wr = tf.get_variable("wr", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
-                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-            wi = tf.get_variable("wi", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
-                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-
-            br = tf.get_variable("br", shape = [out_channel],dtype=tf.float32,\
-                initializer=tf.zeros_initializer())
-            bi = tf.get_variable("bi", shape = [out_channel],dtype=tf.float32,\
-                initializer=tf.zeros_initializer())
+            with tf.variable_scope('wightr'):
+                wr = tf.get_variable("wr", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                variable_summaries(wr)
+            with tf.variable_scope('wighti'):
+                wi = tf.get_variable("wi", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                variable_summaries(wi)
+            with tf.variable_scope('biasr'):
+                br = tf.get_variable("br", shape = [out_channel],dtype=tf.float32,\
+                    initializer=tf.zeros_initializer())
+                variable_summaries(br)
+            with tf.variable_scope('biasi'):
+                bi = tf.get_variable("bi", shape = [out_channel],dtype=tf.float32,\
+                    initializer=tf.zeros_initializer())
+                variable_summaries(bi)
 
             R = conv(x[0],wr)-conv(x[1],wi) +br
-            I= conv(x[1],wr)+conv(x[0],wi) +bi
+            I= conv(x[1],wr)+conv(x[0],wi) +b
+            tf.summary.histogram('R',R)
+            tf.summary.histogram('I',I)
             if norm:
                 R=tf.layers.batch_normalization(R,training=self.training)
                 I=tf.layers.batch_normalization(I,training=self.training)
+                tf.summary.histogram('normR',R)
+                tf.summary.histogram('normI',I)  
             if relu_fun == tf.nn.relu:
-                return [relu_fun(R,'reluR'),relu_fun(I,'reluI')]
-            return  relu_fun([R,I],scope)
+                R,I = relu_fun(R,'reluR'),relu_fun(I,'reluI')
+                tf.summary.histogram('convR',R)
+                tf.summary.histogram('convI',I)                
+                return [R,I]
+            relu =  relu_fun([R,I],scope)
+            tf.summary.histogram('convR',relu[0])
+            tf.summary.histogram('convI',relu[1])            
+            return relu
 
 
 
     def complex_maxPoolLayer(self,x, ksize,strides=[1,1], name='None', padding = "SAME"):
         """max-pooling"""
-        return [tf.nn.max_pool(x[0], ksize =[1]+ ksize+[1],
-                              strides = [1] +strides+[1], padding = padding, name = name+'0'),tf.nn.max_pool(x[1], ksize =[1]+ ksize+[1],
-                              strides = [1] +strides+[1], padding = padding, name = name)]
+        with variable_scope(name)
+            activations= [tf.nn.max_pool(x[0], ksize =[1]+ ksize+[1],
+                                  strides = [1] +strides+[1], padding = padding, name = name+'0'),tf.nn.max_pool(x[1], ksize =[1]+ ksize+[1],
+                                  strides = [1] +strides+[1], padding = padding, name = name)]
+            tf.summary.histogram('poolR',activations[0])
+            tf.summary.histogram('poolI',activations[1])
+            return activations
 
 
     def fcLayer(self,x, input_size, output_size, name,norm=True, relu_fun = tf.nn.relu):
         """fully-connect"""
         with tf.variable_scope(name) as scope:
-            w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float",\
-                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-            b = tf.get_variable("b", [output_size], dtype = "float",\
+            with name_scope('wight'):
+                w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float",\
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                variable_summaries(w)
+            with name_scope('bias'):
+                b = tf.get_variable("b", [output_size], dtype = "float",\
                 initializer=tf.zeros_initializer())
+                variable_summaries(b)
             out = tf.nn.xw_plus_b(x, w, b, name = scope.name)
+            histogram('xw+b',out)
             if norm:
                 out=tf.layers.batch_normalization(out,training=self.training)
-            return relu_fun(out,'relu')
+                histogram('norm',out)
+            activations= relu_fun(out,'relu')
+            histogram('fc',activations)
+            return activations
 
     def convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",relu_fun = tf.nn.relu): 
         """convolution"""
@@ -206,20 +281,31 @@ class alexNet(object):
         conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
 
         with tf.variable_scope(name) as scope:
-            w = tf.get_variable("w", shape = ksize+[in_channel,out_channel],\
-                initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-            b = tf.get_variable("b", shape = [out_channel],\
-                initializer=tf.zeros_initializer())
+            with name_scope('wight'):
+                w = tf.get_variable("w", shape = ksize+[in_channel,out_channel],\
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                variable_summaries(w)
+            with name_scope('bias'):
+                b = tf.get_variable("b", shape = [out_channel],\
+                    initializer=tf.zeros_initializer())
+                variable_summaries(b)
             out_put = conv(x,w)
+            histogram('convout',out_put)
             # print mergeFeatureMap.shape
             out = tf.nn.bias_add(out_put, b)
             out = tf.layers.batch_normalization(out,training=self.training)
-            return relu_fun(out, name = scope.name)
+            histogram('norm',out)
+            relu =  relu_fun(out, name = scope.name)
+            histogram('conv',relu)
+            return relu
 
     def maxPoolLayer(self,x, ksize,strides=[1,1], name='None', padding = "SAME"):
-        """max-pooling"""
-        return tf.nn.max_pool(x, ksize =[1]+ ksize+[1],
+        with name_scope(name):
+            """max-pooling"""
+            activations= tf.nn.max_pool(x, ksize =[1]+ ksize+[1],
                             strides = [1] +strides+[1], padding = padding, name = name)
+            tf.summary.histogram('pool',activations)
+            return activations
 
 
 

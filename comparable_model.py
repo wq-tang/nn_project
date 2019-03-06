@@ -8,6 +8,17 @@ def sign(x):
     e = 0.1**8
     return tf.nn.relu(x)/(tf.nn.relu(x)+e)
 
+def variable_summaries(var):
+    """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
+    with tf.name_scope('summaries'):
+            mean = tf.reduce_mean(var)
+            tf.summary.scalar('mean', mean)
+        with tf.name_scope('stddev'):
+            stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+        tf.summary.scalar('stddev', stddev)
+        tf.summary.scalar('max', tf.reduce_max(var))
+        tf.summary.scalar('min', tf.reduce_min(var))
+        tf.summary.histogram('histogram', var)
 
 
 class complex_net(alexNet):
@@ -16,7 +27,7 @@ class complex_net(alexNet):
         super(complex_net,self).__init__(x, classNum, seed,modelPath)
         tf.set_random_seed(seed)
         self.relu_fun = tf.nn.relu#self.Learnable_angle_relu
-        self.build_complex_CNN_for_cifar10()
+        self.build_real_CNN_for_mnist()
 
 
     def build_complex_CNN_for_mnist(self):
