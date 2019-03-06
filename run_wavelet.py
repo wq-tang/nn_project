@@ -8,7 +8,7 @@ from model import alexNet
 from Wavelet import wavelet
 
 
-def wavelet():
+def wavelet_net():
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
 		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
@@ -45,8 +45,6 @@ def wavelet():
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
-	for var in tf.global_variables():
-		print(var)
 	train_list = []
 	test_list=[]
 
@@ -88,4 +86,4 @@ def wavelet():
 
 
 if __name__=="__main__":
-	wavelet()
+	wavelet_net()

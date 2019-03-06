@@ -47,8 +47,7 @@ def cifar10():
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
-	for var in tf.global_variables():
-		print(var)
+
 	train_list = []
 	test_list=[]
 
