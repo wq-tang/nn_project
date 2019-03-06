@@ -269,7 +269,7 @@ class alexNet(object):
             tf.summary.histogram('xw+b',out)
             if norm:
                 out=tf.layers.batch_normalization(out,training=self.training)
-                tf.histogram('norm',out)
+                tf.summary.histogram('norm',out)
             activations= relu_fun(out,'relu')
             tf.summary.histogram('fc',activations)
             return activations
