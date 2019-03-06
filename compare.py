@@ -8,7 +8,20 @@ from comparable_model import complex_net
 from tensorflow.examples.tutorials.mnist import input_data
 ##cifar batch =128  epoch = 50000
 ##mnist epoch=50  bathch = 60000
-
+def count1():
+    total_parameters = 0
+    for variable in tf.trainable_variables():
+        # shape is an array of tf.Dimension
+        shape = variable.get_shape()
+        # print(shape)
+        # print(len(shape))
+        variable_parameters = 1
+        for dim in shape:
+            # print(dim)
+            variable_parameters *= dim.value
+        # print(variable_parameters)
+        total_parameters += variable_parameters
+    print(total_parameters)
 
 def cifar10():
 	def loss(logits,y):
@@ -47,7 +60,7 @@ def cifar10():
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
-
+	count1()
 	train_list = []
 	test_list=[]
 
