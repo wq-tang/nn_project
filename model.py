@@ -266,12 +266,12 @@ class alexNet(object):
                 initializer=tf.zeros_initializer())
                 variable_summaries(b)
             out = tf.nn.xw_plus_b(x, w, b, name = scope.name)
-            histogram('xw+b',out)
+            tf.summary.histogram('xw+b',out)
             if norm:
                 out=tf.layers.batch_normalization(out,training=self.training)
-                histogram('norm',out)
+                tf.tf.histogram('norm',out)
             activations= relu_fun(out,'relu')
-            histogram('fc',activations)
+            tf.summary.histogram('fc',activations)
             return activations
 
     def convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",relu_fun = tf.nn.relu): 
@@ -290,13 +290,13 @@ class alexNet(object):
                     initializer=tf.zeros_initializer())
                 variable_summaries(b)
             out_put = conv(x,w)
-            histogram('convout',out_put)
+            tf.summary.histogram('convout',out_put)
             # print mergeFeatureMap.shape
             out = tf.nn.bias_add(out_put, b)
             out = tf.layers.batch_normalization(out,training=self.training)
-            histogram('norm',out)
+            tf.summary.histogram('norm',out)
             relu =  relu_fun(out, name = scope.name)
-            histogram('conv',relu)
+            tf.summary.histogram('conv',relu)
             return relu
 
     def maxPoolLayer(self,x, ksize,strides=[1,1], name='None', padding = "SAME"):
