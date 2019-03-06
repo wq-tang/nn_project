@@ -8,7 +8,7 @@ from comparable_model import complex_net
 from tensorflow.examples.tutorials.mnist import input_data
 ##cifar batch =128  epoch = 50000
 ##mnist epoch=50  bathch = 60000
-def count1():
+def count():
     total_parameters = 0
     for variable in tf.trainable_variables():
         # shape is an array of tf.Dimension
@@ -60,7 +60,6 @@ def cifar10():
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
-	count1()
 	train_list = []
 	test_list=[]
 

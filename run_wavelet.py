@@ -7,6 +7,21 @@ import math
 from model import alexNet
 from Wavelet import wavelet
 
+def count1():
+    total_parameters = 0
+    for variable in tf.trainable_variables():
+        # shape is an array of tf.Dimension
+        shape = variable.get_shape()
+        # print(shape)
+        # print(len(shape))
+        variable_parameters = 1
+        for dim in shape:
+            # print(dim)
+            variable_parameters *= dim.value
+        # print(variable_parameters)
+        total_parameters += variable_parameters
+    print(total_parameters)
+
 
 def wavelet_net():
 	def loss(logits,y):
@@ -47,7 +62,6 @@ def wavelet_net():
 	tf.train.start_queue_runners()
 	train_list = []
 	test_list=[]
-
 	ans = []
 	test_x,test_y = sess.run([test_images,test_labels])
 	for i in range(max_epoch):
