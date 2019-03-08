@@ -117,10 +117,10 @@ class alexNet(object):
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('alpha'):
                 alpha = tf.get_variable("alpha",shape = [1],dtype=tf.float32)
-                tf.summary.scalar('alpha',alpha)
+            tf.summary.scalar('alpha',alpha)
             with tf.variable_scope('beita'):
                 beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
-                tf.summary.scalar('beita',beita)
+            tf.summary.scalar('beita',beita)
             activations= [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
             C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
             tf.summary.histogram('activations', activations)
@@ -131,11 +131,11 @@ class alexNet(object):
             with tf.variable_scope('alpha'):
                 alpha = tf.get_variable("alpha",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-                variable_summaries(alpha)
+            variable_summaries(alpha)
             with  tf.variable_scope('beita'):
                 beita = tf.get_variable("beita",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-                variable_summaries(beita)
+            variable_summaries(beita)
             activations =  [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
             C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
             tf.summary.histogram('activations', activations)
@@ -145,7 +145,7 @@ class alexNet(object):
         with tf.variable_scope(name) as scope:
             with  tf.variable_scope('radius'):
                 radius = tf.get_variable("radius",shape = [1],dtype=tf.float32)
-                tf.summary.scalar('radius',radius)
+            tf.summary.scalar('radius',radius)
             activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
             tf.summary.histogram('activations', activations)
             return activations
@@ -155,7 +155,7 @@ class alexNet(object):
             with tf.variable_scope('radius'):
                 radius = tf.get_variable("radius",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
-                variable_summaries(radius)
+            variable_summaries(radius)
             activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
             tf.summary.histogram('activations', activations)
             return activations
