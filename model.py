@@ -223,7 +223,7 @@ class alexNet(object):
                 variable_summaries(bi)
 
             R = conv(x[0],wr)-conv(x[1],wi) +br
-            I= conv(x[1],wr)+conv(x[0],wi) +b
+            I= conv(x[1],wr)+conv(x[0],wi) +bi
             tf.summary.histogram('R',R)
             tf.summary.histogram('I',I)
             if norm:
@@ -245,7 +245,7 @@ class alexNet(object):
 
     def complex_maxPoolLayer(self,x, ksize,strides=[1,1], name='None', padding = "SAME"):
         """max-pooling"""
-        with variable_scope(name):
+        with tf.variable_scope(name):
             activations= [tf.nn.max_pool(x[0], ksize =[1]+ ksize+[1],
                                   strides = [1] +strides+[1], padding = padding, name = name+'0'),tf.nn.max_pool(x[1], ksize =[1]+ ksize+[1],
                                   strides = [1] +strides+[1], padding = padding, name = name)]

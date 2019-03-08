@@ -29,7 +29,7 @@ def mnist():
 			p+= accuracy.eval(feed_dict={x:xs, y:ys})
 		return p/10
 	mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
-	log_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'tensorboard')
 	mnist=input_data.read_data_sets(mnist_data_folder,one_hot=True)
 	epoch = 50
 	batch = 100
@@ -64,7 +64,7 @@ def mnist():
 	for i in range(epoch*600):
 		start_time = time.time()
 		train_x, train_y = mnist.train.next_batch(batch)
-		summary, _,loss = sess.run([merged, train_step,cross_entropy], feed_dict={x:train_x,y:train_y})
+		summary, _,loss_value = sess.run([merged, train_step,cross_entropy], feed_dict={x:train_x,y:train_y})
 		train_writer.add_summary(summary, i)
 		duration = time.time() - start_time
 		if i%100 ==0:
