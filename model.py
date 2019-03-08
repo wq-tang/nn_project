@@ -18,6 +18,7 @@ def sign(x):
 def safe_division(numerator,denominator):
     e = 0.1**8
     ab = (tf.abs(denominator)<e/2)
+    ab = tf.cast(ab,tf.float32)
     denominator += ab*e
     return numerator/denominator
 def variable_summaries(var):
