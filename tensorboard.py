@@ -61,7 +61,7 @@ def mnist():
 	tf.train.start_queue_runners()
 
 	ans = []
-	for i in range(epoch*600):
+	for i in range(epoch*10):
 		start_time = time.time()
 		train_x, train_y = mnist.train.next_batch(batch)
 		summary, _,loss_value = sess.run([merged, train_step,cross_entropy], feed_dict={x:train_x,y:train_y})

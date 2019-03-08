@@ -40,7 +40,7 @@ def cifar10():
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'romania_complex.ckpt')
 	max_epoch = 50000
 	batch_step = 128
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar10')
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar10_board')
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
 	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
@@ -119,7 +119,7 @@ def mnist():
 			p+= accuracy.eval(feed_dict={x:xs, y:ys})
 		return p/10
 	mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),' mnist')
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),' mnist_board')
 	mnist=input_data.read_data_sets(mnist_data_folder,one_hot=True)
 	epoch = 50
 	batch = 100
@@ -151,7 +151,7 @@ def mnist():
 	tf.train.start_queue_runners()
 
 	ans = []
-	for i in range(epoch*600):
+	for i in range(epoch*60):
 		start_time = time.time()
 		train_x, train_y = mnist.train.next_batch(batch)
 		summary, _,loss_value = sess.run([merged, train_step,cross_entropy], feed_dict={x:train_x,y:train_y})

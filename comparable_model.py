@@ -48,8 +48,8 @@ class complex_net(alexNet):
             I = tf.reshape(cnnout[1],[-1,mul])
             dim = R.get_shape()[1].value
 
-            fc1 = self.complex_fcLayer([R,I], dim, 512,  name = "fc4",relu_fun = self.relu_fun)
-            self.fc2 = self.complex_fcLayer(fc1, 512, self.CLASSNUM,name =  "fc5",relu_fun = self.relu_fun)
+            fc1 = self.complex_fcLayer([R,I], dim, 512,  name = "fc4",relu_fun = tf.nn.relu)
+            self.fc2 = self.complex_fcLayer(fc1, 512, self.CLASSNUM,name =  "fc5",relu_fun = tf.nn.relu)
             self.out = self.fc2
             self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
@@ -90,9 +90,9 @@ class complex_net(alexNet):
             R = tf.reshape(cnnout[0],[-1,mul])
             I = tf.reshape(cnnout[1],[-1,mul])
             dim = R.get_shape()[1].value
-            fc1 = self.complex_fcLayer([R,I], dim, 384,  name = "fc4",relu_fun = self.relu_fun)
-            fc2 = self.complex_fcLayer(fc1, 384, 192, name =  "fc5",relu_fun = self.relu_fun)
-            fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, name =  "fc6",norm=False,relu_fun = self.relu_fun)
+            fc1 = self.complex_fcLayer([R,I], dim, 384,  name = "fc4",relu_fun = tf.nn.relu)
+            fc2 = self.complex_fcLayer(fc1, 384, 192, name =  "fc5",relu_fun = tf.nn.relu)
+            fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, name =  "fc6",norm=False,relu_fun = tf.nn.relu)
             self.out = fc3
             self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 

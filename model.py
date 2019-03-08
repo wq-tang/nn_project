@@ -13,12 +13,12 @@ from functools import reduce
 # define different layer functions
 # we usually don't do convolution and pooling on batch and channel
 def sign(x):
-    # return tf.gradients(tf.nn.relu(x),x)
+    return tf.gradients(tf.nn.relu(x),x)[0]
     # e = 0.1**8
     # return tf.nn.relu(x)/(tf.nn.relu(x)+e)
-    x = (x>0)
-    x = tf.cast(x,tf.float32)
-    return x
+    # x = (x>0)
+    # x = tf.cast(x,tf.float32)
+    # return x
 
 def safe_division(numerator,denominator):
     e = 0.1**8
@@ -26,6 +26,7 @@ def safe_division(numerator,denominator):
     ab = tf.cast(ab,tf.float32)
     denominator += ab*e
     return numerator/denominator
+    
 def variable_summaries(var):
     """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
     with tf.name_scope('summaries'):
