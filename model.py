@@ -308,7 +308,22 @@ class alexNet(object):
             return activations
 
 
+    # def batch_normalization(self,C,is_training,bn_decay = None):
+    #     def var(x,y):
+    #         dim = x.get_shape().as_list()[:-1]
+    #         EXY = tf.reduce_mean(tf.multiply(x,y),axis = dim)
+    #         EX = tf.reduce_mean(x,axis = dim)
+    #         EY = tf.reduce_mean(y,axis = dim)
+    #         return EXY-EX*EY
+    #     R = C[0]
+    #     I = R[1]
+    #     num_channels = R.get_shape()[-1].value
+    #     betaR = tf.get_variable('betaR',tf.constant(0.0, shape=[num_channels]))
+    #     betaI = tf.get_variable('betaI',tf.constant(0.0, shape=[num_channels]))
+    #     gamma = tf.get_variable('gamma',tf.constant(1.0, shape=[2,2,num_channels]))
 
+    #     V = tf.concat([var(R,R),var(R,I),var(R,I),var(I,I)],axis = 0)
+    #     V = tf.reshape(V,[2,2,-1])
 
 
 
