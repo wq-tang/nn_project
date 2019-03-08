@@ -261,7 +261,7 @@ class alexNet(object):
             tf.summary.histogram('poolR',activations[0])
             tf.summary.histogram('poolI',activations[1])
             return activations
-
+ 
 
     def fcLayer(self,x, input_size, output_size, name,norm=True, relu_fun = tf.nn.relu):
         """fully-connect"""
