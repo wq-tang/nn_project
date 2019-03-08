@@ -15,7 +15,11 @@ from functools import reduce
 def sign(x):
     e = 0.1**8
     return tf.nn.relu(x)/(tf.nn.relu(x)+e)
-
+def safe_division(numerator,denominator):
+    e = 0.1**8
+    ab = (tf.abs(denominator)<e/2)
+    denominator += ab*e
+    return numerator/denominator
 def variable_summaries(var):
     """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
     with tf.name_scope('summaries'):
@@ -121,8 +125,10 @@ class alexNet(object):
             with tf.variable_scope('beita'):
                 beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
             tf.summary.histogram('beita',beita)
-            activations= [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
-            C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
+
+            activations= [C[0]*sign(tf.atan(safe_division(C[1],C[0]))-alpha)*sign(alpha+beita-tf.atan(safe_division(C[1],C[0]))),\
+            C[1]*sign(tf.atan(safe_division(C[1],C[0]))-alpha)*sign(alpha+beita-tf.atan(safe_division(C[1],C[0])))]
+
             tf.summary.histogram('activations', activations)
             return activations
     
@@ -136,8 +142,8 @@ class alexNet(object):
                 beita = tf.get_variable("beita",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
             variable_summaries(beita)
-            activations =  [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
-            C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
+            activations =  [C[0]*sign(tf.atan(safe_division(C[1],C[0]))-alpha)*sign(alpha+beita-tf.atan(safe_division(C[1],C[0]))),\
+            C[1]*sign(tf.atan(safe_division(C[1],C[0]))-alpha)*sign(alpha+beita-tf.atan(safe_division(C[1],C[0])))]
             tf.summary.histogram('activations', activations)
             return activations
 
