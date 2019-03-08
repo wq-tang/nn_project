@@ -256,7 +256,7 @@ class alexNet(object):
         """max-pooling"""
         with tf.variable_scope(name):
             activations= [tf.nn.max_pool(x[0], ksize =[1]+ ksize+[1],
-                                  strides = [1] +strides+[1], padding = padding, name = name+'0'),tf.nn.max_pool(x[1], ksize =[1]+ ksize+[1],
+                                  strides = [1] +strides+[1], padding = padding, name = name),tf.nn.max_pool(x[1], ksize =[1]+ ksize+[1],
                                   strides = [1] +strides+[1], padding = padding, name = name)]
             tf.summary.histogram('poolR',activations[0])
             tf.summary.histogram('poolI',activations[1])
