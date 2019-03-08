@@ -64,14 +64,15 @@ def mnist():
 	for i in range(epoch*10):
 		start_time = time.time()
 		train_x, train_y = mnist.train.next_batch(batch)
-		summary, _,loss_value = sess.run([merged, train_step,cross_entropy], feed_dict={x:train_x,y:train_y})
-		train_writer.add_summary(summary, i)
+		_ = sess.run( train_step, feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
 		if i%100 ==0:
 			examples_per_sec = batch/duration
 			sec_per_batch = float(duration)
 			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch)')
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
+			summary,loss_value = sess.run([merged,cross_entropy], feed_dict={x:train_x,y:train_y})
+			train_writer.add_summary(summary, i)
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			for m in model:
 				m.training = False
