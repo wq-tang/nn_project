@@ -13,8 +13,10 @@ from functools import reduce
 # define different layer functions
 # we usually don't do convolution and pooling on batch and channel
 def sign(x):
-    e = 0.1**8
-    return tf.nn.relu(x)/(tf.nn.relu(x)+e)
+    return tf.gradients(tf.nn.relu(x),x)
+    # e = 0.1**8
+    # return tf.nn.relu(x)/(tf.nn.relu(x)+e)
+
 def safe_division(numerator,denominator):
     e = 0.1**8
     ab = (tf.abs(denominator)<e/2)
