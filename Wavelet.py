@@ -17,15 +17,26 @@ class wavelet(alexNet):
 		super(wavelet,self).__init__(x, classNum, seed,modelPath)
 		tf.set_random_seed(seed) 
 		self.build_complex_wavelet()
-    
-	def build_complex_wavelet(self):
 
+	def build_complex_wavelet(self):
 		convLayer = self.complex_convLayer
 		maxPoolLayer = self.complex_maxPoolLayer
 		fcLayer = self.complex_fcLayer
 		inputs = self.X_com
-		relu_fun =tf.nn.relu#self.Learnable_angle_relu		
-		with tf.variable_scope("wavelet_net"):
+		relu_fun =tf.nn.relu#self.Learnable_angle_relu
+		self.build_bagging(inputs,2)
+
+
+	def build_bagging(self,inputs,conv_num):
+		conv=0
+		for i in range(conv_num):
+			conv+=self.complex_wavelet_conv(inputs,'conv_model'+str(i))
+		fc3 = self.complex_wavelet_fc(conv,'wavelet_fc')
+		self.out = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
+	
+
+	def complex_wavelet_conv(self,inputs,name)	
+		with tf.variable_scope(name):
 			layer11 = convLayer(inputs,[2,2],[1,1],32,"layer11","SAME")
 			pool11 = maxPoolLayer(layer11,[2, 2],[ 2,2], "pool1", "SAME")
 
@@ -64,20 +75,24 @@ class wavelet(alexNet):
 			layer34 = convLayer(pool24,[6,6],[1,1],16,"layer34","SAME")
 			pool34 = maxPoolLayer(layer34,[2, 2],[ 2,2], "pool34", "SAME")
 
+		return np.array([pool11,pool12,pool13,pool21,pool22,pool23,pool31,pool32,pool33,pool34])
 
 
 
-			convoutR = tf.concat([reshape(pool11[0]),reshape(pool12[0]),reshape(pool13[0]),reshape(pool21[0]),\
-				reshape(pool22[0]),reshape(pool23[0]),reshape(pool31[0]),reshape(pool32[0]),reshape(pool33[0]),\
-				reshape(pool34[0])],axis = 1)
-			convoutI = tf.concat([reshape(pool11[1]),reshape(pool12[1]),reshape(pool13[1]),reshape(pool21[1]),\
-				reshape(pool22[1]),reshape(pool23[1]),reshape(pool31[1]),reshape(pool32[1]),reshape(pool33[1]),\
-				reshape(pool34[1])],axis = 1)
+	def complex_wavelet_fc(self,C_list,name):
+		with tf.variable_scope(name):
+			convoutR = tf.concat([reshape(C_list[0][0]),reshape(C_list[1][0]),reshape(C_list[2][0]),reshape(C_list[3][0]),\
+				reshape(C_list[4][0]),reshape(C_list[5][0]),reshape(C_list[6][0]),reshape(C_list[7][0]),reshape(C_list[8][0]),\
+				reshape(C_list[9][0])],axis = 1)
+			convoutI = tf.concat([reshape(C_list[0][1]),reshape(C_list[1][1]),reshape(C_list[2][1]),reshape(C_list[3][1]),\
+				reshape(C_list[4][1]),reshape(C_list[5][1]),reshape(C_list[6][1]),reshape(C_list[7][1]),reshape(C_list[8][1]),\
+				reshape(C_list[9][1])],axis = 1)
 			dim = convoutI.get_shape().as_list()[-1]
 			fc1 = fcLayer([convoutR,convoutI], dim, 60,  name = "fc1")
 			fc2 = fcLayer(fc1, 60, 30, name =  "fc2")
 			fc3 = fcLayer(fc2, 30, self.CLASSNUM, name =  "fc3",norm=False)
-			self.out = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
+			return fc3
+		
 
 	def build_real_wavelet(self):
 
