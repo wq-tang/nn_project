@@ -21,7 +21,7 @@ class wavelet(alexNet):
 	def build_complex_wavelet_bagging(self,conv_num):
 		conv=0
 		for i in range(conv_num):
-			conv+=self.complex_wavelet_conv(self.X_com,'conv_model'+str(i))
+			conv+=self.complex_wavelet_conv('conv_model'+str(i))
 		fc3 = self.complex_wavelet_fc(conv,'wavelet_fc')
 		self.out = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
 	
