@@ -16,7 +16,7 @@ class wavelet(alexNet):
 	def __init__(self, x, classNum, seed,modelPath = "wavelet"):
 		super(wavelet,self).__init__(x, classNum, seed,modelPath)
 		tf.set_random_seed(seed) 
-		self.build_complex_wavelet_bagging(2)
+		self.build_real_wavelet_bagging(2)
 
 	def build_complex_wavelet_bagging(self,conv_num):
 		conv=0
@@ -82,13 +82,13 @@ class wavelet(alexNet):
 			return fc3
 
 
-	def build_complex_wavelet_bagging(self,conv_num):
+	def build_real_wavelet_bagging(self,conv_num):
 		conv=0
 		for i in range(conv_num):
 			conv+=self.real_wavelet_conv('real_conv_model'+str(i))
 		fc3 = self.real_wavelet_fc(conv,'real_wavelet_fc')
 		self.out = fc3
-		
+
 	def real_wavelet_conv(self,name):
 
 		with tf.variable_scope(name):
@@ -133,7 +133,7 @@ class wavelet(alexNet):
 
 	def real_wavelet_fc(self,lists,name):
 		with tf.variable_scope(name):
-			convout = tf.concat([reshape(lists[i]) for i in range(len(C_list))],axis = 1)
+			convout = tf.concat([reshape(lists[i]) for i in range(len(lists))],axis = 1)
 			mul = convout.get_shape().as_list()[-1]
 			fc1 = self.fcLayer(convout, mul, int(60*1.41)+1,  name = "fc1")
 			fc2 = self.fcLayer(fc1, int(60*1.41)+1, int(30*1.41)+1,name =  "fc2")
