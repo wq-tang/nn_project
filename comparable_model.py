@@ -27,8 +27,8 @@ class complex_net(alexNet):
         super(complex_net,self).__init__(x, classNum, seed,modelPath)
         tf.set_random_seed(seed)
         # self.relu_fun = tf.nn.relu
-        self.relu_fun = self.Learnable_radius_relu
-        self.build_complex_CNN_for_mnist()
+        self.relu_fun = self.Learnable_angle_relu
+        self.build_complex_CNN_for_cifar10()
 
 
     def build_complex_CNN_for_mnist(self):

@@ -26,7 +26,7 @@ def safe_division(numerator,denominator):
     ab = tf.cast(ab,tf.float32)
     denominator += ab*e
     return numerator/denominator
-    
+
 def variable_summaries(var):
     """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
     with tf.name_scope('summaries'):
@@ -133,8 +133,8 @@ class alexNet(object):
                 beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
             tf.summary.histogram('beita',beita)
 
-            activations= [C[0]*sign(tf.atan(safe_division(C[1],C[0]))-alpha)*sign(alpha+beita-tf.atan(safe_division(C[1],C[0]))),\
-            C[1]*sign(tf.atan(safe_division(C[1],C[0]))-alpha)*sign(alpha+beita-tf.atan(safe_division(C[1],C[0])))]
+            activations= [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
+            C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
 
             tf.summary.histogram('activations', activations)
             return activations
@@ -149,8 +149,8 @@ class alexNet(object):
                 beita = tf.get_variable("beita",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
             variable_summaries(beita)
-            activations =  [C[0]*sign(tf.atan(safe_division(C[1],C[0]))-alpha)*sign(alpha+beita-tf.atan(safe_division(C[1],C[0]))),\
-            C[1]*sign(tf.atan(safe_division(C[1],C[0]))-alpha)*sign(alpha+beita-tf.atan(safe_division(C[1],C[0])))]
+            activations =  [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
+            C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
             tf.summary.histogram('activations', activations)
             return activations
 
@@ -166,7 +166,7 @@ class alexNet(object):
     def Learnable_radius_relu_per_neural(self,C,name):
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('radius'):
-                radius = tf.get_variable("radius",shape = C[0].get_shape().as_list(),dtype=tf.float32,\
+                radius = tf.get_variable("radius",shape = C[0].get_shape().as_list()[1:],dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
             variable_summaries(radius)
             activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
