@@ -21,8 +21,8 @@ class wavelet(alexNet):
 	def build_complex_wavelet_bagging(self,conv_num):
 		conv=0
 		for i in range(conv_num):
-			conv+=self.complex_wavelet_conv('conv_model'+str(i))
-		fc3 = self.complex_wavelet_fc(conv,'wavelet_fc')
+			conv+=self.complex_wavelet_conv('complex_conv_model'+str(i))
+		fc3 = self.complex_wavelet_fc(conv,'complex_wavelet_fc')
 		self.out = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
 	
 
@@ -72,74 +72,73 @@ class wavelet(alexNet):
 
 	def complex_wavelet_fc(self,C_list,name):
 		with tf.variable_scope(name):
-			convoutR = tf.concat([reshape(C_list[0][0]),reshape(C_list[1][0]),reshape(C_list[2][0]),reshape(C_list[3][0]),\
-				reshape(C_list[4][0]),reshape(C_list[5][0]),reshape(C_list[6][0]),reshape(C_list[7][0]),reshape(C_list[8][0]),\
-				reshape(C_list[9][0])],axis = 1)
-			convoutI = tf.concat([reshape(C_list[0][1]),reshape(C_list[1][1]),reshape(C_list[2][1]),reshape(C_list[3][1]),\
-				reshape(C_list[4][1]),reshape(C_list[5][1]),reshape(C_list[6][1]),reshape(C_list[7][1]),reshape(C_list[8][1]),\
-				reshape(C_list[9][1])],axis = 1)
+
+			convoutR = tf.concat([reshape(C_list[i][0]) for i in range(len(C_list))],axis = 1)
+			convoutI = tf.concat([reshape(C_list[i][1]) for i in range(len(C_list))],axis = 1)
 			dim = convoutI.get_shape().as_list()[-1]
 			fc1 = self.complex_fcLayer([convoutR,convoutI], dim, 60,  name = "fc1")
 			fc2 = self.complex_fcLayer(fc1, 60, 30, name =  "fc2")
 			fc3 = self.complex_fcLayer(fc2, 30, self.CLASSNUM, name =  "fc3",norm=False)
 			return fc3
+
+
+	def build_complex_wavelet_bagging(self,conv_num):
+		conv=0
+		for i in range(conv_num):
+			conv+=self.real_wavelet_conv('real_conv_model'+str(i))
+		fc3 = self.real_wavelet_fc(conv,'real_wavelet_fc')
+		self.out = fc3
 		
+	def real_wavelet_conv(self,name):
 
-	def build_real_wavelet(self):
+		with tf.variable_scope(name):
+			layer11 = self.convLayer(self.X,[2,2],[1,1],int(32*1.41)+1,"layer11","SAME")
+			pool11 = self.maxPoolLayer(layer11,[2, 2],[ 2,2], "pool1", "SAME")
 
-		self.complex_convLayer = self.self.complex_convLayer
-		self.complex_maxPoolLayer = self.self.complex_maxPoolLayer
-		self.complex_fcLayer = self.self.complex_fcLayer
-		self.X_com = self.X
-		relu_fun =tf.nn.relu
+			layer12 = self.convLayer(self.X,[3,3],[1,1],int(32*1.41)+1,"layer12","SAME")
+			pool12 = self.maxPoolLayer(layer12,[2, 2],[ 2,2], "pool12", "SAME")
 
-		with tf.variable_scope("wavelet_net"):
-			layer11 = self.complex_convLayer(self.X_com,[2,2],[1,1],int(32*1.41)+1,"layer11","SAME")
-			pool11 = self.complex_maxPoolLayer(layer11,[2, 2],[ 2,2], "pool1", "SAME")
+			layer13 = self.convLayer(self.X,[4,4],[1,1],int(32*1.41)+1,"layer13","SAME")
+			pool13 = self.maxPoolLayer(layer13,[2, 2],[ 2,2], "pool13", "SAME")
 
-			layer12 = self.complex_convLayer(self.X_com,[3,3],[1,1],int(32*1.41)+1,"layer12","SAME")
-			pool12 = self.complex_maxPoolLayer(layer12,[2, 2],[ 2,2], "pool12", "SAME")
-
-			layer13 = self.complex_convLayer(self.X_com,[4,4],[1,1],int(32*1.41)+1,"layer13","SAME")
-			pool13 = self.complex_maxPoolLayer(layer13,[2, 2],[ 2,2], "pool13", "SAME")
-
-			layer14 = self.complex_convLayer(self.X_com,[6,6],[1,1],int(32*1.41)+1,"layer14","SAME")
-			pool14 = self.complex_maxPoolLayer(layer14,[2, 2],[ 2,2], "pool14", "SAME")
+			layer14 = self.convLayer(self.X,[6,6],[1,1],int(32*1.41)+1,"layer14","SAME")
+			pool14 = self.maxPoolLayer(layer14,[2, 2],[ 2,2], "pool14", "SAME")
 
 
-			layer21 = self.complex_convLayer(pool14,[2,2],[1,1],int(16*1.41)+1,"layer21","SAME")
-			pool21 = self.complex_maxPoolLayer(layer21,[2, 2],[ 2,2], "pool21", "SAME")
+			layer21 = self.convLayer(pool14,[2,2],[1,1],int(16*1.41)+1,"layer21","SAME")
+			pool21 = self.maxPoolLayer(layer21,[2, 2],[ 2,2], "pool21", "SAME")
 
-			layer22 = self.complex_convLayer(pool14,[3,3],[1,1],int(16*1.41)+1,"layer22","SAME")
-			pool22 = self.complex_maxPoolLayer(layer22,[2, 2],[ 2,2], "pool22", "SAME")
+			layer22 = self.convLayer(pool14,[3,3],[1,1],int(16*1.41)+1,"layer22","SAME")
+			pool22 = self.maxPoolLayer(layer22,[2, 2],[ 2,2], "pool22", "SAME")
 
-			layer23 = self.complex_convLayer(pool14,[4,4],[1,1],int(16*1.41)+1,"layer23","SAME")
-			pool23 = self.complex_maxPoolLayer(layer23,[2, 2],[ 2,2], "pool23", "SAME")
+			layer23 = self.convLayer(pool14,[4,4],[1,1],int(16*1.41)+1,"layer23","SAME")
+			pool23 = self.maxPoolLayer(layer23,[2, 2],[ 2,2], "pool23", "SAME")
 
-			layer24 = self.complex_convLayer(pool14,[6,6],[1,1],int(16*1.41)+1,"layer24","SAME")
-			pool24 = self.complex_maxPoolLayer(layer24,[2, 2],[ 2,2], "pool24", "SAME")
-
-
-			layer31 = self.complex_convLayer(pool24,[2,2],[1,1],int(16*1.41)+1,"layer31","SAME")
-			pool31 = self.complex_maxPoolLayer(layer31,[2, 2],[ 2,2], "pool31", "SAME")
-
-			layer32 = self.complex_convLayer(pool24,[3,3],[1,1],int(16*1.41)+1,"layer32","SAME")
-			pool32 = self.complex_maxPoolLayer(layer32,[2, 2],[ 2,2], "pool32", "SAME")
-
-			layer33 = self.complex_convLayer(pool24,[4,4],[1,1],int(16*1.41)+1,"layer33","SAME")
-			pool33 = self.complex_maxPoolLayer(layer33,[2, 2],[ 2,2], "pool33", "SAME")
-
-			layer34 = self.complex_convLayer(pool24,[6,6],[1,1],int(16*1.41)+1,"layer34","SAME")
-			pool34 = self.complex_maxPoolLayer(layer34,[2, 2],[ 2,2], "pool34", "SAME")
+			layer24 = self.convLayer(pool14,[6,6],[1,1],int(16*1.41)+1,"layer24","SAME")
+			pool24 = self.maxPoolLayer(layer24,[2, 2],[ 2,2], "pool24", "SAME")
 
 
-			convout = tf.concat([reshape(pool11),reshape(pool12),reshape(pool13),reshape(pool21),reshape(pool22),\
-			reshape(pool23),reshape(pool31),reshape(pool32),reshape(pool33),reshape(pool34)],axis = 1)
+			layer31 = self.convLayer(pool24,[2,2],[1,1],int(16*1.41)+1,"layer31","SAME")
+			pool31 = self.maxPoolLayer(layer31,[2, 2],[ 2,2], "pool31", "SAME")
+
+			layer32 = self.convLayer(pool24,[3,3],[1,1],int(16*1.41)+1,"layer32","SAME")
+			pool32 = self.maxPoolLayer(layer32,[2, 2],[ 2,2], "pool32", "SAME")
+
+			layer33 = self.convLayer(pool24,[4,4],[1,1],int(16*1.41)+1,"layer33","SAME")
+			pool33 = self.maxPoolLayer(layer33,[2, 2],[ 2,2], "pool33", "SAME")
+
+			layer34 = self.convLayer(pool24,[6,6],[1,1],int(16*1.41)+1,"layer34","SAME")
+			pool34 = self.maxPoolLayer(layer34,[2, 2],[ 2,2], "pool34", "SAME")
+			return np.array([pool11,pool12,pool13,pool21,pool22,pool23,pool31,pool32,pool33,pool34])
+
+	def real_wavelet_fc(self,lists,name):
+		with tf.variable_scope(name):
+			convout = tf.concat([reshape(lists[i]) for i in range(len(C_list))],axis = 1)
 			mul = convout.get_shape().as_list()[-1]
-			fc1 = self.complex_fcLayer(convout, mul, int(60*1.41)+1,  name = "fc1")
-			fc2 = self.complex_fcLayer(fc1, int(60*1.41)+1, int(30*1.41)+1,name =  "fc2")
-			fc3 = self.complex_fcLayer(fc2, int(30*1.41)+1, self.CLASSNUM, name =  "fc3",norm=False)
-			self.out = fc3
+			fc1 = self.fcLayer(convout, mul, int(60*1.41)+1,  name = "fc1")
+			fc2 = self.fcLayer(fc1, int(60*1.41)+1, int(30*1.41)+1,name =  "fc2")
+			fc3 = self.fcLayer(fc2, int(30*1.41)+1, self.CLASSNUM, name =  "fc3",norm=False)
+			return fc3
 
 	def build_net_share(self,complex = True):
 		if not complex:

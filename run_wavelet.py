@@ -40,7 +40,7 @@ def wavelet_net():
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'romania_complex.ckpt')
 	max_epoch = 200000
 	batch_step = 128
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'Wavelet')
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'Wavelet_complex_bagging')
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
 	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
