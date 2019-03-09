@@ -26,7 +26,7 @@ class wavelet(alexNet):
 		self.out = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
 	
 
-	def complex_wavelet_conv(self,self.X_com,name):	
+	def complex_wavelet_conv(self,name):	
 		with tf.variable_scope(name):
 			layer11 = self.complex_convLayer(self.X_com,[2,2],[1,1],32,"layer11","SAME")
 			pool11 = self.complex_maxPoolLayer(layer11,[2, 2],[ 2,2], "pool1", "SAME")
