@@ -78,7 +78,7 @@ def cifar10():
 		train_x,train_y = sess.run([train_images,train_labels])
 		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
-		if i%200 ==0:
+		if i%100 ==0:
 			summary,loss_value = sess.run([merged,loss], feed_dict={x:train_x,y:train_y})
 			train_writer.add_summary(summary, i)
 			examples_per_sec = batch_step/duration
@@ -108,7 +108,7 @@ def cifar10():
 	save_path = saver.save(sess,model_path)
 	
 
-	print('precision @1 = %.5f'%np.mean(ans[-100:]))
+	print('precision @1 = %.5f'%np.mean(ans[-10:]))
 
 def mnist(kind):
 	def test(images,labels,accuracy):
@@ -180,7 +180,7 @@ def mnist(kind):
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
 	train_writer.close()
 	test_writer.close()
-	print('precision @1 = %.5f'%np.mean(ans[-100:]))
+	print('precision @1 = %.5f'%np.mean(ans[-10:]))
 
 
 if __name__=='__main__':
