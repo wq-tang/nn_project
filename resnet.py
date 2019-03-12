@@ -292,7 +292,7 @@ def resnet():
 		return np.mean(precision)
 
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'resnet/cifar100')
-	data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-100')
+	data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-100/cifar-100-python')
 	
 	cifar100 = Cifar100DataReader(data_dir)
 
