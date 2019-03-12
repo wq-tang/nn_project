@@ -26,9 +26,9 @@ class complex_net(alexNet):
     def __init__(self, x, classNum, seed,modelPath = "complexnet"):
         super(complex_net,self).__init__(x, classNum, seed,modelPath)
         tf.set_random_seed(seed)
-        # self.relu_fun = tf.nn.relu
-        self.relu_fun = self.Learnable_angle_relu
-        self.build_complex_CNN_for_cifar10()
+        self.relu_fun = tf.nn.relu
+        # self.relu_fun = self.Learnable_angle_relu
+        self.build_real_CNN_for_mnist()
 
 
     def build_complex_CNN_for_mnist(self):

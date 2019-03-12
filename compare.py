@@ -7,7 +7,7 @@ import math
 from comparable_model import complex_net
 from tensorflow.examples.tutorials.mnist import input_data
 ##cifar batch =128  epoch = 50000
-##mnist epoch=50  bathch = 60000
+##mnist epoch=50  batch = 60000
 def count():
     total_parameters = 0
     for variable in tf.trainable_variables():
@@ -110,7 +110,7 @@ def cifar10():
 
 	print('precision @1 = %.5f'%np.mean(ans[-100:]))
 
-def mnist():
+def mnist(kind):
     def test(images,labels,accuracy):
         p = 0
         for i in range(10):
@@ -118,8 +118,12 @@ def mnist():
             ys = labels[i*1000:(i+1)*1000]
             p+= accuracy.eval(feed_dict={x:xs, y:ys})
         return p/10
-    mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
-    log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist_board')
+    if kind == 'mnist':
+	    mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
+	    log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist_board/real')
+	else:
+		mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist') 
+	    log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist_board/real')
     mnist=input_data.read_data_sets(mnist_data_folder,one_hot=True)
     epoch = 50
     batch = 100
@@ -151,7 +155,7 @@ def mnist():
     tf.train.start_queue_runners()
 
     ans = []
-    for i in range(epoch*10):
+    for i in range(epoch*600):
         start_time = time.time()
         train_x, train_y = mnist.train.next_batch(batch)
         _ = sess.run( train_step, feed_dict={x:train_x,y:train_y})
@@ -180,5 +184,5 @@ def mnist():
 
 
 if __name__=='__main__':
-	cifar10()
+	mnist('fashion-mnist')
 
