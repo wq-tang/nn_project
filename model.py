@@ -139,15 +139,15 @@ class alexNet(object):
             tf.summary.histogram('activations', activations)
             return activations
     
-    def Learnable_angle_relu_per_neural(self,C,name):
+    def Learnable_angle_relu_per_neural(self,C,name,seed=None):
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('alpha'):
                 alpha = tf.get_variable("alpha",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
             variable_summaries(alpha)
             with  tf.variable_scope('beita'):
                 beita = tf.get_variable("beita",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
             variable_summaries(beita)
             activations =  [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
             C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
@@ -163,27 +163,27 @@ class alexNet(object):
             tf.summary.histogram('activations', activations)
             return activations
 
-    def Learnable_radius_relu_per_neural(self,C,name):
+    def Learnable_radius_relu_per_neural(self,C,name,seed=None):
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('radius'):
                 radius = tf.get_variable("radius",shape = C[0].get_shape().as_list()[1:],dtype=tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
             variable_summaries(radius)
             activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
             tf.summary.histogram('activations', activations)
             return activations
 
 
-    def complex_fcLayer(self,x, input_size, output_size, name,norm=True, relu_fun =tf.nn.relu):
+    def complex_fcLayer(self,x, input_size, output_size, name,seed = None,norm=True, relu_fun =tf.nn.relu):
         """fully-connect"""
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('wightr'):
                 wr = tf.get_variable("wr", shape = [input_size, output_size], dtype = tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed+50,dtype=tf.float32))
                 variable_summaries(wr)
             with tf.variable_scope('wighti'):
                 wi = tf.get_variable("wi", shape = [input_size, output_size], dtype = tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
                 variable_summaries(wi)
             with tf.variable_scope('biasr'):
                 br = tf.get_variable("br", [output_size], dtype = tf.float32,\
@@ -212,7 +212,7 @@ class alexNet(object):
             tf.summary.histogram('fcI',relu[1])            
             return relu
 
-    def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",norm=True,relu_fun = tf.nn.relu): 
+    def complex_convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",norm=True,seed=None,relu_fun = tf.nn.relu): 
         """convolution"""
         in_channel = int(x[0].get_shape()[-1])
         conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
@@ -220,11 +220,11 @@ class alexNet(object):
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('wightr'):
                 wr = tf.get_variable("wr", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed+50,dtype=tf.float32))
                 variable_summaries(wr)
             with tf.variable_scope('wighti'):
                 wi = tf.get_variable("wi", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
                 variable_summaries(wi)
             with tf.variable_scope('biasr'):
                 br = tf.get_variable("br", shape = [out_channel],dtype=tf.float32,\
@@ -267,12 +267,12 @@ class alexNet(object):
             return activations
  
 
-    def fcLayer(self,x, input_size, output_size, name,norm=True, relu_fun = tf.nn.relu):
+    def fcLayer(self,x, input_size, output_size, name,norm=True,seed=None, relu_fun = tf.nn.relu):
         """fully-connect"""
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('wight'):
                 w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float",\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
                 variable_summaries(w)
             with tf.variable_scope('bias'):
                 b = tf.get_variable("b", [output_size], dtype = "float",\
@@ -287,7 +287,7 @@ class alexNet(object):
             tf.summary.histogram('fc',activations)
             return activations
 
-    def convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",relu_fun = tf.nn.relu): 
+    def convLayer(self,x, ksize, strides,out_channel, name, padding = "SAME",seed=None,relu_fun = tf.nn.relu): 
         """convolution"""
         in_channel = int(x.get_shape()[-1])
 
@@ -296,7 +296,7 @@ class alexNet(object):
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('wight'):
                 w = tf.get_variable("w", shape = ksize+[in_channel,out_channel],\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=None,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
                 variable_summaries(w)
             with tf.variable_scope('bias'):
                 b = tf.get_variable("b", shape = [out_channel],\

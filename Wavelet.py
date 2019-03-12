@@ -21,12 +21,12 @@ class wavelet(alexNet):
 	def build_complex_wavelet_bagging(self,conv_num):
 		conv=0
 		for i in range(conv_num):
-			conv+=self.complex_wavelet_conv('complex_conv_model'+str(i))
+			conv+=self.complex_wavelet_conv('complex_conv_model'+str(i),i)
 		fc3 = self.complex_wavelet_fc(conv,'complex_wavelet_fc')
 		self.out = tf.sqrt(tf.square(fc3[0])+tf.square(fc3[1]))
 	
 
-	def complex_wavelet_conv(self,name):	
+	def complex_wavelet_conv(self,name,seed = None):	
 		with tf.variable_scope(name):
 			layer11 = self.complex_convLayer(self.X_com,[2,2],[1,1],32,"layer11","SAME")
 			pool11 = self.complex_maxPoolLayer(layer11,[2, 2],[ 2,2], "pool1", "SAME")

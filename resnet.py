@@ -1,8 +1,133 @@
 import collections
 import tensorflow as tf
 slim = tf.contrib.slim
-import time
 from datetime import datetime
+import pickle   # 用于序列化和反序列化
+import numpy as np  
+import os  
+import matplotlib.pyplot as plt
+import time
+import math
+
+
+class Cifar100DataReader():  
+    def __init__(self,cifar_folder,onehot=True):  
+        self.cifar_folder=cifar_folder  
+        self.onehot=onehot  
+        self.data_label_train=None            # 训练集
+        self.data_label_test=None             # 测试集
+        self.batch_index=0                    # 训练数据的batch块索引
+        self.test_batch_index=0                # 测试数据的batch_size
+        f=os.path.join(self.cifar_folder,"train")  # 训练集有50000张图片，100个类，每个类500张
+        print ('read: %s'%f  )
+        fo = open(f, 'rb')
+        self.dic_train = pickle.load(fo,encoding='bytes')
+        fo.close()
+        self.data_label_train=list(zip(self.dic_train[b'data'],self.dic_train[b'fine_labels']) ) #label 0~99  
+        np.random.shuffle(self.data_label_train)           
+ 
+    
+    def dataInfo(self):
+        print (self.data_label_train[0:2] )# 每个元素为二元组，第一个是numpy数组大小为32*32*3，第二是label
+        print (self.dic_train.keys())
+        print (b"coarse_labels:",len(self.dic_train[b"coarse_labels"]))
+        print (b"filenames:",len(self.dic_train[b"filenames"]))
+        print (b"batch_label:",len(self.dic_train[b"batch_label"]))
+        print (b"fine_labels:",len(self.dic_train[b"fine_labels"]))
+        print (b"data_shape:",np.shape((self.dic_train[b"data"])))
+        print (b"data0:",type(self.dic_train[b"data"][0]))
+ 
+ 
+    # 得到下一个batch训练集，块大小为100
+    def next_train_data(self,batch_size=100):  
+        """ 
+        return list of numpy arrays [na,...,na] with specific batch_size 
+                na: N dimensional numpy array  
+        """            
+        if self.batch_index<len(self.data_label_train)/batch_size:  
+            print ("batch_index:",self.batch_index  )
+            datum=self.data_label_train[self.batch_index*batch_size:(self.batch_index+1)*batch_size]  
+            self.batch_index+=1  
+            return self._decode(datum,self.onehot)  
+        else:  
+            self.batch_index=0  
+            np.random.shuffle(self.data_label_train)  
+            datum=self.data_label_train[self.batch_index*batch_size:(self.batch_index+1)*batch_size]  
+            self.batch_index+=1  
+            return self._decode(datum,self.onehot)  
+              
+    
+    # 把一个batch的训练数据转换为可以放入神经网络训练的数据 
+    def _decode(self,datum,onehot):  
+        rdata=list()     # batch训练数据
+        rlabel=list()  
+        if onehot:  
+            for d,l in datum:  
+                rdata.append(np.reshape(np.reshape(d,[3,1024]).T,[32,32,3]))   # 转变形状为：32*32*3
+                hot=np.zeros(100)    
+                hot[int(l)]=1            # label设为100维的one-hot向量
+                rlabel.append(hot)  
+        else:  
+            for d,l in datum:  
+                rdata.append(np.reshape(np.reshape(d,[3,1024]).T,[32,32,3]))  
+                rlabel.append(int(l))  
+        return rdata,rlabel  
+    
+ 
+    # 得到下一个测试数据 ，供神经网络计算模型误差用         
+    def next_test_data(self,batch_size=100):  
+        ''''' 
+        return list of numpy arrays [na,...,na] with specific batch_size 
+                na: N dimensional numpy array  
+        '''  
+        if self.data_label_test is None:  
+            f=os.path.join(self.cifar_folder,"test")  
+            print ('read: %s'%f  )
+            fo = open(f, 'rb')
+            dic_test = pickle.load(fo,encoding='bytes')
+            fo.close()           
+            data=dic_test[b'data']            
+            labels=dic_test[b'fine_labels']   # 0 ~ 99  
+            self.data_label_test=list(zip(data,labels) )
+            self.batch_index=0
+ 
+        if self.test_batch_index<len(self.data_label_test)/batch_size:  
+            print ("test_batch_index:",self.test_batch_index )
+            datum=self.data_label_test[self.test_batch_index*batch_size:(self.test_batch_index+1)*batch_size]  
+            self.test_batch_index+=1  
+            return self._decode(datum,self.onehot)  
+        else:  
+            self.test_batch_index=0  
+            np.random.shuffle(self.data_label_test)  
+            datum=self.data_label_test[self.test_batch_index*batch_size:(self.test_batch_index+1)*batch_size]  
+            self.test_batch_index+=1  
+            return self._decode(datum,self.onehot)    
+ 
+    # 显示 9张图像
+    def showImage(self):
+        rdata,rlabel = self.next_train_data()
+        fig = plt.figure()  
+        ax = fig.add_subplot(331)
+        ax.imshow(rdata[0])
+        ax = fig.add_subplot(332)
+        ax.imshow(rdata[1]) 
+        ax = fig.add_subplot(333)
+        ax.imshow(rdata[2]) 
+        ax = fig.add_subplot(334)
+        ax.imshow(rdata[3]) 
+        ax = fig.add_subplot(335)
+        ax.imshow(rdata[4]) 
+        ax = fig.add_subplot(336)
+        ax.imshow(rdata[5]) 
+        ax = fig.add_subplot(337)
+        ax.imshow(rdata[6]) 
+        ax = fig.add_subplot(338)
+        ax.imshow(rdata[7]) 
+        ax = fig.add_subplot(339)
+        ax.imshow(rdata[8]) 
+        plt.show()
+
+
 class Block(collections.namedtuple('Block',['scope','unit_fn','args'])):
 	'a nemed tuple describing a resnet block'
 
@@ -149,13 +274,97 @@ def time_tensorflow_run(Session,target,info_string):
 	sd = math.sqrt(vr)
 	print('%s:%s across %d steps ,%.3f+/- %.3f sec/batch'%(datetime.now(),info_string,num_batch,mn,sd))
 
-batch_size = 32
-height,width = 224,224
-inputs = tf.random_uniform((batch_size,height,width,3))
-with slim.arg_scope(resnet_arg_scope(is_training=False)):
-	net,end_points = resnet_v2_152(inputs,1000)
-init = tf.global_variables_initializer()
-sess=tf.Session()
-sess.run(init)
-num_batches = 100
-time_tensorflow_run(sess,net,'forward')
+
+def resnet():
+
+	def loss(logits,y):
+		labels =tf.cast(y,tf.int64)
+		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
+		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
+		tf.add_to_collection('losses',cross_entropy_mean)
+		return tf.add_n(tf.get_collection('losses'),name='total_loss')
+
+	def test():
+		precision=[]
+		for i in range(40):
+			test_x,test_y = sess.run([test_images,test_labels])
+			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
+		return np.mean(precision)
+
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'resnet/cifar100')
+	data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-100')
+	
+	cifar100 = Cifar100DataReader(data_dir)
+
+
+	max_epoch = 50000
+	batch_step = 128
+	with tf.name_scope("inputs"):
+		x = tf.placeholder(tf.float32, [None, 24, 24, 3])
+	tf.summary.image('inputs', x, 10)
+	y = tf.placeholder(tf.int32, [None])
+
+	with slim.arg_scope(resnet_arg_scope()):
+	    net, end_points = resnet_v1_50(x,100)
+	    print(end_points)
+
+	with tf.name_scope('loss'):
+		gloss  = loss(net, y)
+	tf.summary.scalar('loss', gloss)
+	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+	with tf.control_dependencies(update_ops):
+		train_op = tf.train.AdamOptimizer(0.1**3).minimize(gloss)
+
+
+	top_k_op = tf.nn.in_top_k(net,y,1)
+	with tf.name_scope('accuracy'):
+		accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
+	tf.summary.scalar('accuracy', accuracy)
+	sess = tf.InteractiveSession()
+	merged = tf.summary.merge_all()
+	train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
+	test_writer = tf.summary.FileWriter(log_dir + '/test')
+
+	tf.global_variables_initializer().run()
+	tf.train.start_queue_runners()
+
+	test_x,test_y = cifar100.next_test_data
+	for i in range(max_epoch):
+		start_time = time.time()
+		train_x,train_y = cifar100.next_train_data(batch_step)
+		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
+		duration = time.time() - start_time
+		if i%200 ==0:
+			summary,loss_value = sess.run([merged,loss], feed_dict={x:train_x,y:train_y})
+			train_writer.add_summary(summary, i)
+			examples_per_sec = batch_step/duration
+			sec_per_batch = float(duration)
+			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch)')
+			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
+
+			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
+			for m in model:
+				m.training = False
+			summary, acc = sess.run([merged, accuracy], feed_dict={x:test_x,y:test_y})
+			test_writer.add_summary(summary, i)
+			test_accuracy = test()
+			ans.append(test_accuracy)
+			# test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
+			for m in model:
+				m.training = True
+			print( "step %d, training accuracy %g"%(i, train_accuracy))
+			print( "step %d,test accuracy %g"%(i,test_accuracy))
+			# print('pre:%g'%pre)
+			# print(y_hat)
+			# if test_accuracy>0.95:
+			# 	break
+	train_writer.close()
+	test_writer.close()
+	
+
+	print('precision @1 = %.5f'%np.mean(ans[-10:]))
+
+
+
+if __name__=='__main__':
+	resnet()
