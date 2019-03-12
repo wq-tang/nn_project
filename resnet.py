@@ -1,8 +1,8 @@
 import collections
 import tensorflow as tf
 slim = tf.contrib.slim
-
-
+import time
+import datetime
 class Block(collections.namedtuple('Block',['scope','unit_fn','args'])):
 	'a nemed tuple describing a resnet block'
 
@@ -22,11 +22,12 @@ def conv2d_same(inputs,num_outputs,kernel_size,stride,scope =None):
 	inputs = tf.pad(inputs,[[0,0],[pad_beg,pad_end],[pad_beg,pad_end],[0,0]])
 	return slim.conv2d(inputs,num_outputs,kernel_size,stride=stride,padding = 'VALID',scope=scope)
 
-@slim.add_args_scope
+@slim.add_arg_scope
 def stacks_block_dense(net,blocks,outputs_collections=None):
 	for block in blocks:
 		with tf.variable_scope(block.scope,'block',[net]) as sc:
-			for i,unit in  enumerate(block.args):
+		#variable_scope前三个参数#name_or_scope,default_name=None,values=None. values: 传入该scope的tensor参数
+			for i,unit in enumerate(block.args):
 				with tf.variable_scope("unit_%d"%(i+1),values = [net]):
 					unit_depth,unit_depth_bottleneck,unit_stride = unit
 					net = block.unit_fn(net,depth = unit_depth,depth_bottleneck = unit_depth_bottleneck,stride=unit_stride)
@@ -38,17 +39,17 @@ def resnet_arg_scope(is_training = True,weight_decay = 0.0001,\
 	batch_norm_decay = 0.997,batch_norm_epsilon = 1e-5,batch_norm_scale = True):
 
 	batch_norm_params={"is_training":is_training,"decay":batch_norm_decay,'epsilon':batch_norm_epsilon,\
-	'scale':batch_norm_scale,'updates_collections':tf.Graphkeys.UPDATE_OPS}
+	'scale':batch_norm_scale,'updates_collections':tf.GraphKeys.UPDATE_OPS}
 
-	with slim.arg_scope([slim.conv2d],weight_regularizer = slim.l2_regularizer(weight_decay),\
-		weight_initializer = slim.variance_scaling_initializer(),activation_fn=tf.nn.relu,\
+	with slim.arg_scope([slim.conv2d],weights_regularizer = slim.l2_regularizer(weight_decay),\
+		weights_initializer = slim.variance_scaling_initializer(),activation_fn=tf.nn.relu,\
 		normalizer_fn = slim.batch_norm,normalizer_params=batch_norm_params):
 		with slim.arg_scope([slim.batch_norm],**batch_norm_params):
 			with slim.arg_scope([slim.max_pool2d],padding = 'SAME') as arg_sc:
 				return arg_sc
 
 
-@slim.add_args_scope
+@slim.add_arg_scope
 def bottleneck(inputs,depth,depth_bottleneck,stride,outputs_collections = None,scope=None):
 	with tf.variable_scope(scope,'bottleneck_v2',[inputs]) as sc:
 		depth_in = slim.utils.last_dimension(inputs.get_shape(),min_rank = 4)
@@ -94,37 +95,63 @@ def resnet_v2(inputs,blocks,num_classes=None,global_pool=True,include_root_block
 
 
 def resnet_v2_50(inputs,num_classes=None,global_pool = True,reuse=None,scope='resnet_v2_50'):
-	blocks = [Block('block1',bottleneck,[(256,64,1)]*2+[256,64,2]),\
-			Block('block2',bottleneck,[(512,128,1)]*3+[512,128,2]),\
-			Block('block3',bottleneck,[(1024,256,1)]*5+[1024,256,2]),\
+	blocks = [Block('block1',bottleneck,[(256,64,1)]*2+[(256,64,2)]),\
+			Block('block2',bottleneck,[(512,128,1)]*3+[(512,128,2)]),\
+			Block('block3',bottleneck,[(1024,256,1)]*5+[(1024,256,2)]),\
 			Block('block4',bottleneck,[(2048,512,1)]*3)]
 	return resnet_v2(inputs,blocks,num_classes,global_pool,include_root_block=True,reuse=reuse,scope=scope)
 
 def resnet_v2_101(inputs,num_classes=None,global_pool = True,reuse=None,scope='resnet_v2_101'):
-	blocks = [Block('block1',bottleneck,[(256,64,1)]*2+[256,64,2]),\
-			Block('block2',bottleneck,[(512,128,1)]*3+[512,128,2]),\
-			Block('block3',bottleneck,[(1024,256,1)]*22+[1024,256,2]),\
+	blocks = [Block('block1',bottleneck,[(256,64,1)]*2+[(256,64,2)]),\
+			Block('block2',bottleneck,[(512,128,1)]*3+[(512,128,2)]),\
+			Block('block3',bottleneck,[(1024,256,1)]*22+[(1024,256,2)]),\
 			Block('block4',bottleneck,[(2048,512,1)]*3)]
 	return resnet_v2(inputs,blocks,num_classes,global_pool,include_root_block=True,reuse=reuse,scope=scope) 
 
 def resnet_v2_152(inputs,num_classes=None,global_pool = True,reuse=None,scope='resnet_v2_152'):
-	blocks = [Block('block1',bottleneck,[(256,64,1)]*2+[256,64,2]),\
-			Block('block2',bottleneck,[(512,128,1)]*7+[512,128,2]),\
-			Block('block3',bottleneck,[(1024,256,1)]*35+[1024,256,2]),\
+	blocks = [Block('block1',bottleneck,[(256,64,1)]*2+[(256,64,2)]),\
+			Block('block2',bottleneck,[(512,128,1)]*7+[(512,128,2)]),\
+			Block('block3',bottleneck,[(1024,256,1)]*35+[(1024,256,2)]),\
 			Block('block4',bottleneck,[(2048,512,1)]*3)]
 	return resnet_v2(inputs,blocks,num_classes,global_pool,include_root_block=True,reuse=reuse,scope=scope) 
 
 def resnet_v2_200(inputs,num_classes=None,global_pool = True,reuse=None,scope='resnet_v2_200'):
-	blocks = [Block('block1',bottleneck,[(256,64,1)]*2+[256,64,2]),\
-			Block('block2',bottleneck,[(512,128,1)]*23+[512,128,2]),\
-			Block('block3',bottleneck,[(1024,256,1)]*35+[1024,256,2]),\
+	blocks = [Block('block1',bottleneck,[(256,64,1)]*2+[(256,64,2)]),\
+			Block('block2',bottleneck,[(512,128,1)]*23+[(512,128,2)]),\
+			Block('block3',bottleneck,[(1024,256,1)]*35+[(1024,256,2)]),\
 			Block('block4',bottleneck,[(2048,512,1)]*3)]
 	return resnet_v2(inputs,blocks,num_classes,global_pool,include_root_block=True,reuse=reuse,scope=scope) 
 
 
+
+def time_tensorflow_run(Session,target,info_string):
+	num_steps_burn_in=10
+	total_duration =0
+	total_duration_squared = 0
+	pre_step =10
+	num_batch = 1000
+	for i in range(pre_step+num_batch):
+		start_time = time.time()
+		result=Session.run(target)
+		duration = time.time()-start_time
+
+		if i>=pre_step:
+			if not i%10:
+				print("%s:step %d,duration =%.3f" %(datetime.now(),i-pre_step,duration))
+				# print(result[0][:][:][0])
+			total_duration += duration
+			total_duration_squared += duration**2
+
+
+
+	mn = total_duration/num_batch
+	vr = total_duration_squared/num_batch - mn**2
+	sd = math.sqrt(vr)
+	print('%s:%s across %d steps ,%.3f+/- %.3f sec/batch'%(datetime.now(),info_string,num_batch,mn,sd))
+
 batch_size = 32
 height,width = 224,224
-inputs = tf.random_uniform(batch_size,height,width,3)
+inputs = tf.random_uniform((batch_size,height,width,3))
 with slim.arg_scope(resnet_arg_scope(is_training=False)):
 	net,end_points = resnet_v2_152(inputs,1000)
 init = tf.global_variables_initializer()
