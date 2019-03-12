@@ -33,42 +33,42 @@ class complex_net(alexNet):
 
     def build_complex_CNN_for_mnist(self):
         with tf.variable_scope('model_%d'%self.seed):
-            conv1 = self.complex_convLayer(self.X_com, [5, 5], [1, 1], 16, "conv1", "SAME",relu_fun = self.relu_fun)
+            conv1 = self.complex_convLayer(self.X_com, [5, 5], [1, 1], 32, "conv1", "SAME",relu_fun = self.relu_fun)
             pool1 = self.complex_maxPoolLayer(conv1,[2, 2],[ 2,2], "pool1", "SAME")
 
-            conv2 = self.complex_convLayer(pool1, [3, 3], [1, 1], 64, "conv2",'SAME',relu_fun = self.relu_fun)
+            conv2 = self.complex_convLayer(pool1, [3, 3], [1, 1], 16, "conv2",'SAME',relu_fun = self.relu_fun)
             pool2 = self.complex_maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
-            conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 256, "conv3",'VALID',relu_fun = self.relu_fun)
-            pool3 = self.complex_maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
-            cnnout = pool3
+            # conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 256, "conv3",'VALID',relu_fun = self.relu_fun)
+            # pool3 = self.complex_maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
+            cnnout = pool2
             shapes = cnnout[0].get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
             R = tf.reshape(cnnout[0],[-1,mul])
             I = tf.reshape(cnnout[1],[-1,mul])
             dim = R.get_shape()[1].value
 
-            fc1 = self.complex_fcLayer([R,I], dim, 512,  name = "fc4",relu_fun = tf.nn.relu)
-            self.fc2 = self.complex_fcLayer(fc1, 512, self.CLASSNUM,name =  "fc5",relu_fun = tf.nn.relu)
+            fc1 = self.complex_fcLayer([R,I], dim, 128,  name = "fc4",relu_fun = tf.nn.relu)
+            self.fc2 = self.complex_fcLayer(fc1, 128, self.CLASSNUM,name =  "fc5",relu_fun = tf.nn.relu)
             self.out = self.fc2
             self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
     def build_real_CNN_for_mnist(self):
         with tf.variable_scope('model_%d'%self.seed):
-            conv1 = self.convLayer(self.X, [5, 5], [1, 1], int(16*1.41)+1, "conv1", "SAME")
+            conv1 = self.convLayer(self.X, [5, 5], [1, 1], int(32*1.41)+1, "conv1", "SAME")
             pool1 = self.maxPoolLayer(conv1,[2, 2],[ 2,2], "pool1", "SAME")
 
-            conv2 = self.convLayer(pool1, [3, 3], [1, 1], int(64*1.41)+1, "conv2",'SAME')
+            conv2 = self.convLayer(pool1, [3, 3], [1, 1], int(16*1.41)+1, "conv2",'SAME')
             pool2 = self.maxPoolLayer(conv2,[2, 2], [2, 2], "pool2", "SAME")
 
-            conv3 = self.convLayer(pool2, [2, 2], [1, 1], int(256*1.41)+1, "conv3",'VALID')
-            pool3 = self.maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
-            cnnout = pool3
+            # conv3 = self.convLayer(pool2, [2, 2], [1, 1], int(256*1.41)+1, "conv3",'VALID')
+            # pool3 = self.maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
+            cnnout = pool2
             shapes = cnnout.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
             Res = tf.reshape(cnnout,[-1,mul])
-            fc1 = self.fcLayer(Res, mul, int(512*1.41)+1,  name = "fc4")
-            self.fc2 = self.fcLayer(fc1, int(512*1.41)+1, self.CLASSNUM, name =  "fc5")
+            fc1 = self.fcLayer(Res, mul, int(128*1.41)+1,  name = "fc4")
+            self.fc2 = self.fcLayer(fc1, int(128*1.41)+1, self.CLASSNUM, name =  "fc5")
             self.out = self.fc2
 
 
