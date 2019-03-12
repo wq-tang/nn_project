@@ -2,7 +2,7 @@ import collections
 import tensorflow as tf
 slim = tf.contrib.slim
 import time
-import datetime
+from datetime import datetime
 class Block(collections.namedtuple('Block',['scope','unit_fn','args'])):
 	'a nemed tuple describing a resnet block'
 
