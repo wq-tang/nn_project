@@ -105,7 +105,7 @@ class complex_net(alexNet):
             self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
 
-    def build_real_CNN_for_cifar10(self):
+    def build_real_CNN_for_cifar10(self,model_num):
         with tf.variable_scope('real_cifar10'):
             out = 0
             for i in range(model_num):
