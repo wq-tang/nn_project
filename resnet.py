@@ -370,7 +370,7 @@ def resnet():
 	tf.summary.image('inputs', x, 10)
 	y = tf.placeholder(tf.int32, [None])
 
-	model = [Resnet_v2_50(x,100,0,is_complex=True)]
+	model = [Resnet_v2_50(x,100,0,is_complex=False)]
 	net =model[0].net
 
 	with tf.name_scope('loss'):

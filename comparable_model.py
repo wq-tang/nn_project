@@ -95,8 +95,8 @@ class complex_net(alexNet):
         with tf.variable_scope('mnist'):
             out = 0
             for i in range(model_num):
-                out+ = self.conv_block('conv_block',[5,3],[16,8])
-            self.out=self.fc_block(out,'fc_block',[30,self.classNum])
+                out += self.conv_block('conv_block',[5,3],[16,8])
+            self.out=self.fc_block(out,'fc_block',[30,self.CLASSNUM])
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
@@ -106,7 +106,7 @@ class complex_net(alexNet):
             out = 0
             for i in range(model_num):
                 out += self.conv_block('conv_block'+str(i+1),[5,3,3],[128,64,64])
-            self.out=self.fc_block(out,'fc_block',[384,192,self.classNum])
+            self.out=self.fc_block(out,'fc_block',[384,192,self.CLASSNUM])
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 

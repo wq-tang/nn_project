@@ -184,7 +184,7 @@ class alexNet(object):
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('wightr'):
                 wr = tf.get_variable("wr", shape = [input_size, output_size], dtype = tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed+50,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
                 variable_summaries(wr)
             with tf.variable_scope('wighti'):
                 wi = tf.get_variable("wi", shape = [input_size, output_size], dtype = tf.float32,\
@@ -224,7 +224,7 @@ class alexNet(object):
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('wightr'):
                 wr = tf.get_variable("wr", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed+50,dtype=tf.float32))
+                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
                 variable_summaries(wr)
             with tf.variable_scope('wighti'):
                 wi = tf.get_variable("wi", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\

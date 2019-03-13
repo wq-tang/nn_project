@@ -40,7 +40,6 @@ def cifar10(path,is_complex,model_num):
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar10_complex.ckpt')
 	max_epoch = 50000
 	batch_step = 128
-	model_num=2
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar10_board/'+path)
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
@@ -185,5 +184,5 @@ def mnist(path,is_complex,model_num,kind):
 
 
 if __name__=='__main__':
-	cifar10(path='complex_bagging4',is_complex=True,model_num=4)
+	cifar10(path='real_bagging4',is_complex=False,model_num=4)
 
