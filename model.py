@@ -173,6 +173,11 @@ class alexNet(object):
             tf.summary.histogram('activations', activations)
             return activations
 
+    def complex_batch_normalization(self,C):
+        R,I = C
+        R=tf.layers.batch_normalization(R,training=self.training)
+        I=tf.layers.batch_normalization(I,training=self.training)
+        return [R,I]
 
     def complex_fcLayer(self,x, input_size, output_size, name,seed = None,norm=True, relu_fun =tf.nn.relu):
         """fully-connect"""
@@ -198,8 +203,7 @@ class alexNet(object):
             tf.summary.histogram('R',R)
             tf.summary.histogram('I',I)
             if norm :
-                R=tf.layers.batch_normalization(R,training=self.training)
-                I=tf.layers.batch_normalization(I,training=self.training)
+                R,I = self.complex_batch_normalization([R,I])
             tf.summary.histogram('normR',R)
             tf.summary.histogram('normI',I)            
             if relu_fun == tf.nn.relu:
@@ -240,8 +244,7 @@ class alexNet(object):
             tf.summary.histogram('R',R)
             tf.summary.histogram('I',I)
             if norm:
-                R=tf.layers.batch_normalization(R,training=self.training)
-                I=tf.layers.batch_normalization(I,training=self.training)
+                R,I=self.complex_batch_normalization([R,I])
                 tf.summary.histogram('normR',R)
                 tf.summary.histogram('normI',I)  
             if relu_fun == tf.nn.relu:
