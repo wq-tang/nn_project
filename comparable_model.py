@@ -23,15 +23,16 @@ def variable_summaries(var):
 
 class complex_net(alexNet):
     """docstring for complex_net"""
-    def __init__(self, x, classNum, seed,modelPath = "complexnet"):
+    def __init__(self, x, classNum, seed,modelPath = "complexnet",is_complex=True):
         super(complex_net,self).__init__(x, classNum, seed,modelPath)
         tf.set_random_seed(seed)
+        self.is_complex=is_complex
         self.relu_fun = tf.nn.relu
         # self.relu_fun = self.Learnable_angle_relu
-        self.build_real_CNN_for_cifar10(2)
 
-    def conv_block(self,name,kernel,channel,stride = 1,is_complex = True):
-        if is_complex:
+
+    def conv_block(self,name,kernel,channel,stride = 1):
+        if self.is_complex:
             conv_f = self.complex_convLayer
             pool_f = self.complex_maxPoolLayer
             net = self.X_com
@@ -46,76 +47,69 @@ class complex_net(alexNet):
                     stride_size = stride[i]
                 else:
                     stride_size=1
-                if is_complex:
+                if self.is_complex:
                     channel_num=channel[i]
                 else:
                     channel_num=int(channel[i]*1.41)+1
 
                 conv = conv_f(net, [kernel_size, kernel_size], [stride_size, stride_size], channel_num, "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
                 net = pool_f(conv,[2, 2],[ 2,2], "pool"+str(i+1), "SAME")
-            if is_complex:
+            if self.is_complex:
                 return np.array(net)
             return net
 
-    def build_complex_CNN_for_mnist(self):
-        with tf.variable_scope('complex_mnist'):
-            # conv3 = self.complex_convLayer(pool2, [2, 2], [1, 1], 256, "conv3",'VALID',relu_fun = self.relu_fun)
-            # pool3 = self.complex_maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
-            cnnout = self.conv_block('complex_conv_block',[5,3],[16,8])
-            shapes = cnnout[0].get_shape().as_list()[1:]
-            mul = reduce(lambda x,y:x * y,shapes)
-            R = tf.reshape(cnnout[0],[-1,mul])
-            I = tf.reshape(cnnout[1],[-1,mul])
+    def fc_block(self,inputs,name,layer):
+        if self.is_complex:
+            fc_connect = self.complex_fcLayer
+            cnnout = inputs[0]
+        else:
+            fc_connect = self.fcLayer
+            cnnout=inputs
+        shapes = cnnout.get_shape().as_list()[1:]
+        mul = reduce(lambda x,y:x * y,shapes)
+        pre = mul
+        if self.is_complex:
+            R = tf.reshape(inputs[0],[-1,mul])
+            I = tf.reshape(inputs[1],[-1,mul])
             dim = R.get_shape()[1].value
+            net = [R,I]
+        else:
+            net = tf.reshape(inputs,[-1,mul])
 
-            fc1 = self.complex_fcLayer([R,I], dim, 30,  name = "fc4",seed=101+self.seed,relu_fun = tf.nn.relu)
-            self.fc2 = self.complex_fcLayer(fc1, 30, self.CLASSNUM,name =  "fc5",seed=102+self.seed,relu_fun = tf.nn.relu)
-            self.out = self.fc2
-            self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+        with tf.variable_scope(name):
+            for i in range(len(layer)):
+                if self.is_complex:
+                    now = layer[i]
+                else:
+                    now=int(layer[i]*1.41)+1
 
-    def build_real_CNN_for_mnist(self):
-        with tf.variable_scope('real_mnist'):
-            # conv3 = self.convLayer(pool2, [2, 2], [1, 1], int(256*1.41)+1, "conv3",'VALID')
-            # pool3 = self.maxPoolLayer(conv3, [2, 2], [2, 2], "pool3", "VALID")
-            cnnout = self.conv_block('conv_block',[5,3],[16,8],is_complex=False)
-            cnnout = pool2
-            shapes = cnnout.get_shape().as_list()[1:]
-            mul = reduce(lambda x,y:x * y,shapes)
-            Res = tf.reshape(cnnout,[-1,mul])
-            fc1 = self.fcLayer(Res, mul, int(30*1.41)+1,  name = "fc4",seed=103+self.seed)
-            self.fc2 = self.fcLayer(fc1, int(30*1.41)+1, self.CLASSNUM, name =  "fc5",seed=104+self.seed)
-            self.out = self.fc2
+                net = fc_connect(net, pre, now,"fc"+str(i+1),relu_fun = self.relu_fun)
+                pre = now
 
+            if self.is_complex:
+                return np.array(net)
+            return net
 
 
-    def build_complex_CNN_for_cifar10(self,model_num):
-        with tf.variable_scope('complex_cifar10'):
+    def build_CNN_for_mnist(self,model_num):
+        with tf.variable_scope('mnist'):
             out = 0
             for i in range(model_num):
-                out += self.conv_block('complex_conv_block'+str(i+1),[5,3,3],[128,64,64])
-            cnnout = out
-            shapes = cnnout[0].get_shape().as_list()[1:]
-            mul = reduce(lambda x,y:x * y,shapes)
-            R = tf.reshape(cnnout[0],[-1,mul])
-            I = tf.reshape(cnnout[1],[-1,mul])
-            dim = R.get_shape()[1].value
-            fc1 = self.complex_fcLayer([R,I], dim, 384,  name = "fc4",seed=105+self.seed,relu_fun = tf.nn.relu)
-            fc2 = self.complex_fcLayer(fc1, 384, 192, name =  "fc5",seed=106+self.seed,relu_fun = tf.nn.relu)
-            fc3 = self.complex_fcLayer(fc2, 192, self.CLASSNUM, name =  "fc6",norm=False,seed=107+self.seed,relu_fun = tf.nn.relu)
-            self.out = fc3
-            self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+                out+ = self.conv_block('conv_block',[5,3],[16,8])
+            self.out=self.fc_block(out,'fc_block',[30,self.classNum])
+            if self.is_complex:
+                self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
 
-    def build_real_CNN_for_cifar10(self,model_num):
-        with tf.variable_scope('real_cifar10'):
+    def build_CNN_for_cifar10(self,model_num):
+        with tf.variable_scope('cifar10'):
             out = 0
             for i in range(model_num):
-                out += self.conv_block('complex_conv_block'+str(i+1),[5,3,3],[128,64,64],is_complex=False)
-            cnnout = out
-            shapes = cnnout.get_shape().as_list()[1:]
-            mul = reduce(lambda x,y:x * y,shapes)
-            Res = tf.reshape(cnnout,[-1,mul])
-            fc1 = self.fcLayer(Res, mul, int(384*1.41)+1, name = "fc4",seed=108+self.seed)
-            fc2 = self.fcLayer(fc1, int(384*1.41)+1, int(192*1.41)+1, name =  "fc5",seed=109+self.seed)
-            fc3 = self.fcLayer(fc2, int(192*1.41)+1, self.CLASSNUM, name =  "fc6",norm=False,seed=110+self.seed)
-            self.out = fc3
+                out += self.conv_block('conv_block'+str(i+1),[5,3,3],[128,64,64])
+            self.out=self.fc_block(out,'fc_block',[384,192,self.classNum])
+            if self.is_complex:
+                self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+
+
+
+

@@ -23,7 +23,7 @@ def count():
         total_parameters += variable_parameters
     print(total_parameters)
 
-def cifar10():
+def cifar10(path,is_complex,model_num):
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
 		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
@@ -40,7 +40,8 @@ def cifar10():
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar10_complex.ckpt')
 	max_epoch = 50000
 	batch_step = 128
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar10_board/complex_bagging2')
+	model_num=2
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar10_board/'+path)
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
 	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
@@ -49,8 +50,9 @@ def cifar10():
 	tf.summary.image('inputs', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = [complex_net(x,10,0)]
-	models_result =model[0].out
+	model = complex_net(x,10,0,is_complex=is_complex)
+	model.build_CNN_for_cifar10(model_num)
+	models_result =model.out
 	with tf.name_scope('loss'):
 		loss  = loss(models_result,y)
 	tf.summary.scalar('loss', loss)
@@ -87,15 +89,13 @@ def cifar10():
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
 
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
-			for m in model:
-				m.training = False
+			model.training = False
 			summary, acc = sess.run([merged, accuracy], feed_dict={x:test_x,y:test_y})
 			test_writer.add_summary(summary, i)
 			test_accuracy = test()
 			ans.append(test_accuracy)
 			# test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
-			for m in model:
-				m.training = True
+			model.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
 			# print('pre:%g'%pre)
@@ -110,7 +110,7 @@ def cifar10():
 
 	print('precision @1 = %.5f'%np.mean(ans[-10:]))
 
-def mnist(kind):
+def mnist(path,is_complex,model_num,kind):
 	def test(images,labels,accuracy):
 		p = 0
 		for i in range(10):
@@ -120,10 +120,10 @@ def mnist(kind):
 		return p/10
 	if kind == 'mnist':
 		mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
-		log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist_board/real')
+		log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist_board/'+path)
 	else:
 		mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist') 
-		log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist_board/real')
+		log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist_board/'+path)
 	mnist=input_data.read_data_sets(mnist_data_folder,one_hot=True)
 	epoch = 50
 	batch = 100
@@ -132,8 +132,9 @@ def mnist(kind):
 	with tf.name_scope('input_reshape'):
 		image_shaped_input = tf.reshape(x, [-1, 28, 28, 1])
 		tf.summary.image('input', image_shaped_input, 10)
-	model = [complex_net(image_shaped_input,10,0)]
-	models_result =model[0].out
+	model = complex_net(image_shaped_input,10,0,is_complex=is_complex)
+	model.build_CNN_for_mnist(model_num)
+	models_result =model.out
 	with tf.name_scope('accuracy'):
 		with tf.name_scope('correct_prediction'):
 			correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(models_result, 1))
@@ -184,5 +185,5 @@ def mnist(kind):
 
 
 if __name__=='__main__':
-	cifar10()
+	cifar10(path='complex_bagging4',is_complex=True,model_num=4)
 
