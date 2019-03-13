@@ -184,5 +184,5 @@ def mnist(kind):
 
 
 if __name__=='__main__':
-	mnist('fashion-mnist')
+	cifar10()
 

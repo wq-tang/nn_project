@@ -11,7 +11,7 @@ import math
 
 
 class Cifar100DataReader():  
-    def __init__(self,cifar_folder,onehot=True):  
+    def __init__(self,cifar_folder,onehot=False):  
         self.cifar_folder=cifar_folder  
         self.onehot=onehot  
         self.data_label_train=None            # 训练集
@@ -71,7 +71,7 @@ class Cifar100DataReader():
             for d,l in datum:  
                 rdata.append(np.reshape(np.reshape(d,[3,1024]).T,[32,32,3]))  
                 rlabel.append(int(l))  
-        return rdata,rlabel  
+        return rdata,np.array(rlabel)  
     
  
     # 得到下一个测试数据 ，供神经网络计算模型误差用         
@@ -207,7 +207,7 @@ def resnet_v2(inputs,blocks,num_classes=None,global_pool=True,include_root_block
 			net = slim.batch_norm(net,activation_fn=tf.nn.relu,scope='postnorm')
 
 			if global_pool:
-				net = tf.reduce_mean(net,[1,2],name='pool5',keep_dims=True)
+				net = tf.reduce_mean(net,[1,2],name='pool5',keepdims=True)
 
 			if num_classes is not None:
 				net = slim.conv2d(net,num_classes,[1,1],activation_fn=None,normalizer_fn=None,scope='logits')
@@ -217,7 +217,7 @@ def resnet_v2(inputs,blocks,num_classes=None,global_pool=True,include_root_block
 			if num_classes is not None:
 				end_points['predictions'] = slim.softmax(net,scope = 'predictions')
 
-			net = tf.reduce_mean(net,[1,2],name='pool6',keep_dims=False)
+			net = tf.reduce_mean(net,[1,2],name='pool6',keepdims=False)
 			net = slim.fully_connected(net, 100, scope='fc-100')
 			return net,end_points
 
@@ -303,13 +303,12 @@ def resnet():
 	max_epoch = 50000
 	batch_step = 128
 	with tf.name_scope("inputs"):
-		x = tf.placeholder(tf.float32, [None, 24, 24, 3])
+		x = tf.placeholder(tf.float32, [None, 32, 32, 3])
 	tf.summary.image('inputs', x, 10)
 	y = tf.placeholder(tf.int32, [None])
 
 	with slim.arg_scope(resnet_arg_scope()):
-	    net, end_points = resnet_v1_50(x,100)
-	    print(end_points)
+	    net, end_points = resnet_v2_50(x,100)
 
 	with tf.name_scope('loss'):
 		gloss  = loss(net, y)
@@ -331,14 +330,14 @@ def resnet():
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
 
-	test_x,test_y = cifar100.next_test_data
+	test_x,test_y = cifar100.next_test_data()
 	for i in range(max_epoch):
 		start_time = time.time()
 		train_x,train_y = cifar100.next_train_data(batch_step)
 		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
 		if i%200 ==0:
-			summary,loss_value = sess.run([merged,loss], feed_dict={x:train_x,y:train_y})
+			summary,loss_value = sess.run([merged,gloss], feed_dict={x:train_x,y:train_y})
 			train_writer.add_summary(summary, i)
 			examples_per_sec = batch_step/duration
 			sec_per_batch = float(duration)
