@@ -285,7 +285,7 @@ def resnet():
 	def test():
 		precision=[]
 		for i in range(40):
-			test_x,test_y = sess.run([test_images,test_labels])
+			test_x,test_y = cifar100.next_test_data(1000)
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
@@ -325,6 +325,7 @@ def resnet():
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
 
+	ans=[]
 	test_x,test_y = cifar100.next_test_data()
 	for i in range(max_epoch):
 		start_time = time.time()
