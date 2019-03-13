@@ -34,11 +34,12 @@ class complex_net(alexNet):
         if is_complex:
             conv_f = self.complex_convLayer
             pool_f = self.complex_maxPoolLayer
+            net = self.X_com
         else:
             conv_f = self.convLayer
             fc_f = self.maxPoolLayer
+            net = self.X
         with tf.variable_scope(name):
-            net = self.X_com
             for i in range(len(kernel)):
                 kernel_size = kernel[i]
                 if stride!=1:
