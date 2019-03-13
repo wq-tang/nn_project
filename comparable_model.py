@@ -35,8 +35,8 @@ class complex_net(alexNet):
             conv_f = self.complex_convLayer
             pool_f = self.complex_maxPoolLayer
         else:
-            conv = self.convLayer
-            fc = self.maxPoolLayer
+            conv_f = self.convLayer
+            fc_f = self.maxPoolLayer
         with tf.variable_scope(name):
             net = self.X_com
             for i in range(len(kernel)):
