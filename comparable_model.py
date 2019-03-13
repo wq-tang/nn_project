@@ -44,7 +44,7 @@ class complex_net(alexNet):
                 if stride!=1:
                     stride_size = stride[i]
                 else:
-                    stride_size==1
+                    stride_size=1
                 if is_complex:
                     channel_num=channel[i]
                 else:
