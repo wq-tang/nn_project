@@ -216,6 +216,9 @@ def resnet_v2(inputs,blocks,num_classes=None,global_pool=True,include_root_block
 
 			if num_classes is not None:
 				end_points['predictions'] = slim.softmax(net,scope = 'predictions')
+
+			net = tf.reduce_mean(net,[1,2],name='pool6',keep_dims=False)
+			net = slim.fully_connected(net, 100, scope='fc-100')
 			return net,end_points
 
 
