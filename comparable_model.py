@@ -31,7 +31,7 @@ class complex_net(alexNet):
         # self.relu_fun = self.Learnable_angle_relu
 
 
-    def conv_block(self,inputs,name,kernel,channel,pool_size=2,pool_strides=2,strides = 1):
+    def conv_block(self,inputs,name,kernel,channel,pool_size=2,pool_strides=2,strides = 1,same = False):
         if self.is_complex:
             conv_f = self.complex_convLayer
             pool_f = self.complex_maxPoolLayer
@@ -53,6 +53,8 @@ class complex_net(alexNet):
 
                 conv = conv_f(net, [kernel_size, kernel_size], [stride_size, stride_size], channel_num, "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
                 net = pool_f(conv,[pool_size, pool_size],[ pool_strides,pool_strides], "pool"+str(i+1), "SAME")
+            if same == True:
+                net = self.pad(net,inputs)
             if self.is_complex:
                 return np.array(net)
             return net
@@ -124,11 +126,28 @@ class complex_net(alexNet):
             net = inputs
 
             for i in range(model_num-1):
-                net = self.conv_block(net,'conv_block'+str(i+1),[5,3,3],[128,64,64],pool_strides=1)
+                net = self.conv_block(net,'conv_block'+str(i+1),[5,3,3],[128,64,64],same=True)
             net = self.conv_block(net,'conv_block'+str(model_num),[5,3,3],[128,64,64])
             self.out=self.fc_block(net,'fc_block',[384,192,self.CLASSNUM])
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
 
+    def pad(self,net,inputs):
+        if self.is_complex:
+            input_tensor = inputs[0]
+            net_tensor = net[0]
+        else:
+            input_tensor = inputs
+            net_tensor = net
 
+        pad_total = input_tensor.get_shape().as_list()[1] - net_tensor.get_shape().as_list()[1]#因为这里是valid模式 size = (w-kernel_size+1)/stride 向上取整  所以这也就是原因所在
+        pad_beg = pad_total//2
+        pad_end = pad_total - pad_beg
+        if self.is_complex:
+            R = tf.pad(net[0],[[0,0],[pad_beg,pad_end],[pad_beg,pad_end],[0,0]])
+            I = tf.pad(net[1],[[0,0],[pad_beg,pad_end],[pad_beg,pad_end],[0,0]])
+            net = [R,I]
+        else:
+            net = tf.pad(net,[[0,0],[pad_beg,pad_end],[pad_beg,pad_end],[0,0]])
+        return net
