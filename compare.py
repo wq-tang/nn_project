@@ -188,5 +188,11 @@ def mnist(path,is_complex,model_num,kind):
 
 
 if __name__=='__main__':
-	cifar10(path=sys.argv[1],is_complex=bool(int(sys.argv[2])),model_num=int(sys.argv[3]))
+	path = sys.argv[1]
+	is_complex = bool(int(sys.argv[2]))
+	model_num = int(sys.argv[3])
+	print(path)
+	print(is_complex)
+	print(model_num)
+	cifar10(path=path,is_complex=is_complex,model_num=model_num)
 
