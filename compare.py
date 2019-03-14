@@ -6,6 +6,7 @@ import cifar10_input
 import math
 from comparable_model import complex_net
 from tensorflow.examples.tutorials.mnist import input_data
+import sys
 ##cifar batch =128  epoch = 50000
 ##mnist epoch=50  batch = 60000
 def count():
@@ -50,7 +51,10 @@ def cifar10(path,is_complex,model_num):
 	y = tf.placeholder(tf.int32,[None])
 
 	model = complex_net(x,10,0,is_complex=is_complex)
-	model.build_CNN_for_cifar10(model_num)
+	if path[:7] == 'compare':
+		model.build_compare_for_cifar10(model_num)
+	else:
+		model.build_CNN_for_cifar10(model_num)
 	models_result =model.out
 	with tf.name_scope('loss'):
 		loss  = loss(models_result,y)
@@ -184,5 +188,5 @@ def mnist(path,is_complex,model_num,kind):
 
 
 if __name__=='__main__':
-	cifar10(path='real_bagging4',is_complex=False,model_num=4)
+	cifar10(path=sys.argv[1],is_complex=bool(int(sys.argv[2])),model_num=int(sys.argv[3]))
 

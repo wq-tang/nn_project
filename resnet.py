@@ -105,141 +105,11 @@ class Cifar100DataReader():
             self.test_batch_index+=1  
             return self._decode(datum,self.onehot)    
  
-    # 显示 9张图像
-    def showImage(self):
-        rdata,rlabel = self.next_train_data()
-        fig = plt.figure()  
-        ax = fig.add_subplot(331)
-        ax.imshow(rdata[0])
-        ax = fig.add_subplot(332)
-        ax.imshow(rdata[1]) 
-        ax = fig.add_subplot(333)
-        ax.imshow(rdata[2]) 
-        ax = fig.add_subplot(334)
-        ax.imshow(rdata[3]) 
-        ax = fig.add_subplot(335)
-        ax.imshow(rdata[4]) 
-        ax = fig.add_subplot(336)
-        ax.imshow(rdata[5]) 
-        ax = fig.add_subplot(337)
-        ax.imshow(rdata[6]) 
-        ax = fig.add_subplot(338)
-        ax.imshow(rdata[7]) 
-        ax = fig.add_subplot(339)
-        ax.imshow(rdata[8]) 
-        plt.show()
+ 
 
 
 class Block(collections.namedtuple('Block',['scope','unit_fn','args'])):
 	'a nemed tuple describing a resnet block'
-
-
-# class Resnet_v2_5(object):
-# 	"""docstring for Resnet_v2_50"""
-# 	def __init__(self,inputs,num_classes=None,is_training=True,global_pool = True,reuse=None):
-# 		self.inputs = inputs
-# 		self.num_classes=num_classes
-# 		self.is_training=is_training
-# 		self.global_pool = global_pool
-# 		self.reuse=reuse
-# 		with slim.arg_scope(self.resnet_arg_scope(is_training=self.is_training)):
-# 			self.net,self.end_points= self.resnet_v2_50(inputs,num_classes,global_pool,reuse)
-
-# 	def resnet_v2_50(self,inputs,num_classes=None,global_pool = True,reuse=None,scope='resnet_v2_50'):
-# 		blocks = [Block('block1',self.bottleneck,[(256,64,1)]*2+[(256,64,2)]),\
-# 				Block('block2',self.bottleneck,[(512,128,1)]*3+[(512,128,2)]),\
-# 				Block('block3',self.bottleneck,[(1024,256,1)]*5+[(1024,256,2)]),\
-# 				Block('block4',self.bottleneck,[(2048,512,1)]*3)]
-# 		return self.resnet_v2(inputs,blocks,num_classes,global_pool,include_root_block=True,reuse=reuse,scope=scope)
-
-# 	def subsample(self,inputs,factors,scope = None):
-# 		if factors == 1:
-# 			return factors
-# 		return slim.max_pool2d(inputs,[1,1],stride = factors,scope=scope)
-
-# 	def conv2d_same(self,inputs,num_outputs,kernel_size,stride,scope =None):
-# 		if stride == 1:
-# 			return	slim.conv2d(inputs,num_outputs,kernel_size,stride=1,padding = 'SAME',scope=scope)
-
-# 		pad_total = kernel_size-1   #因为这里是valid模式 size = (w-kernel_size+1)/stride 向上取整  所以这也就是原因所在
-# 		pad_beg = pad_total//2
-# 		pad_end = pad_total - pad_beg
-# 		inputs = tf.pad(inputs,[[0,0],[pad_beg,pad_end],[pad_beg,pad_end],[0,0]])
-# 		return slim.conv2d(inputs,num_outputs,kernel_size,stride=stride,padding = 'VALID',scope=scope)
-
-# 	@slim.add_arg_scope
-# 	def stacks_block_dense(self,net,blocks,outputs_collections=None):
-# 		for block in blocks:
-# 			with tf.variable_scope(block.scope,'block',[net]) as sc:
-# 			#variable_scope前三个参数#name_or_scope,default_name=None,values=None. values: 传入该scope的tensor参数
-# 				for i,unit in enumerate(block.args):
-# 					with tf.variable_scope("unit_%d"%(i+1),values = [net]):
-# 						unit_depth,unit_depth_bottleneck,unit_stride = unit
-# 						net = block.unit_fn(net,depth = unit_depth,depth_bottleneck = unit_depth_bottleneck,stride=unit_stride)
-# 				net = slim.utils.collect_named_outputs(outputs_collections,sc.name,net)
-
-# 		return net
-
-# 	def resnet_arg_scope(self,is_training = True,weight_decay = 0.0001,\
-# 		batch_norm_decay = 0.997,batch_norm_epsilon = 1e-5,batch_norm_scale = True):
-
-# 		batch_norm_params={"is_training":is_training,"decay":batch_norm_decay,'epsilon':batch_norm_epsilon,\
-# 		'scale':batch_norm_scale,'updates_collections':tf.GraphKeys.UPDATE_OPS}
-
-# 		with slim.arg_scope([slim.conv2d],weights_regularizer = slim.l2_regularizer(weight_decay),\
-# 			weights_initializer = slim.variance_scaling_initializer(),activation_fn=tf.nn.relu,\
-# 			normalizer_fn = slim.batch_norm,normalizer_params=batch_norm_params):
-# 			with slim.arg_scope([slim.batch_norm],**batch_norm_params):
-# 				with slim.arg_scope([slim.max_pool2d],padding = 'SAME') as arg_sc:
-# 					return arg_sc
-
-
-# 	@slim.add_arg_scope
-# 	def bottleneck(self,inputs,depth,depth_bottleneck,stride,outputs_collections = None,scope=None):
-# 		with tf.variable_scope(scope,'bottleneck_v2',[inputs]) as sc:
-# 			depth_in = slim.utils.last_dimension(inputs.get_shape(),min_rank = 4)
-# 			preact = slim.batch_norm(inputs,activation_fn=tf.nn.relu,scope = 'preact')
-# 			if depth == depth_in:
-# 				shortcut = self.subsample(inputs,stride,'shortcut')
-# 			else:
-# 				shortcut = slim.conv2d(preact,depth,[1,1],stride=stride,\
-# 					normalizer_fn=None,activation_fn=None,scope = 'shortcut')
-
-# 			residual = slim.conv2d(preact,depth_bottleneck,[1,1],stride =1,scope='conv1')
-# 			residual = self.conv2d_same(residual,depth_bottleneck,3,stride,scope='conv2')
-# 			residual = slim.conv2d(residual,depth,[1,1],stride=1,normalizer_fn = None,activation_fn=None,scope='conv3')
-
-# 			output = shortcut+residual
-
-# 			return slim.utils.collect_named_outputs(outputs_collections,sc.name,output)
-
-
-# 	def resnet_v2(self,inputs,blocks,num_classes=None,global_pool=True,include_root_block = True,reuse=None,scope=None):
-# 		with tf.variable_scope(scope,'resnet_v2',[inputs],reuse=reuse) as sc:
-# 			end_points_collections = sc.original_name_scope + '_end_points'
-# 			with slim.arg_scope([slim.conv2d,self.bottleneck,self.stacks_block_dense],outputs_collections=end_points_collections):
-# 				net = inputs
-# 				if include_root_block:
-# 					with slim.arg_scope([slim.conv2d],activation_fn=None,normalizer_fn=None):
-# 						net = self.conv2d_same(net,64,7,stride=2,scope='conv1')
-# 					net = slim.max_pool2d(net,[3,3],stride=2,scope='pool1')
-# 				net = self.stacks_block_dense(net,blocks)
-# 				net = slim.batch_norm(net,activation_fn=tf.nn.relu,scope='postnorm')
-
-# 				if global_pool:
-# 					net = tf.reduce_mean(net,[1,2],name='pool5',keepdims=True)
-
-# 				if num_classes is not None:
-# 					net = slim.conv2d(net,num_classes,[1,1],activation_fn=None,normalizer_fn=None,scope='logits')
-
-# 				end_points = slim.utils.convert_collection_to_dict(end_points_collections)
-
-# 				if num_classes is not None:
-# 					end_points['predictions'] = slim.softmax(net,scope = 'predictions')
-
-# 				net = tf.reduce_mean(net,[1,2],name='pool6',keepdims=False)
-# 				net = slim.fully_connected(net, 100, scope='fc-100')
-# 				return net,end_points
 
 
 class Resnet_v2_50(alexNet):
@@ -328,22 +198,22 @@ class Resnet_v2_50(alexNet):
 
 			if global_pool:
 				if self.is_complex:
-					R = tf.reduce_mean(net[0],[1,2],name='reduceR',keepdims=True)
-					I = tf.reduce_mean(net[0],[1,2],name='reduceI',keepdims=True)
+					R = tf.reduce_mean(net[0],[1,2],name='reduceR',keep_dims=True)
+					I = tf.reduce_mean(net[0],[1,2],name='reduceI',keep_dims=True)
 					net = [R,I]
 				else:
-					net = tf.reduce_mean(net,[1,2],name='pool5',keepdims=True)
+					net = tf.reduce_mean(net,[1,2],name='pool5',keep_dims=True)
 
 			if num_classes is not None:
 				net = self.conv(net,[1,1],[1,1],num_classes,padding='SAME',name='logits')
 
 			if self.is_complex:
-				R = tf.reduce_mean(net[0],[1,2],name='reduceR',keepdims=False)
-				I = tf.reduce_mean(net[0],[1,2],name='reduceI',keepdims=False)
+				R = tf.reduce_mean(net[0],[1,2],name='reduceR',keep_dims=False)
+				I = tf.reduce_mean(net[0],[1,2],name='reduceI',keep_dims=False)
 				net = [R,I]
 				tensor = net[0]
 			else:
-				net = tf.reduce_mean(net,[1,2],name='pool6',keepdims=False)
+				net = tf.reduce_mean(net,[1,2],name='pool6',keep_dims=False)
 				tensor = net
 
 			dim = tensor.get_shape().as_list()[-1]

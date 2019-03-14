@@ -31,20 +31,19 @@ class complex_net(alexNet):
         # self.relu_fun = self.Learnable_angle_relu
 
 
-    def conv_block(self,name,kernel,channel,stride = 1):
+    def conv_block(self,inputs,name,kernel,channel,pool_size=2,pool_strides=2,strides = 1):
         if self.is_complex:
             conv_f = self.complex_convLayer
             pool_f = self.complex_maxPoolLayer
-            net = self.X_com
         else:
             conv_f = self.convLayer
             pool_f = self.maxPoolLayer
-            net = self.X
+        net = inputs
         with tf.variable_scope(name):
             for i in range(len(kernel)):
                 kernel_size = kernel[i]
-                if stride!=1:
-                    stride_size = stride[i]
+                if strides!=1:
+                    stride_size = strides[i]
                 else:
                     stride_size=1
                 if self.is_complex:
@@ -53,7 +52,7 @@ class complex_net(alexNet):
                     channel_num=int(channel[i]*1.41)+1
 
                 conv = conv_f(net, [kernel_size, kernel_size], [stride_size, stride_size], channel_num, "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
-                net = pool_f(conv,[2, 2],[ 2,2], "pool"+str(i+1), "SAME")
+                net = pool_f(conv,[pool_size, pool_size],[ pool_strides,pool_strides], "pool"+str(i+1), "SAME")
             if self.is_complex:
                 return np.array(net)
             return net
@@ -91,7 +90,7 @@ class complex_net(alexNet):
             return net
 
 
-    def build_CNN_for_mnist(self,model_num):
+    def build_CNN_for_mnist(self,model_num=1):
         with tf.variable_scope('mnist'):
             out = 0
             for i in range(model_num):
@@ -101,15 +100,35 @@ class complex_net(alexNet):
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
 
-    def build_CNN_for_cifar10(self,model_num):
+    def build_CNN_for_cifar10(self,model_num=1):
         with tf.variable_scope('cifar10'):
+            if self.is_complex:
+                inputs = self.X_com
+            else:
+                inputs=self.X
             out = 0
             for i in range(model_num):
-                out += self.conv_block('conv_block'+str(i+1),[5,3,3],[128,64,64])
+                out += self.conv_block(inputs,'conv_block'+str(i+1),[5,3,3],[128,64,64])
             self.out=self.fc_block(out,'fc_block',[384,192,self.CLASSNUM])
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
+
+
+    def build_compare_for_cifar10(self,model_num=1):
+        with tf.variable_scope('compare_cifar10'):
+            if self.is_complex:
+                inputs = self.X_com
+            else:
+                inputs=self.X
+            net = inputs
+
+            for i in range(model_num-1):
+                net = self.conv_block(net,'conv_block'+str(i+1),[5,3,3],[128,64,64],pool_strides=1)
+            net = self.conv_block(net,'conv_block'+str(model_num),[5,3,3],[128,64,64])
+            self.out=self.fc_block(out,'fc_block',[384,192,self.CLASSNUM])
+            if self.is_complex:
+                self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
 
 
