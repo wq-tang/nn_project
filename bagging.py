@@ -38,7 +38,7 @@ def cifar10(path,local_path,is_complex,model_num,is_training=True):
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
-	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'/+'local_path +'/cifar10.ckpt')
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'/'+local_path +'/cifar10.ckpt')
 	max_epoch = 50000
 	batch_step = 128
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar10_board/'+path)
