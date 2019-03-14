@@ -126,7 +126,7 @@ class complex_net(alexNet):
             for i in range(model_num-1):
                 net = self.conv_block(net,'conv_block'+str(i+1),[5,3,3],[128,64,64],pool_strides=1)
             net = self.conv_block(net,'conv_block'+str(model_num),[5,3,3],[128,64,64])
-            self.out=self.fc_block(out,'fc_block',[384,192,self.CLASSNUM])
+            self.out=self.fc_block(net,'fc_block',[384,192,self.CLASSNUM])
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
