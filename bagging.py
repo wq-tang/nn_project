@@ -144,8 +144,8 @@ if __name__=='__main__':
 	model_num = int(sys.argv[4])
 	local_path=sys.argv[2]
 	is_training = bool(int(sys.argv[5]))
-	print(path)
-	print(is_complex)
-	print(model_num)
+	print(('board_path:%s\nmodel_path:%s\nmodel_num:%d ')%(path,local_path,model_num))
+	print("is_complex:",is_complex)
+	print("is_training:",is_training)
 	cifar10(path=path,local_path=local_path ,is_complex=is_complex,model_num=model_num,is_training = is_training)
 
