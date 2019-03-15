@@ -25,7 +25,7 @@ def count():
         total_parameters += variable_parameters
     print(total_parameters)
 
-def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_training=True):
+def cifar10(path,local_path,is_complex=True,is_training=True):
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
 		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
@@ -44,7 +44,7 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 	fc_list=[384,192,10]
 
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),local_path)
-	max_epoch = 500
+	max_epoch = 50000
 	batch_step = 128
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar10_board/'+path)
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
@@ -56,7 +56,7 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 	y = tf.placeholder(tf.int32,[None])
 
 	model = complex_net(x,10,0,is_complex=is_complex)
-	model.diff_net(name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
+	model.diff_net([x,x],name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
 	models_result =model.out
 	with tf.name_scope('loss'):
 		loss  = loss(models_result,y)
@@ -137,14 +137,15 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 
 
 if __name__=='__main__':
-	path = sys.argv[1]
-	local_path=sys.argv[2]
-	is_complex = bool(int(sys.argv[3]))
-	is_training = bool(int(sys.argv[5]))
-	print(('board_path:%s\nmodel_path:%s\nmodel_num:%d ')%(path,local_path,model_num))
-	print("is_complex:",is_complex)
-	print("is_training:",is_training)
-	cifar10(path,local_path,is_complex=True,is_training=True)
+	# path = sys.argv[1]
+	# local_path=sys.argv[2]
+	# is_complex = bool(int(sys.argv[3]))
+	# is_training = bool(int(sys.argv[5]))
+	# print(('board_path:%s\nmodel_path:%s')%(path,local_path))
+	# print("is_complex:",is_complex)
+	# print("is_training:",is_training)
+	# cifar10(path,local_path,is_complex=True,is_training=True)
+	cifar10(path='cifar10_complex_model1',local_path='mynet/cifar10_complex_model1' ,is_complex=True,is_training=True)
 	# res1=cifar10(path='rm_test',local_path='rm_test/cifar10_1.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 	# res2=cifar10(path='rm_test',local_path='rm_test/cifar10_2.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 	# train_step,test_step= read_data(10000)

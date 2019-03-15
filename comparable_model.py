@@ -172,21 +172,15 @@ class complex_net(alexNet):
             return net
         return self.pad(net,inputs)
 
-    def diff_net(self,name,kernel_list,channel_list,fc_list):
-        inputs = self.X
+    def diff_net(self,inputs,name,kernel_list,channel_list,fc_list):
         if self.is_complex:
             fc_connect = self.complex_fcLayer
             conv_f = self.complex_convLayer
             pool_f = self.complex_maxPoolLayer
-            cnnout = inputs[0]
         else:
             conv_f = self.convLayer
             pool_f = self.maxPoolLayer
             fc_connect = self.fcLayer
-            cnnout=inputs
-        shapes = cnnout.get_shape().as_list()[1:]
-        mul = reduce(lambda x,y:x * y,shapes)
-        pre = mul
         net = inputs
         if not self.is_complex:
             channel_list =[int(chanel*1.41)+1 for chanel in channel_list[:-1]] + [channel_list[-1]]
@@ -196,12 +190,28 @@ class complex_net(alexNet):
                 conv = conv_f(net, [kernel_list[i], kernel_list[i]], [1, 1], channel_list[i], "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
                 net = pool_f(conv,[2, 2],[ 2,2], "pool"+str(i+1), "SAME")
 
+            if self.is_complex:
+                cnnout = net[0]
+            else:
+                fc_connect = self.fcLayer
+                cnnout=net
+
+            shapes = cnnout.get_shape().as_list()[1:]
+            mul = reduce(lambda x,y:x * y,shapes)
+            pre = mul
+            if self.is_complex:
+                R = tf.reshape(net[0],[-1,mul])
+                I = tf.reshape(net[1],[-1,mul])
+                net = [R,I]
+            else:
+                net = tf.reshape(inputs,[-1,mul])
+
             for i in range(len(fc_list)):
                 now = fc_list[i]
                 net = fc_connect(net, pre, now,"fc"+str(i+1),relu_fun = self.relu_fun)
                 pre = now
+            self.out = net
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
-            else:
-                self.out = net
+                
 
