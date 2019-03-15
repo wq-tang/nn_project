@@ -54,7 +54,7 @@ class complex_net(alexNet):
                 conv = conv_f(net, [kernel_size, kernel_size], [stride_size, stride_size], channel_num, "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
                 net = pool_f(conv,[pool_size, pool_size],[ pool_strides,pool_strides], "pool"+str(i+1), "SAME")
             if same == True:
-                net = self.pad(net,inputs)
+                net = self.tile(net,inputs)
             if self.is_complex:
                 return np.array(net)
             return net
@@ -135,13 +135,13 @@ class complex_net(alexNet):
 
     def pad(self,net,inputs):
         if self.is_complex:
-            input_tensor = inputs[0]
-            net_tensor = net[0]
+            input_size = inputs[0].get_shape().as_list()[1]
+            net_size = net[0].get_shape().as_list()[1]
         else:
-            input_tensor = inputs
-            net_tensor = net
+            input_size = inputs.get_shape().as_list()[1]
+            net_size = net.get_shape().as_list()[1]
 
-        pad_total = input_tensor.get_shape().as_list()[1] - net_tensor.get_shape().as_list()[1]#因为这里是valid模式 size = (w-kernel_size+1)/stride 向上取整  所以这也就是原因所在
+        pad_total = input_size - net_size#因为这里是valid模式 size = (w-kernel_size+1)/stride 向上取整  所以这也就是原因所在
         pad_beg = pad_total//2
         pad_end = pad_total - pad_beg
         if self.is_complex:
@@ -151,3 +151,18 @@ class complex_net(alexNet):
         else:
             net = tf.pad(net,[[0,0],[pad_beg,pad_end],[pad_beg,pad_end],[0,0]])
         return net
+
+    def tile(self,net,inputs):
+        if self.is_complex:
+            input_size = inputs[0].get_shape().as_list()[1]
+            net_size = net[0].get_shape().as_list()[1]
+        else:
+            input_size = inputs.get_shape().as_list()[1]
+            net_size = net.get_shape().as_list()[1]
+
+        tile_num = input_size//net_size
+        net = tf.tile(net,[1,tile_num,tile_num,1])
+        if input_size%net_size==0:
+            return net
+        return self.pad(net,inputs)
+
