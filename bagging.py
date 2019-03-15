@@ -25,7 +25,7 @@ def count():
         total_parameters += variable_parameters
     print(total_parameters)
 
-def cifar10(path,local_path,is_complex=True,is_training=True):
+def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_training=True):
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
 		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
@@ -39,9 +39,6 @@ def cifar10(path,local_path,is_complex=True,is_training=True):
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
-	kernel_list=[5,3,3]
-	channel_list=[128,64,64]
-	fc_list=[384,192,10]
 
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),local_path)
 	max_epoch = 50000
@@ -145,7 +142,21 @@ if __name__=='__main__':
 	# print("is_complex:",is_complex)
 	# print("is_training:",is_training)
 	# cifar10(path,local_path,is_complex=True,is_training=True)
-	cifar10(path='cifar10_complex_model1',local_path='mynet/cifar10_complex_model1' ,is_complex=True,is_training=True)
+	path_list = ['cifar10_complex_model2','cifar10_complex_model3','cifar10_complex_model4'\
+				'cifar10_real_model1','cifar10_real_model2','cifar10_real_model3','cifar10_real_model4']
+
+	model_path_list = ['mynet/cifar10_complex_model2','mynet/cifar10_complex_model3','mynet/cifar10_complex_model4'\
+						'mynet/cifar10_real_model1','mynet/cifar10_real_model2','mynet/cifar10_real_model3',\
+						'mynet/cifar10_real_model4']
+	kernel_list = [[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
+	channel_list = [[128,64,64],[128,64],[128,64],[128,64,64],[128,64,64],[128,64],[128,64]]
+	fc_list =[[256,128],[100,50],[100],[100],[256,128],[100,50],[100]]
+	is_complex = True
+	for i in range(2*len(path_list)):
+		if i>= 3:
+			is_complex=False
+		cifar10(path_list[i],model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex,is_training=True)
+
 	# res1=cifar10(path='rm_test',local_path='rm_test/cifar10_1.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 	# res2=cifar10(path='rm_test',local_path='rm_test/cifar10_2.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 	# train_step,test_step= read_data(10000)
