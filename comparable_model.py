@@ -78,7 +78,7 @@ class complex_net(alexNet):
             net = tf.reshape(inputs,[-1,mul])
 
         with tf.variable_scope(name):
-            for i in range(len(layer)):
+            for i in range(len(layer)-1):
                 if self.is_complex:
                     now = layer[i]
                 else:
@@ -86,7 +86,7 @@ class complex_net(alexNet):
 
                 net = fc_connect(net, pre, now,"fc"+str(i+1),relu_fun = self.relu_fun)
                 pre = now
-
+            net = fc_connect(net, pre, layer[-1],"fc"+str(len(layer)),relu_fun = self.relu_fun)
             if self.is_complex:
                 return np.array(net)
             return net

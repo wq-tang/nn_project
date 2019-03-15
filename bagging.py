@@ -74,13 +74,12 @@ def cifar10(path,local_path,is_complex,model_num,is_training=True):
 
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
-
+	test_x,test_y = sess.run([test_images,test_labels])
 	if is_training:
 		merged = tf.summary.merge_all()
 		train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
 		test_writer = tf.summary.FileWriter(log_dir + '/test')
 		ans = []
-		test_x,test_y = sess.run([test_images,test_labels])
 		for i in range(max_epoch):
 			start_time = time.time()
 			train_x,train_y = sess.run([train_images,train_labels])
@@ -119,17 +118,14 @@ def cifar10(path,local_path,is_complex,model_num,is_training=True):
 
 		return None
 	else:
-		model_file=tf.train.latest_checkpoint('ckpt/')
-		image,lable=cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
-		x_,y_ = sess.run([image,lable])
-
+		# model_file=tf.train.latest_checkpoint('ckpt/')
 		saver.restore(sess,model_path)
-		test_accuracy=test()
-		predict = sess.run(models_result,feed_dict={x:x_,y:y_})
+		# test_accuracy=test()
+		predict = sess.run(models_result,feed_dict={x:test_x,y:test_y})
 
-		train_x,train_y = sess.run([train_images,train_labels])
-		train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
-		print('test_accuracy:%f,train_accuracy:%f'%(test_accuracy,train_accuracy))
+		# train_x,train_y = sess.run([train_images,train_labels])
+		# train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
+		# print('test_accuracy:%f,train_accuracy:%f'%(test_accuracy,train_accuracy))
 		return predict
 
 	sess.close()
@@ -139,16 +135,16 @@ def cifar10(path,local_path,is_complex,model_num,is_training=True):
 
 
 if __name__=='__main__':
-	# path = sys.argv[1]
-	# is_complex = bool(int(sys.argv[3]))
-	# model_num = int(sys.argv[4])
-	# local_path=sys.argv[2]
-	# is_training = bool(int(sys.argv[5]))
-	# print(('board_path:%s\nmodel_path:%s\nmodel_num:%d ')%(path,local_path,model_num))
-	# print("is_complex:",is_complex)
-	# print("is_training:",is_training)
-	# cifar10(path=path,local_path=local_path ,is_complex=is_complex,model_num=model_num,is_training = is_training)
-	res1=cifar10(path='rm_test/cifar10_1.ckpt',local_path='rm_test' ,is_complex=False,model_num=1,is_training = False)
-	res2=cifar10(path='rm_test/cifar10_2.ckpt',local_path='rm_test' ,is_complex=False,model_num=1,is_training = False)
+	path = sys.argv[1]
+	is_complex = bool(int(sys.argv[3]))
+	model_num = int(sys.argv[4])
+	local_path=sys.argv[2]
+	is_training = bool(int(sys.argv[5]))
+	print(('board_path:%s\nmodel_path:%s\nmodel_num:%d ')%(path,local_path,model_num))
+	print("is_complex:",is_complex)
+	print("is_training:",is_training)
+	cifar10(path=path,local_path=local_path ,is_complex=is_complex,model_num=model_num,is_training = is_training)
+	# res1=cifar10(path='rm_test',local_path='rm_test/cifar10_1.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
+	# res2=cifar10(path='rm_test',local_path='rm_test/cifar10_2.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 
 
