@@ -115,7 +115,7 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 
 		print('precision @1 = %.5f'%np.mean(ans[-10:]))
 
-		return None
+		return np.mean(ans[-5:])
 	else:
 		# model_file=tf.train.latest_checkpoint('ckpt/')
 		saver.restore(sess,model_path)
@@ -152,12 +152,13 @@ if __name__=='__main__':
 	channel_list = [[128,64,64],[128,64],[128,64],[128,64,64],[128,64,64],[128,64],[128,64]]
 	fc_list =[[256,128],[100,50],[100],[100],[256,128],[100,50],[100]]
 	is_complex = True
+	ans = {}
 	for i in range(len(path_list)):
 		print("-------------%d×××××××××××××××××××××××××"%(i+1))
 		if i>= 3:
 			is_complex=False
-		cifar10(path_list[i],model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex,is_training=True)
-
+		ans[path_list[i]] = cifar10(path_list[i],model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex,is_training=True)
+	print(ans)
 	# res1=cifar10(path='rm_test',local_path='rm_test/cifar10_1.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 	# res2=cifar10(path='rm_test',local_path='rm_test/cifar10_2.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 	# train_step,test_step= read_data(10000)
