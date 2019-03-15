@@ -161,7 +161,12 @@ class complex_net(alexNet):
             net_size = net.get_shape().as_list()[1]
 
         tile_num = input_size//net_size
-        net = tf.tile(net,[1,tile_num,tile_num,1])
+        if self.is_complex:
+            R = tf.tile(net[0],[1,tile_num,tile_num,1])
+            I = tf.tile(net[1],[1,tile_num,tile_num,1])
+            net = [R,I]
+        else:
+            net = tf.tile(net,[1,tile_num,tile_num,1])
         if input_size%net_size==0:
             return net
         return self.pad(net,inputs)
