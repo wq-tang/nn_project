@@ -75,9 +75,9 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 	tf.train.start_queue_runners()
 	test_x,test_y = sess.run([test_images,test_labels])
 	if is_training:
-		merged = tf.summary.merge_all()
-		train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
-		test_writer = tf.summary.FileWriter(log_dir + '/test')
+		# merged = tf.summary.merge_all()
+		# train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
+		# test_writer = tf.summary.FileWriter(log_dir + '/test')
 		ans = []
 		for i in range(max_epoch):
 			start_time = time.time()
@@ -85,8 +85,8 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 			_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 			duration = time.time() - start_time
 			if i%500 ==0:
-				summary,loss_value = sess.run([merged,loss], feed_dict={x:train_x,y:train_y})
-				train_writer.add_summary(summary, i)
+				loss_value = sess.run([loss], feed_dict={x:train_x,y:train_y})
+				# train_writer.add_summary(summary, i)
 				examples_per_sec = batch_step/duration
 				sec_per_batch = float(duration)
 				format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch)')
@@ -94,8 +94,8 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 
 				train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 				model.training = False
-				summary, acc = sess.run([merged, accuracy], feed_dict={x:test_x,y:test_y})
-				test_writer.add_summary(summary, i)
+				acc = sess.run([ accuracy], feed_dict={x:test_x,y:test_y})
+				# test_writer.add_summary(summary, i)
 				test_accuracy = test()
 				if test_accuracy>max_acc:
 					max_acc=test_accuracy
@@ -109,8 +109,8 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 				# print(y_hat)
 				# if test_accuracy>0.95:
 				# 	break
-		train_writer.close()
-		test_writer.close()
+		# train_writer.close()
+		# test_writer.close()
 		
 
 		print('precision @1 = %.5f'%np.mean(ans[-10:]))
@@ -142,17 +142,18 @@ if __name__=='__main__':
 	# print("is_complex:",is_complex)
 	# print("is_training:",is_training)
 	# cifar10(path,local_path,is_complex=True,is_training=True)
-	path_list = ['cifar10_complex_model2','cifar10_complex_model3','cifar10_complex_model4'\
+	path_list = ['cifar10_complex_model2','cifar10_complex_model3','cifar10_complex_model4',\
 				'cifar10_real_model1','cifar10_real_model2','cifar10_real_model3','cifar10_real_model4']
 
-	model_path_list = ['mynet/cifar10_complex_model2','mynet/cifar10_complex_model3','mynet/cifar10_complex_model4'\
+	model_path_list = ['mynet/cifar10_complex_model2','mynet/cifar10_complex_model3','mynet/cifar10_complex_model4',\
 						'mynet/cifar10_real_model1','mynet/cifar10_real_model2','mynet/cifar10_real_model3',\
 						'mynet/cifar10_real_model4']
 	kernel_list = [[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
 	channel_list = [[128,64,64],[128,64],[128,64],[128,64,64],[128,64,64],[128,64],[128,64]]
 	fc_list =[[256,128],[100,50],[100],[100],[256,128],[100,50],[100]]
 	is_complex = True
-	for i in range(2*len(path_list)):
+	for i in range(len(path_list)):
+		print("-------------%d×××××××××××××××××××××××××"%(i+1))
 		if i>= 3:
 			is_complex=False
 		cifar10(path_list[i],model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex,is_training=True)
