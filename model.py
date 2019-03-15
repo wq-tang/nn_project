@@ -41,37 +41,6 @@ def variable_summaries(var):
 
 
 
-
-
-def myconvLayer(x, ksize, strides,out_channel, name, padding = "SAME"): 
-    """convolution"""
-    in_channel = int(x.get_shape()[-1])
-    if mnist:
-        in_channel=1
-        out_channel=1
-    conv = lambda a, b: tf.nn.conv2d(a, b, strides = [1] +strides +[ 1], padding = padding)
-
-    with tf.variable_scope(name) as scope:
-        w = tf.get_variable("w", shape = ksize+[in_channel,out_channel])
-        wT = tf.transpose(w,perm= [1,0,2,3],name='transpose_w')
-
-        pi = np.ones([in_channel,out_channel] +ksize)*np.pi
-        pi = np.triu(pi,1)
-        pi = np.transpose(pi,[2,3,0,1])
-        pi = tf.constant(pi,shape = [in_channel,out_channel] +ksize,name = 'pi')
-        b = tf.get_variable("b", shape = [out_channel])
-        cos = tf.cos(w+wT+pi)
-        sin = tf.sin(w+wT+pi)
-        out_cos = tf.square(conv(x,cos))
-        out_sin = tf.square(conv(x,sin))
-        out_put = tf.sqrt(out_sin+out_cos)
-        # print mergeFeatureMap.shape
-        out = tf.nn.bias_add(out_put, b)
-        return tf.nn.relu(out, name = scope.name)
-        
-
-
-
 class alexNet(object):
     """alexNet model"""
     def __init__(self, x, classNum, seed,modelPath = "alexnet"):
@@ -158,7 +127,7 @@ class alexNet(object):
         with tf.variable_scope(name) as scope:
             with  tf.variable_scope('radius'):
                 radius = tf.get_variable("radius",shape = [1],dtype=tf.float32)
-            tf.summary.histogram('radius',radius)
+            # tf.summary.histogram('radius',radius)
             activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
             tf.summary.histogram('activations', activations)
             return activations
@@ -185,31 +154,31 @@ class alexNet(object):
             with tf.variable_scope('wightr'):
                 wr = tf.get_variable("wr", shape = [input_size, output_size], dtype = tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
-                variable_summaries(wr)
+                # variable_summaries(wr)
             with tf.variable_scope('wighti'):
                 wi = tf.get_variable("wi", shape = [input_size, output_size], dtype = tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
-                variable_summaries(wi)
+                # variable_summaries(wi)
             with tf.variable_scope('biasr'):
                 br = tf.get_variable("br", [output_size], dtype = tf.float32,\
                     initializer=tf.zeros_initializer())
-                variable_summaries(br)
+                # variable_summaries(br)
             with tf.variable_scope('biasi'):
                 bi = tf.get_variable("bi", [output_size], dtype = tf.float32,\
                 initializer=tf.zeros_initializer())
-                variable_summaries(bi)
+                # variable_summaries(bi)
             R = tf.nn.xw_plus_b(x[0], wr, br)- tf.nn.xw_plus_b(x[1], wi, bi)
             I = tf.nn.xw_plus_b(x[0], wi, bi)+ tf.nn.xw_plus_b(x[1], wr, br)
-            tf.summary.histogram('R',R)
-            tf.summary.histogram('I',I)
+            # tf.summary.histogram('R',R)
+            # tf.summary.histogram('I',I)
             if norm :
                 R,I = self.complex_batch_normalization([R,I])
-            tf.summary.histogram('normR',R)
-            tf.summary.histogram('normI',I)            
+            # tf.summary.histogram('normR',R)
+            # tf.summary.histogram('normI',I)            
             if relu_fun == tf.nn.relu:
                 R,I=relu_fun(R,'reluR'),relu_fun(I,'reluI')
-                tf.summary.histogram('fcR',R)
-                tf.summary.histogram('fcI',I)                 
+                # tf.summary.histogram('fcR',R)
+                # tf.summary.histogram('fcI',I)                 
                 return [R,I]
             relu =  relu_fun([R,I],scope)
             tf.summary.histogram('fcR',relu[0])
@@ -225,32 +194,32 @@ class alexNet(object):
             with tf.variable_scope('wightr'):
                 wr = tf.get_variable("wr", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
-                variable_summaries(wr)
+                # variable_summaries(wr)
             with tf.variable_scope('wighti'):
                 wi = tf.get_variable("wi", shape = ksize+[in_channel,out_channel],dtype=tf.float32,\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
-                variable_summaries(wi)
+                # variable_summaries(wi)
             with tf.variable_scope('biasr'):
                 br = tf.get_variable("br", shape = [out_channel],dtype=tf.float32,\
                     initializer=tf.zeros_initializer())
-                variable_summaries(br)
+                # variable_summaries(br)
             with tf.variable_scope('biasi'):
                 bi = tf.get_variable("bi", shape = [out_channel],dtype=tf.float32,\
                     initializer=tf.zeros_initializer())
-                variable_summaries(bi)
+                # variable_summaries(bi)
 
             R = conv(x[0],wr)-conv(x[1],wi) +br
             I= conv(x[1],wr)+conv(x[0],wi) +bi
-            tf.summary.histogram('R',R)
-            tf.summary.histogram('I',I)
+            # tf.summary.histogram('R',R)
+            # tf.summary.histogram('I',I)
             if norm:
                 R,I=self.complex_batch_normalization([R,I])
-                tf.summary.histogram('normR',R)
-                tf.summary.histogram('normI',I)  
+                # tf.summary.histogram('normR',R)
+                # tf.summary.histogram('normI',I)  
             if relu_fun == tf.nn.relu:
                 R,I = relu_fun(R,'reluR'),relu_fun(I,'reluI')
-                tf.summary.histogram('convR',R)
-                tf.summary.histogram('convI',I)                
+                # tf.summary.histogram('convR',R)
+                # tf.summary.histogram('convI',I)                
                 return [R,I]
             relu =  relu_fun([R,I],scope)
             tf.summary.histogram('convR',relu[0])
@@ -276,16 +245,16 @@ class alexNet(object):
             with tf.variable_scope('wight'):
                 w = tf.get_variable("w", shape = [input_size, output_size], dtype = "float",\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
-                variable_summaries(w)
+                # variable_summaries(w)
             with tf.variable_scope('bias'):
                 b = tf.get_variable("b", [output_size], dtype = "float",\
                 initializer=tf.zeros_initializer())
-                variable_summaries(b)
+                # variable_summaries(b)
             out = tf.nn.xw_plus_b(x, w, b, name = scope.name)
-            tf.summary.histogram('xw+b',out)
+            # tf.summary.histogram('xw+b',out)
             if norm:
                 out=tf.layers.batch_normalization(out,training=self.training)
-                tf.summary.histogram('norm',out)
+                # tf.summary.histogram('norm',out)
             activations= relu_fun(out,'relu')
             tf.summary.histogram('fc',activations)
             return activations
@@ -300,17 +269,17 @@ class alexNet(object):
             with tf.variable_scope('wight'):
                 w = tf.get_variable("w", shape = ksize+[in_channel,out_channel],\
                     initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
-                variable_summaries(w)
+                # variable_summaries(w)
             with tf.variable_scope('bias'):
                 b = tf.get_variable("b", shape = [out_channel],\
                     initializer=tf.zeros_initializer())
-                variable_summaries(b)
+                # variable_summaries(b)
             out_put = conv(x,w)
-            tf.summary.histogram('convout',out_put)
+            # tf.summary.histogram('convout',out_put)
             # print mergeFeatureMap.shape
             out = tf.nn.bias_add(out_put, b)
             out = tf.layers.batch_normalization(out,training=self.training)
-            tf.summary.histogram('norm',out)
+            # tf.summary.histogram('norm',out)
             relu =  relu_fun(out, name = scope.name)
             tf.summary.histogram('conv',relu)
             return relu
