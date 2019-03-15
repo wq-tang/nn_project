@@ -172,3 +172,36 @@ class complex_net(alexNet):
             return net
         return self.pad(net,inputs)
 
+    def diff_net(self,name,kernel_list,channel_list,fc_list):
+        inputs = self.X
+        if self.is_complex:
+            fc_connect = self.complex_fcLayer
+            conv_f = self.complex_convLayer
+            pool_f = self.complex_maxPoolLayer
+            cnnout = inputs[0]
+        else:
+            conv_f = self.convLayer
+            pool_f = self.maxPoolLayer
+            fc_connect = self.fcLayer
+            cnnout=inputs
+        shapes = cnnout.get_shape().as_list()[1:]
+        mul = reduce(lambda x,y:x * y,shapes)
+        pre = mul
+        net = inputs
+        if not self.is_complex:
+            channel_list =[int(chanel*1.41)+1 for chanel in channel_list[:-1]] + [channel_list[-1]]
+            fc_list = [int(fc*1.41)+1 for fc in fc_list[:-1]] + [fc_list[-1]]
+        with tf.variable_scope(name):
+            for i in range(len(kernel_list)):
+                conv = conv_f(net, [kernel_list[i], kernel_list[i]], [1, 1], channel_list[i], "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
+                net = pool_f(conv,[2, 2],[ 2,2], "pool"+str(i+1), "SAME")
+
+            for i in range(len(fc_list)):
+                now = fc_list[i]
+                net = fc_connect(net, pre, now,"fc"+str(i+1),relu_fun = self.relu_fun)
+                pre = now
+            if self.is_complex:
+                self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+            else:
+                self.out = net
+

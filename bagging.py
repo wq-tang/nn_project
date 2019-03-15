@@ -1,4 +1,5 @@
 import os
+from cifar10 import read_data
 import numpy as np 
 import tensorflow as tf 
 import time
@@ -24,7 +25,7 @@ def count():
         total_parameters += variable_parameters
     print(total_parameters)
 
-def cifar10(path,local_path,is_complex,model_num,is_training=True):
+def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_training=True):
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
 		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
@@ -37,6 +38,10 @@ def cifar10(path,local_path,is_complex,model_num,is_training=True):
 			test_x,test_y = sess.run([test_images,test_labels])
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
+
+	kernel_list=[5,3,3]
+	channel_list=[128,64,64]
+	fc_list=[384,192,10]
 
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),local_path)
 	max_epoch = 500
@@ -51,10 +56,7 @@ def cifar10(path,local_path,is_complex,model_num,is_training=True):
 	y = tf.placeholder(tf.int32,[None])
 
 	model = complex_net(x,10,0,is_complex=is_complex)
-	if path[:7] == 'compare':
-		model.build_compare_for_cifar10(model_num)
-	else:
-		model.build_CNN_for_cifar10(model_num)
+	model.diff_net(name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
 	models_result =model.out
 	with tf.name_scope('loss'):
 		loss  = loss(models_result,y)
@@ -85,7 +87,7 @@ def cifar10(path,local_path,is_complex,model_num,is_training=True):
 			train_x,train_y = sess.run([train_images,train_labels])
 			_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 			duration = time.time() - start_time
-			if i%200 ==0:
+			if i%500 ==0:
 				summary,loss_value = sess.run([merged,loss], feed_dict={x:train_x,y:train_y})
 				train_writer.add_summary(summary, i)
 				examples_per_sec = batch_step/duration
@@ -136,15 +138,15 @@ def cifar10(path,local_path,is_complex,model_num,is_training=True):
 
 if __name__=='__main__':
 	path = sys.argv[1]
-	is_complex = bool(int(sys.argv[3]))
-	model_num = int(sys.argv[4])
 	local_path=sys.argv[2]
+	is_complex = bool(int(sys.argv[3]))
 	is_training = bool(int(sys.argv[5]))
 	print(('board_path:%s\nmodel_path:%s\nmodel_num:%d ')%(path,local_path,model_num))
 	print("is_complex:",is_complex)
 	print("is_training:",is_training)
-	cifar10(path=path,local_path=local_path ,is_complex=is_complex,model_num=model_num,is_training = is_training)
+	cifar10(path,local_path,is_complex=True,is_training=True)
 	# res1=cifar10(path='rm_test',local_path='rm_test/cifar10_1.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 	# res2=cifar10(path='rm_test',local_path='rm_test/cifar10_2.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
-
+	# train_step,test_step= read_data(10000)
+	# test_data = next(test_step)
 
