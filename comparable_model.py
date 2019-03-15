@@ -106,7 +106,7 @@ class complex_net(alexNet):
         with tf.variable_scope('cifar10'):
             if self.is_complex:
                 inputs = self.X_com
-                inputs_data = [inputs,[inputs[0],0],[0,inputs[1]],inputs]
+                inputs_data = [inputs,[self.X,0.0],[0.0,self.X],inputs]
             else:
                 inputs=self.X
             out = 0
