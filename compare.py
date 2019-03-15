@@ -113,7 +113,7 @@ def cifar10(path,is_complex,model_num):
 
 	print('precision @1 = %.5f'%np.mean(ans[-5:]))
 
-def mnist(path,is_complex,model_num,kind):
+def mnist(path,is_complex,model_num):
 	def test(images,labels,accuracy):
 		p = 0
 		for i in range(10):
@@ -121,12 +121,12 @@ def mnist(path,is_complex,model_num,kind):
 			ys = labels[i*1000:(i+1)*1000]
 			p+= accuracy.eval(feed_dict={x:xs, y:ys})
 		return p/10
-	if kind == 'mnist':
-		mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
-		log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist_board/'+path)
-	else:
-		mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist') 
-		log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist_board/'+path)
+	# if kind == 'mnist':
+	mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist_board/'+path)
+	# else:
+	# mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist') 
+	# log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist_board/'+path)
 	mnist=input_data.read_data_sets(mnist_data_folder,one_hot=True)
 	epoch = 50
 	batch = 100
