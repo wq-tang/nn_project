@@ -85,7 +85,7 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 			_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 			duration = time.time() - start_time
 			if i%500 ==0:
-				loss_value = sess.run([loss], feed_dict={x:train_x,y:train_y})
+				loss_value = sess.run(loss, feed_dict={x:train_x,y:train_y})
 				# train_writer.add_summary(summary, i)
 				examples_per_sec = batch_step/duration
 				sec_per_batch = float(duration)
@@ -94,7 +94,7 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 
 				train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 				model.training = False
-				acc = sess.run([ accuracy], feed_dict={x:test_x,y:test_y})
+				acc = sess.run(accuracy, feed_dict={x:test_x,y:test_y})
 				# test_writer.add_summary(summary, i)
 				test_accuracy = test()
 				if test_accuracy>max_acc:
