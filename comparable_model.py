@@ -106,11 +106,12 @@ class complex_net(alexNet):
         with tf.variable_scope('cifar10'):
             if self.is_complex:
                 inputs = self.X_com
+                inputs_data = [inputs,[inputs[0],0],[0,inputs[1]],inputs]
             else:
                 inputs=self.X
             out = 0
             for i in range(model_num):
-                out += self.conv_block(inputs,'conv_block'+str(i+1),[5,3,3],[128,64,64])
+                out += self.conv_block(inputs_data[i],'conv_block'+str(i+1),[5,3,3],[128,64,64])
             self.out=self.fc_block(out,'fc_block',[384,192,self.CLASSNUM])
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
