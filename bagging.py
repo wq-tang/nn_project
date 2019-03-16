@@ -181,8 +181,8 @@ if __name__=='__main__':
 						'mynet/cifar10_real_model1','mynet/cifar10_real_model2','mynet/cifar10_real_model3',\
 						'mynet/cifar10_real_model4']
 	kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
-	channel_list = [[128,64,64],[128,64,64],[128,64],[128,64],[128,64,64],[128,64,64],[128,64],[128,64]]
-	fc_list =[[100],[256,128],[100,50],[100],[100],[256,128],[100,50],[100]]
+	channel_list = [[128,64,64],[128,64,64],[128,128],[128,128],[128,64,64],[128,64,64],[128,128],[128,128]]
+	fc_list =[[100],[128],[100,50],[100,50],[100],[128],[100,50],[100,50]]
 	is_complex = True
 	i = 0
 	generate_sigle_model(model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
