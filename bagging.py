@@ -26,6 +26,7 @@ def count():
     print(total_parameters)
 
 def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=True):
+
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
 		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
@@ -41,7 +42,7 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 
 
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),local_path)
-	max_epoch = 50000
+	max_epoch = 40000
 	batch_step = 128
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
@@ -51,8 +52,8 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 	tf.summary.image('inputs', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = complex_net(x,10,0,is_complex=is_complex)
-	model.diff_net([x,x],name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
+	model = complex_net(x,CLSS_NUM,0,is_complex=is_complex)
+	model.diff_net(x,name=local_path[6:],kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list+[CLSS_NUM])
 	if is_complex:
 		models_result = tf.sqrt(tf.square(model.out[0])+tf.square(model.out[1]))
 	else:
@@ -114,18 +115,19 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 	# test_writer.close()
 	
 
-		print('precision @1 = %.5f'%np.mean(ans[-10:]))
-
-		return np.mean(ans[-5:])
-
-
+		print('precision @1 = %.5f'%np.mean(ans[-5:]))
 	sess.close()
 
 
-def restore(model_path):
+
+
+
+
+def restore(local_path):
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),local_path)
 	with tf.Session() as sess:
 		tf.saved_model.loader.load(sess, 'test_model', model_path)
-		var = sess.run('rm_test/conv1/wightr:wr')
+		var = sess.run()
 		print(var)
 	# res1=cifar10(path='rm_test',local_path='rm_test/cifar10_1.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 	# res2=cifar10(path='rm_test',local_path='rm_test/cifar10_2.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
@@ -156,6 +158,7 @@ if __name__=='__main__':
 	is_complex = True
 	i = 0
 	generate_sigle_model(model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+
 
 
 
