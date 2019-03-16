@@ -117,7 +117,7 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 	# test_writer.close()
 	
 
-		print('precision @1 = %.5f'%np.mean(ans[-5:]))
+	print('precision @1 = %.5f'%np.mean(ans[-5:]))
 	sess.close()
 
 
