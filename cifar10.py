@@ -494,7 +494,7 @@ def generatorsAdv3(BatchSize, preprocSize=[32, 32, 3]):
 
 
             
-def read_data(BatchSize):
+def read_cifar10(BatchSize):
     batchTrain, batchTest = generators(BatchSize=BatchSize, preprocSize=[24, 24, 3])
     return batchTrain, batchTest
     

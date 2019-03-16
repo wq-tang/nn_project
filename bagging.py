@@ -1,5 +1,5 @@
 import os
-from cifar10 import read_data
+from cifar10 import read_cifar10
 import numpy as np 
 import tensorflow as tf 
 import time
@@ -161,6 +161,6 @@ if __name__=='__main__':
 	print(ans)
 	# res1=cifar10(path='rm_test',local_path='rm_test/cifar10_1.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 	# res2=cifar10(path='rm_test',local_path='rm_test/cifar10_2.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
-	# train_step,test_step= read_data(10000)
+	# train_step,test_step= read_cifar10(10000)
 	# test_data = next(test_step)
 

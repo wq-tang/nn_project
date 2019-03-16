@@ -114,7 +114,7 @@ def loadHDF5Adv():
     return (dataTrain, labelsCoarseTrain, \
             dataTest, labelsCoarseTest)
 
-def generators(BatchSize, preprocSize=[32, 32, 3]):
+def generators(Train_batchSize, Test_batchSize,preprocSize=[32, 32, 3]):
     ''' generators for multi-let
     Args:
     Return:
@@ -195,13 +195,9 @@ def generators(BatchSize, preprocSize=[32, 32, 3]):
             
             yield batchImages, batchLabels
         
-    return genTrainBatch(BatchSize), genTestBatch(BatchSize)
+    return genTrainBatch(Train_batchSize), genTestBatch(Test_batchSize)
             
-if __name__ == '__main__':
-    batchTrain, batchTest = generators(BatchSize=200, preprocSize=[32, 32, 3])
-    data, label = next(batchTrain)
-    print(data.shape)
-    print(label.shape)
-# The best configuration is 64 features and 8 middle layers
-        
+def read_cifar100(Train_batchSize,Test_batchSize):
+    batchTrain, batchTest = generators(Train_batchSize=Train_batchSize, Test_batchSize=Test_batchSize,preprocSize=[24, 24, 3])
+    return   batchTrain,batchTest      
         
