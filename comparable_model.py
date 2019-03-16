@@ -94,13 +94,32 @@ class complex_net(alexNet):
 
     def build_CNN_for_mnist(self,model_num=1):
         with tf.variable_scope('mnist'):
+            if self.is_complex:
+                inputs = self.X_com
+                inputs_data = [[self.X,self.X*0.0],[0.0*self.X,self.X]]
+            else:
+                inputs=self.X
             out = 0
             for i in range(model_num):
-                out += self.conv_block('conv_block',[5,3],[16,8])
+                out += self.conv_block(inputs,'conv_block',[5,3],[16,8])
             self.out=self.fc_block(out,'fc_block',[30,self.CLASSNUM])
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
+    def build_compare_for_mnist(self,model_num=1):
+        with tf.variable_scope('mnist'):
+            if self.is_complex:
+                inputs = self.X_com
+            else:
+                inputs=self.X
+            net = inputs
+
+            for i in range(model_num-1):
+                net = self.conv_block(net,'conv_block'+str(i+1),[5,3],[16,8],same=True)
+            net = self.conv_block(net,'conv_block'+str(model_num),[5,3],[18,8])
+            self.out=self.fc_block(net,'fc_block',[30,self.CLASSNUM])
+            if self.is_complex:
+                self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
     def build_CNN_for_cifar10(self,model_num=1):
         with tf.variable_scope('cifar10'):
@@ -185,6 +204,7 @@ class complex_net(alexNet):
         if not self.is_complex:
             channel_list =[int(chanel*1.41)+1 for chanel in channel_list[:-1]] + [channel_list[-1]]
             fc_list = [int(fc*1.41)+1 for fc in fc_list[:-1]] + [fc_list[-1]]
+        fc_list+=[self.CLASSNUM]
         with tf.variable_scope(name):
             for i in range(len(kernel_list)):
                 conv = conv_f(net, [kernel_list[i], kernel_list[i]], [1, 1], channel_list[i], "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
@@ -204,7 +224,7 @@ class complex_net(alexNet):
                 I = tf.reshape(net[1],[-1,mul])
                 net = [R,I]
             else:
-                net = tf.reshape(inputs,[-1,mul])
+                net = tf.reshape(net,[-1,mul])
 
             for i in range(len(fc_list)):
                 now = fc_list[i]
