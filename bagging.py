@@ -52,8 +52,8 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 	tf.summary.image('inputs', x, 10)
 	y = tf.placeholder(tf.int32,[None],name = "inputs_y")
 
-	model = complex_net(x,CLSS_NUM,0,is_complex=is_complex)
-	model.diff_net(x,name=local_path[6:],kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list+[CLSS_NUM])
+	model = complex_net(x,10,0,is_complex=is_complex)
+	model.diff_net(x,name=local_path[6:],kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
 	if is_complex:
 		models_result = tf.sqrt(tf.square(model.out[0])+tf.square(model.out[1]))
 	else:
