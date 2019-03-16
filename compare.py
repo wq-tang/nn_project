@@ -208,7 +208,7 @@ def cifar100(path,is_complex,model_num):
 	tf.summary.image('inputs', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = complex_net(x,10,0,is_complex=is_complex)
+	model = complex_net(x,100,0,is_complex=is_complex)
 	if path[:7] == 'compare':
 		model.build_compare_for_cifar10(model_num)
 	else:
