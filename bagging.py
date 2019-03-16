@@ -48,9 +48,9 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
 	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
 	with tf.name_scope("inputs"):
-		x  = tf.placeholder(tf.float32,[None,24,24,3])
+		x  = tf.placeholder(tf.float32,[None,24,24,3],name = "input_x")
 	tf.summary.image('inputs', x, 10)
-	y = tf.placeholder(tf.int32,[None])
+	y = tf.placeholder(tf.int32,[None],name = "inputs_y")
 
 	model = complex_net(x,CLSS_NUM,0,is_complex=is_complex)
 	model.diff_net(x,name=local_path[6:],kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list+[CLSS_NUM])
@@ -58,12 +58,14 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 		models_result = tf.sqrt(tf.square(model.out[0])+tf.square(model.out[1]))
 	else:
 		models_result =model.out
+	tf.add_to_collection("model_out", model.out)
 	with tf.name_scope('loss'):
 		loss  = loss(models_result,y)
 	tf.summary.scalar('loss', loss)
 	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 	with tf.control_dependencies(update_ops):
 		train_op = tf.train.AdamOptimizer(0.1**3).minimize(loss)
+		tf.add_to_collection("train_op", train_op)
 		# train_op = tf.train.GradientDescentOptimizer(0.1).minimize(loss)
 	top_k_op = tf.nn.in_top_k(models_result,y,1)
 	with tf.name_scope('accuracy'):
