@@ -8,6 +8,7 @@ import math
 from comparable_model import complex_net
 from tensorflow.examples.tutorials.mnist import input_data
 import sys
+from cifar10 import read_cifar10
 ##cifar batch =128  epoch = 50000
 ##mnist epoch=50  batch = 60000
 def count():
@@ -33,20 +34,21 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
-	def test():
+	def test(test_batch):
 		precision=[]
-		for i in range(40):
-			test_x,test_y = sess.run([test_images,test_labels])
+		for i in range(10):
+			test_x,test_y = next(test_batch)
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
 
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),local_path)
 	max_epoch = 40000
-	batch_step = 128
-	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
-	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
-	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
+	batch_step = 128 
+	train_batch,test_batch = read_cifar10(batch_step,1000)
+	# data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
+	# train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
+	# test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3],name = "input_x")
 	tf.summary.image('inputs', x, 10)
@@ -78,14 +80,14 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
-	test_x,test_y = sess.run([test_images,test_labels])
+	test_x,test_y = next(test_batch)
 	# merged = tf.summary.merge_all()
 	# train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
 	# test_writer = tf.summary.FileWriter(log_dir + '/test')
 	ans = []
 	for i in range(max_epoch):
 		start_time = time.time()
-		train_x,train_y = sess.run([train_images,train_labels])
+		train_x,train_y = next(train_batch)
 		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
 		if i%500 ==0:
@@ -100,7 +102,7 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 			model.training = False
 			acc = sess.run(accuracy, feed_dict={x:test_x,y:test_y})
 			# test_writer.add_summary(summary, i)
-			test_accuracy = test()
+			test_accuracy = test(test_batch)
 			if i>max_epoch*0.9 and test_accuracy>max_acc:
 				max_acc=test_accuracy
 				saver.save(sess,model_path,global_step=i+1)
@@ -125,16 +127,40 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 
 
 
+class ImportGraph():
+    """  Importing and running isolated TF graph """
+    def __init__(self, loc):
+        # Create local graph and use it in the session
+        self.graph = tf.Graph()
+        self.sess = tf.Session(graph=self.graph)
+        with self.graph.as_default():
+            # Import saved model from location 'loc' into local graph
+            # 从指定路径加载模型到局部图中
+            saver = tf.train.import_meta_graph(loc + '.meta',
+                                               clear_devices=True)
+            saver.restore(self.sess, loc)
+            # There are TWO options how to get activation operation:
+            # 两种方式来调用运算或者参数
+              # FROM SAVED COLLECTION:            
+            self.activation = tf.get_collection('activation')[0]
+              # BY NAME:
+            self.activation = self.graph.get_operation_by_name('activation_opt').outputs[0]
+
+    def run(self, data):
+        """ Running the activation operation previously imported """
+        # The 'x' corresponds to name of input placeholder
+        return self.sess.run(self.activation, feed_dict={"x:0": data})
+
+
+
+
 def restore(local_path):
-	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),local_path)
-	with tf.Session() as sess:
-		tf.saved_model.loader.load(sess, 'test_model', model_path)
-		var = sess.run()
-		print(var)
-	# res1=cifar10(path='rm_test',local_path='rm_test/cifar10_1.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
-	# res2=cifar10(path='rm_test',local_path='rm_test/cifar10_2.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
-	# train_step,test_step= read_cifar10(10000)
-	# test_data = next(test_step)
+	### Using the class ###
+	# 测试样例
+	data = 50         # random data
+	model = ImportGraph('models/model_name')
+	result = model.run(data)
+	print(result)
 
 
 

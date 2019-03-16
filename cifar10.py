@@ -76,7 +76,7 @@ def allData(preprocSize=[28, 28, 3]):
     return preproc(data, preprocSize), labels, invertedIdx
 
 
-def generators(BatchSize, preprocSize=[28, 28, 3]):
+def generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3]):
     ''' generators for multi-let
     Args:
     Return:
@@ -157,7 +157,7 @@ def generators(BatchSize, preprocSize=[28, 28, 3]):
             
             yield batchImages, batchLabels
         
-    return genTrainBatch(BatchSize), genTestBatch(BatchSize)
+    return genTrainBatch(TrainBatchSize), genTestBatch(TestBatchSize)
 
 def generatorsAdv(BatchSize, preprocSize=[28, 28, 3]):
     ''' generators for multi-let
@@ -494,8 +494,8 @@ def generatorsAdv3(BatchSize, preprocSize=[32, 32, 3]):
 
 
             
-def read_cifar10(BatchSize):
-    batchTrain, batchTest = generators(BatchSize=BatchSize, preprocSize=[24, 24, 3])
+def read_cifar10(TrainBatchSize,TestBatchSize):
+    batchTrain, batchTest = generators(TrainBatchSize,TestBatchSize, preprocSize=[24, 24, 3])
     return batchTrain, batchTest
     
     # SimpleV1C: 0.9064, 23400
