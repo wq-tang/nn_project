@@ -211,7 +211,6 @@ class complex_net(alexNet):
                 net = fc_connect(net, pre, now,"fc"+str(i+1),relu_fun = self.relu_fun)
                 pre = now
             self.out = net
-            if self.is_complex:
-                self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+
                 
 

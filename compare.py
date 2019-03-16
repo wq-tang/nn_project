@@ -192,17 +192,17 @@ def cifar100(path,is_complex,model_num):
 		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
-	def test():
+	def test(test_batch):
 		precision=[]
-		for i in range(40):
-			test_x,test_y = sess.run([test_images,test_labels])
+		for i in range(10):
+			test_x,test_y = next(test_batch)
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
 	max_epoch = 50000
 	batch_step = 128
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar100_board/'+path)
-	train_batch,test_batch=read_cifar100(batch_step,10000)
+	train_batch,test_batch=read_cifar100(batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3])
 	tf.summary.image('inputs', x, 10)
@@ -231,7 +231,7 @@ def cifar100(path,is_complex,model_num):
 	test_writer = tf.summary.FileWriter(log_dir + '/test')
 
 	tf.global_variables_initializer().run()
-	tf.train.start_queue_runners()
+	# tf.train.start_queue_runners()
 
 
 	ans = []
@@ -251,9 +251,9 @@ def cifar100(path,is_complex,model_num):
 
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			model.training = False
-			summary, test_accuracy = sess.run([merged, accuracy], feed_dict={x:test_x,y:test_y})
+			summary, acc = sess.run([merged, accuracy], feed_dict={x:test_x,y:test_y})
 			test_writer.add_summary(summary, i)
-			# test_accuracy = test()
+			test_accuracy = test(test_batch)
 			ans.append(test_accuracy)
 			# test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
 			model.training = True
@@ -277,5 +277,5 @@ if __name__=='__main__':
 	print(is_complex)
 	print(model_num)
 	cifar100(path=path,is_complex=is_complex,model_num=model_num)
-	# cifar100("rmtest",False,1)
+	# cifar100("rmtest",True,1)
 

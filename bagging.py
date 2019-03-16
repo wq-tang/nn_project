@@ -54,7 +54,10 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 
 	model = complex_net(x,10,0,is_complex=is_complex)
 	model.diff_net([x,x],name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
-	models_result =model.out
+	if is_complex:
+		models_result = tf.sqrt(tf.square(model.out[0])+tf.square(model.out[1]))
+	else:
+		models_result =model.out
 	with tf.name_scope('loss'):
 		loss  = loss(models_result,y)
 	tf.summary.scalar('loss', loss)
@@ -97,7 +100,7 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 				acc = sess.run(accuracy, feed_dict={x:test_x,y:test_y})
 				# test_writer.add_summary(summary, i)
 				test_accuracy = test()
-				if test_accuracy>max_acc:
+				if i>max_epoch*0.9 and test_accuracy>max_acc:
 					max_acc=test_accuracy
 					saver.save(sess,model_path,global_step=i+1)
 				ans.append(test_accuracy)
@@ -120,7 +123,7 @@ def cifar10(path,local_path,kernel_list,channel_list,fc_list,is_complex=True,is_
 		# model_file=tf.train.latest_checkpoint('ckpt/')
 		saver.restore(sess,model_path)
 		# test_accuracy=test()
-		predict = sess.run(models_result,feed_dict={x:test_x,y:test_y})
+		predict = sess.run(model.out,feed_dict={x:test_x,y:test_y})
 
 		# train_x,train_y = sess.run([train_images,train_labels])
 		# train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
@@ -142,22 +145,18 @@ if __name__=='__main__':
 	# print("is_complex:",is_complex)
 	# print("is_training:",is_training)
 	# cifar10(path,local_path,is_complex=True,is_training=True)
-	path_list = ['cifar10_complex_model2','cifar10_complex_model3','cifar10_complex_model4',\
+	path_list = ['cifar10_complex_model1','cifar10_complex_model2','cifar10_complex_model3','cifar10_complex_model4',\
 				'cifar10_real_model1','cifar10_real_model2','cifar10_real_model3','cifar10_real_model4']
 
-	model_path_list = ['mynet/cifar10_complex_model2','mynet/cifar10_complex_model3','mynet/cifar10_complex_model4',\
+	model_path_list = ['mynet/cifar10_complex_model1','mynet/cifar10_complex_model2','mynet/cifar10_complex_model3','mynet/cifar10_complex_model4',\
 						'mynet/cifar10_real_model1','mynet/cifar10_real_model2','mynet/cifar10_real_model3',\
 						'mynet/cifar10_real_model4']
-	kernel_list = [[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
-	channel_list = [[128,64,64],[128,64],[128,64],[128,64,64],[128,64,64],[128,64],[128,64]]
-	fc_list =[[256,128],[100,50],[100],[100],[256,128],[100,50],[100]]
+	kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
+	channel_list = [[128,64,64],[128,64,64],[128,64],[128,64],[128,64,64],[128,64,64],[128,64],[128,64]]
+	fc_list =[[100],[256,128],[100,50],[100],[100],[256,128],[100,50],[100]]
 	is_complex = True
-	ans = {}
-	for i in range(len(path_list)):
-		print("-------------%d×××××××××××××××××××××××××"%(i+1))
-		if i>= 3:
-			is_complex=False
-		ans[path_list[i]] = cifar10(path_list[i],model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex,is_training=True)
+	i = 0
+	ans = cifar10(path_list[i],model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex,is_training=True)
 	print(ans)
 	# res1=cifar10(path='rm_test',local_path='rm_test/cifar10_1.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
 	# res2=cifar10(path='rm_test',local_path='rm_test/cifar10_2.ckpt-401' ,is_complex=False,model_num=1,is_training = False)
