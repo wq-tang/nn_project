@@ -177,11 +177,12 @@ class complex_net(alexNet):
             fc_connect = self.complex_fcLayer
             conv_f = self.complex_convLayer
             pool_f = self.complex_maxPoolLayer
+            net = [inputs,inputs]
         else:
             conv_f = self.convLayer
             pool_f = self.maxPoolLayer
             fc_connect = self.fcLayer
-        net = inputs
+            net = inputs
         if not self.is_complex:
             channel_list =[int(chanel*1.41)+1 for chanel in channel_list[:-1]] + [channel_list[-1]]
             fc_list = [int(fc*1.41)+1 for fc in fc_list[:-1]] + [fc_list[-1]]
@@ -204,7 +205,7 @@ class complex_net(alexNet):
                 I = tf.reshape(net[1],[-1,mul])
                 net = [R,I]
             else:
-                net = tf.reshape(inputs,[-1,mul])
+                net = tf.reshape(net,[-1,mul])
 
             for i in range(len(fc_list)):
                 now = fc_list[i]
