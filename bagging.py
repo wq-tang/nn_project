@@ -41,16 +41,16 @@ def generate_sigle_model(path,kernel_list,channel_list,fc_list,is_complex=True):
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
-	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta/'+path)
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar100_meta/'+path)
 	max_epoch = 35000
 	batch_step = 128 
-	train_batch,test_batch = read_cifar10(batch_step,1000)
+	train_batch,test_batch = read_cifar100(batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3],name = 'input_x')
 	tf.summary.image('input_x', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = complex_net(x,10,0,is_complex=is_complex)
+	model = complex_net(x,100,0,is_complex=is_complex)
 	model.diff_net(x,name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
 	out_result= tf.add(model.out,0.0,name = 'out')
 	if is_complex:
@@ -135,7 +135,7 @@ def generate_sigle_summary(path,kernel_list,channel_list,fc_list,is_complex=True
 	tf.summary.image('input_x', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = complex_net(x,10,0,is_complex=is_complex)
+	model = complex_net(x,100,0,is_complex=is_complex)
 	model.diff_net(x,name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
 	out_result= tf.add(model.out,0.0,name = 'out')
 	if is_complex:
@@ -202,7 +202,7 @@ def generate_sigle_summary(path,kernel_list,channel_list,fc_list,is_complex=True
 class ImportGraph():
 	"""  Importing and running isolated TF graph """
 	def __init__(self, loc):
-		model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta/'+loc)
+		model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar100_meta/'+loc)
 		# Create local graph and use it in the session
 		self.graph = tf.Graph()
 		self.sess = tf.Session(graph=self.graph)
@@ -229,7 +229,7 @@ class ImportGraph():
 
 def restore(model_path_list):
 	### Using the class ###
-	_,test_batch = read_cifar10(1,1000)
+	_,test_batch = read_cifar100(1,1000)
 	accuracy=0.0
 	for i in range(10):
 		data,lable  = next(test_batch)
@@ -285,7 +285,7 @@ if __name__=='__main__':
 	# else:
 	# 	is_complex = True
 	# generate_sigle_summary(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
-	restore(['complex_model1','complex_model2','complex_model3','complex_model'])
+	restore(['real_model1','real_model2','real_model3','real_model4'])
 
 
 
