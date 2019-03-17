@@ -26,7 +26,7 @@ def count():
         total_parameters += variable_parameters
     print(total_parameters)
 
-def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=True):
+def generate_sigle_model(path,kernel_list,channel_list,fc_list,is_complex=True):
 
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
@@ -41,8 +41,8 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
-
-	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),local_path)
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_sigle_board/'+path)
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta/'+path)
 	max_epoch = 40000
 	batch_step = 128 
 	train_batch,test_batch = read_cifar10(batch_step,1000)
@@ -53,7 +53,7 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 	y = tf.placeholder(tf.int32,[None])
 
 	model = complex_net(x,10,0,is_complex=is_complex)
-	model.diff_net(x,name=local_path[6:],kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
+	model.diff_net(x,name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
 	if is_complex:
 		models_result = tf.sqrt(tf.square(model.out[0])+tf.square(model.out[1]))
 	else:
@@ -174,29 +174,27 @@ if __name__=='__main__':
 	# print("is_complex:",is_complex)
 	# print("is_training:",is_training)
 	# cifar10(path,local_path,is_complex=True,is_training=True)
-	model_path_list = ['mynet/cifar10_real_model3','mynet/cifar10_real_model2']
-	tag = [34001,32001]
-	restore(model_path_list,tag)
 
 
 
+	# model_path_list = ['mynet/cifar10_real_model3','mynet/cifar10_real_model2']
+	# tag = [34001,32001]
+	# restore(model_path_list,tag)
 
 
+	path_list = ['complex_model1','complex_model2','complex_model3','complex_model4',\
+				'real_model1','real_model2','real_model3','real_model4']
 
 
-
-	# path_list = ['cifar10_complex_model1','cifar10_complex_model2','cifar10_complex_model3','cifar10_complex_model4',\
-	# 			'cifar10_real_model1','cifar10_real_model2','cifar10_real_model3','cifar10_real_model4']
-
-	# model_path_list = ['mynet/cifar10_complex_model1','mynet/cifar10_complex_model2','mynet/cifar10_complex_model3','mynet/cifar10_complex_model4',\
-	# 					'mynet/cifar10_real_model1','mynet/cifar10_real_model2','mynet/cifar10_real_model3',\
-	# 					'mynet/cifar10_real_model4']
-	# kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
-	# channel_list = [[128,64,64],[128,64,64],[128,128],[128,128],[128,64,64],[128,64,64],[128,128],[128,128]]
-	# fc_list =[[100],[128],[100,50],[100,50],[100],[128],[100,50],[100,50]]
-	# is_complex = True
-	# i = 0
-	# generate_sigle_model(model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+	kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
+	channel_list = [[128,64,64],[128,64,64],[128,128],[128,128],[128,64,64],[128,64,64],[128,128],[128,128]]
+	fc_list =[[100],[128],[100,50],[100,50],[100],[128],[100,50],[100,50]]
+	i = 0
+	if i>=4:
+		is_complex = False
+	else:
+		is_complex = True
+	generate_sigle_model(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
 
 
 
