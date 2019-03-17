@@ -8,6 +8,7 @@ from comparable_model import complex_net
 from tensorflow.examples.tutorials.mnist import input_data
 import sys
 from cifar100 import read_cifar100
+from FashionMNIST import read_fashion
 ##cifar batch =128  epoch = 50000
 ##mnist epoch=50  batch = 60000
 def count():
@@ -119,13 +120,9 @@ def mnist(path,is_complex,model_num):
 			ys = labels[i*1000:(i+1)*1000]
 			p+= accuracy.eval(feed_dict={x:xs, y:ys})
 		return p/10
-	# if kind == 'mnist':
-	mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist_board/'+path)
-	# else:
-	# mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist') 
-	# log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion-mnist_board/'+path)
-	mnist=input_data.read_data_sets(mnist_data_folder,one_hot=True)
+
+	mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion') 
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/fashion_board/'+path)
 	epoch = 50
 	batch = 100
 	x  = tf.placeholder(tf.float32,[None,784])
@@ -134,7 +131,10 @@ def mnist(path,is_complex,model_num):
 		image_shaped_input = tf.reshape(x, [-1, 28, 28, 1])
 		tf.summary.image('input', image_shaped_input, 10)
 	model = complex_net(image_shaped_input,10,0,is_complex=is_complex)
-	model.build_CNN_for_mnist(model_num)
+	if path[:7] == 'compare':
+		model.build_compare_for_mnist(model_num)
+	else:
+		model.build_CNN_for_mnist(model_num)
 	models_result =model.out
 	with tf.name_scope('accuracy'):
 		with tf.name_scope('correct_prediction'):
@@ -170,14 +170,12 @@ def mnist(path,is_complex,model_num):
 			train_writer.add_summary(summary, i)
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
-			for m in model:
-				m.training = False
+			model.training = False
 			summary, acc = sess.run([merged, accuracy], feed_dict={x:mnist.test.images,y:mnist.test.labels})
 			test_writer.add_summary(summary, i)
 			test_accuracy = test(mnist.test.images,mnist.test.labels,accuracy)
 			ans.append(test_accuracy)
-			for m in model:
-				m.training = True
+			model.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
 	train_writer.close()

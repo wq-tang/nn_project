@@ -79,7 +79,7 @@ def allData(preprocSize=[28, 28, 1]):
     return preproc(data, preprocSize), labels, invertedIdx
 
 
-def generators(BatchSize, preprocSize=[28, 28, 1], numSame=1, numDiff=1):
+def generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 1], numSame=1, numDiff=1):
     ''' generators for multi-let
     Args:
         numSame: number of samples in the same coarse class; 
@@ -134,7 +134,7 @@ def generators(BatchSize, preprocSize=[28, 28, 1], numSame=1, numDiff=1):
         
         return results
     
-    def genTrainBatch(BatchSize):
+    def genTrainBatch(TrainBatchSize):
         datum = genTrainDatum()
         while True:
             batchImages = []
@@ -148,7 +148,7 @@ def generators(BatchSize, preprocSize=[28, 28, 1], numSame=1, numDiff=1):
             
             yield batchImages, batchLabels
             
-    def genTestBatch(BatchSize):
+    def genTestBatch(TestBatchSize):
         datum = genTestDatum()
         while True:
             batchImages = []
@@ -162,7 +162,7 @@ def generators(BatchSize, preprocSize=[28, 28, 1], numSame=1, numDiff=1):
             
             yield batchImages, batchLabels
         
-    return genTrainBatch(BatchSize), genTestBatch(BatchSize)
+    return genTrainBatch(TrainBatchSize), genTestBatch(TestBatchSize)
 
 def generatorsAdv(BatchSize, preprocSize=[28, 28, 1]):
     ''' generators for multi-let
@@ -407,11 +407,8 @@ class NetCIFAR10(Nets.Net):
     def load(self, path):
         self._saver.restore(self._sess, path)
             
-if __name__ == '__main__':
-    net = NetCIFAR10([28, 28, 1], 2) # 8 
-    batchTrain, batchTest = generators(BatchSize=HParamCIFAR10['BatchSize'], preprocSize=[28, 28, 1], numSame=0, numDiff=0)
-    net.train(batchTrain, batchTest, pathSave='./ClassifyFashionMNIST/netcifar10.ckpt')
-# The best configuration is 64 features and 8 middle layers
-
+def read_fashion(TrainBatchSize,TestBatchSize)
+    batchTrain, batchTest = generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 1], numSame=0, numDiff=0)
+    return batchTrain, batchTest
 
 
