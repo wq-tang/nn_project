@@ -234,7 +234,20 @@ def restore(model_path_list):
 	for i in range(len(model_path_list)):
 		model = ImportGraph(model_path_list[i])
 		result.append(model.run(data))
-	return np.array(result)
+
+	result = np.array(result)
+	result= np.sum(result,0)
+	if model_path_list[0][:7] == 'complex':
+		models_result = tf.sqrt(tf.square(out_result[0])+tf.square(out_result[1]))
+	else:
+		models_result = result
+
+	top_k_op = tf.nn.in_top_k(models_result,lable,1)
+	accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
+	sess = tf.InteractiveSession()
+	acc = sess.run(accuracy)
+	print(model_path_list)
+	print(acc)
 	
 
 
@@ -260,16 +273,16 @@ if __name__=='__main__':
 				'real_model1','real_model2','real_model3','real_model4']
 
 
-	kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
-	channel_list = [[128,64,64],[128,64,64],[128,128],[128,128],[128,64,64],[128,64,64],[128,128],[128,128]]
-	fc_list =[[100],[128],[100,50],[100,50],[100],[128],[100,50],[100,50]]
-	i = 0
-	if i>=4:
-		is_complex = False
-	else:
-		is_complex = True
-	generate_sigle_model(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
-
+	# kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
+	# channel_list = [[128,64,64],[128,64,64],[128,128],[128,128],[128,64,64],[128,64,64],[128,128],[128,128]]
+	# fc_list =[[100],[128],[100,50],[100,50],[100],[128],[100,50],[100,50]]
+	# i = 0
+	# if i>=4:
+	# 	is_complex = False
+	# else:
+	# 	is_complex = True
+	# generate_sigle_model(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+	restore(['complex_model1'])
 
 
 
