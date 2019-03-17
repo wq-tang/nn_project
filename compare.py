@@ -201,7 +201,7 @@ def cifar100(path,is_complex,model_num):
 
 	max_epoch = 50000
 	batch_step = 128
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar100_board/'+path)
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar100_board/'+path)
 	train_batch,test_batch=read_cifar100(batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3])
