@@ -229,25 +229,27 @@ class ImportGraph():
 def restore(model_path_list):
 	### Using the class ###
 	_,test_batch = read_cifar10(1,1000)
-	data,lable  = next(test_batch)
-	result = []
-	for i in range(len(model_path_list)):
-		model = ImportGraph(model_path_list[i])
-		result.append(model.run(data))
+	accuracy=0.0
+	for i in range(10):
+		data,lable  = next(test_batch)
+		result = []
+		for i in range(len(model_path_list)):
+			model = ImportGraph(model_path_list[i])
+			result.append(model.run(data))
 
-	result = np.array(result)
-	result= np.sum(result,0)
-	if model_path_list[0][:7] == 'complex':
-		models_result = tf.sqrt(tf.square(out_result[0])+tf.square(out_result[1]))
-	else:
-		models_result = result
+		result = np.array(result)
+		result= np.sum(result,0)
+		if model_path_list[0][:7] == 'complex':
+			models_result = tf.sqrt(tf.square(result[0])+tf.square(result[1]))
+		else:
+			models_result = result
 
-	top_k_op = tf.nn.in_top_k(models_result,lable,1)
-	accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
+		top_k_op = tf.nn.in_top_k(models_result,lable,1)
+		accuracy += tf.reduce_mean(tf.cast(top_k_op,tf.float32))
 	sess = tf.InteractiveSession()
-	acc = sess.run(accuracy)
+	acc = sess.run(accuracy/10)
 	print(model_path_list)
-	print(acc)
+	print("%.4f"%(acc))
 	
 
 
@@ -282,7 +284,7 @@ if __name__=='__main__':
 	# else:
 	# 	is_complex = True
 	# generate_sigle_model(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
-	restore(['complex_model1'])
+	restore(['complex_model1','complex_model2','complex_model3','complex_model4'])
 
 
 
