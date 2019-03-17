@@ -46,13 +46,11 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 	max_epoch = 40000
 	batch_step = 128 
 	train_batch,test_batch = read_cifar10(batch_step,1000)
-	# data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
-	# train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
-	# test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
 	with tf.name_scope("inputs"):
-		x  = tf.placeholder(tf.float32,[None,24,24,3],name = "input_x")
-	tf.summary.image('inputs', x, 10)
-	y = tf.placeholder(tf.int32,[None],name = "inputs_y")
+		x  = tf.placeholder(tf.float32,[None,24,24,3])
+	tf.add_to_collection("input_x", x)
+	tf.summary.image('input_x', x, 10)
+	y = tf.placeholder(tf.int32,[None])
 
 	model = complex_net(x,10,0,is_complex=is_complex)
 	model.diff_net(x,name=local_path[6:],kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
@@ -81,9 +79,11 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
 	test_x,test_y = next(test_batch)
-	# merged = tf.summary.merge_all()
-	# train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
-	# test_writer = tf.summary.FileWriter(log_dir + '/test')
+
+	merged = tf.summary.merge_all()
+	train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
+	test_writer = tf.summary.FileWriter(log_dir + '/test')
+
 	ans = []
 	for i in range(max_epoch):
 		start_time = time.time()
@@ -91,8 +91,8 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
 		if i%500 ==0:
-			loss_value = sess.run(loss, feed_dict={x:train_x,y:train_y})
-			# train_writer.add_summary(summary, i)
+			summary,loss_value = sess.run([merged,loss], feed_dict={x:train_x,y:train_y})
+			train_writer.add_summary(summary, i)
 			examples_per_sec = batch_step/duration
 			sec_per_batch = float(duration)
 			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch)')
@@ -101,22 +101,18 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			model.training = False
 			acc = sess.run(accuracy, feed_dict={x:test_x,y:test_y})
-			# test_writer.add_summary(summary, i)
+			test_writer.add_summary(summary, i)
 			test_accuracy = test(test_batch)
 			if i>max_epoch*0.9 and test_accuracy>max_acc:
 				max_acc=test_accuracy
-				saver.save(sess,model_path,global_step=i+1)
+				saver.save(sess,model_path)
 			ans.append(test_accuracy)
-			# test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
 			model.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
 			print( "step %d,test accuracy %g"%(i,test_accuracy))
-			# print('pre:%g'%pre)
-			# print(y_hat)
-			# if test_accuracy>0.95:
-			# 	break
-	# train_writer.close()
-	# test_writer.close()
+
+	train_writer.close()
+	test_writer.close()
 	
 
 	print('precision @1 = %.5f'%np.mean(ans[-5:]))
