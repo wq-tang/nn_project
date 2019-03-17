@@ -42,7 +42,7 @@ def cifar10(path,is_complex,model_num):
 
 	max_epoch = 50000
 	batch_step = 128
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar10_board/'+path)
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_board/'+path)
 	data_dir =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-10-batches-bin')
 	train_images ,train_labels = cifar10_input.distorted_inputs(data_dir=data_dir,batch_size = batch_step)
 	test_images,test_labels = cifar10_input.inputs(eval_data = True,data_dir=data_dir,batch_size=1000)
@@ -121,10 +121,10 @@ def mnist(path,is_complex,model_num):
 			p+= accuracy.eval(feed_dict={x:xs, y:ys})
 		return p/10
 
-	mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'fashion') 
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/fashion_board/'+path)
+	mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/mnist_board/'+path)
 	epoch = 50
-	batch = 100
+	batch = 128
 	x  = tf.placeholder(tf.float32,[None,784])
 	y = tf.placeholder(tf.int32,[None,10])
 	with tf.name_scope('input_reshape'):
