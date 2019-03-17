@@ -4,7 +4,7 @@ from datetime import datetime
 import pickle   # 用于序列化和反序列化
 import numpy as np  
 import os  
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import time
 import math
 from model import alexNet
@@ -158,7 +158,6 @@ def resnet(path):
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'resnet_board/'+path)
 	# data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-100/cifar-100-python')
 	
-	cifar100 = Cifar100DataReader(data_dir)
 
 
 	max_epoch = 50000
@@ -199,8 +198,9 @@ def resnet(path):
 		train_x,train_y = next(train_batch)
 		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
-		if i%200 ==0:
-			summary,loss_value = sess.run([merged,gloss], feed_dict={x:train_x,y:train_y})
+		if i%500 ==0:
+			loss_value = sess.run(gloss, feed_dict={x:train_x,y:train_y})
+			# summary,loss_value = sess.run([merged,gloss], feed_dict={x:train_x,y:train_y})
 			# train_writer.add_summary(summary, i)
 			examples_per_sec = batch_step/duration
 			sec_per_batch = float(duration)

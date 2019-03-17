@@ -128,40 +128,42 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 
 
 class ImportGraph():
-    """  Importing and running isolated TF graph """
-    def __init__(self, loc):
-    	model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),loc)
-        # Create local graph and use it in the session
-        self.graph = tf.Graph()
-        self.sess = tf.Session(graph=self.graph)
-        with self.graph.as_default():
-            # Import saved model from location 'loc' into local graph
-            # 从指定路径加载模型到局部图中
-            saver = tf.train.import_meta_graph(model_path + '.meta',
-                                               clear_devices=True)
-            saver.restore(self.sess, model_path)
-            # There are TWO options how to get activation operation:
-            # 两种方式来调用运算或者参数
-              # FROM SAVED COLLECTION:            
-            self.activation = tf.get_collection('model_out')[0]
-              # BY NAME:
-            # self.activation = self.graph.get_operation_by_name('activation_opt').outputs[0]
+	"""  Importing and running isolated TF graph """
+	def __init__(self, loc,tag):
+		model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),loc)
+		# Create local graph and use it in the session
+		self.graph = tf.Graph()
+		self.sess = tf.Session(graph=self.graph)
+		with self.graph.as_default():
+			# Import saved model from location 'loc' into local graph
+			# 从指定路径加载模型到局部图中
+			saver = tf.train.import_meta_graph(model_path+'-' +str(tag)+ '.meta',
+												clear_devices=True)
+			saver.restore(self.sess, model_path+'-' +str(tag))
+			# There are TWO options how to get activation operation:
+			# 两种方式来调用运算或者参数
+				# FROM SAVED COLLECTION:            
+			self.activation = tf.get_collection('model_out')[0]
+				# BY NAME:
+			# self.activation = self.graph.get_operation_by_name('activation_opt').outputs[0]
 
-    def run(self, data):
-        """ Running the activation operation previously imported """
-        # The 'x' corresponds to name of input placeholder
-        return self.sess.run(self.activation, feed_dict={"x:0": data})
-
-
+	def run(self, data):
+		""" Running the activation operation previously imported """
+		# The 'x' corresponds to name of input placeholder
+		return self.sess.run(self.activation, feed_dict={"cifar10_real_model3/input_x:0": data})
 
 
-def restore(path_list):
+
+
+def restore(model_path_list,tag):
 	### Using the class ###
 	_,test_batch = read_cifar10(1,1000)
 	data,lable  = next(test_batch)
-	for i in range(len(path_list)):
-		model = ImportGraph(path_list[i])
+	result = []
+	for i in range(len(model_path_list)):
+		model = ImportGraph(model_path_list[i],tag[i])
 		result.append(model.run(data))
+	return np.array(result)
 	
 
 
@@ -176,19 +178,29 @@ if __name__=='__main__':
 	# print("is_complex:",is_complex)
 	# print("is_training:",is_training)
 	# cifar10(path,local_path,is_complex=True,is_training=True)
+	model_path_list = ['mynet/cifar10_real_model3','mynet/cifar10_real_model2']
+	tag = [34001,32001]
+	restore(model_path_list,tag)
 
-	path_list = ['cifar10_complex_model1','cifar10_complex_model2','cifar10_complex_model3','cifar10_complex_model4',\
-				'cifar10_real_model1','cifar10_real_model2','cifar10_real_model3','cifar10_real_model4']
 
-	model_path_list = ['mynet/cifar10_complex_model1','mynet/cifar10_complex_model2','mynet/cifar10_complex_model3','mynet/cifar10_complex_model4',\
-						'mynet/cifar10_real_model1','mynet/cifar10_real_model2','mynet/cifar10_real_model3',\
-						'mynet/cifar10_real_model4']
-	kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
-	channel_list = [[128,64,64],[128,64,64],[128,128],[128,128],[128,64,64],[128,64,64],[128,128],[128,128]]
-	fc_list =[[100],[128],[100,50],[100,50],[100],[128],[100,50],[100,50]]
-	is_complex = True
-	i = 0
-	generate_sigle_model(model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+
+
+
+
+
+
+	# path_list = ['cifar10_complex_model1','cifar10_complex_model2','cifar10_complex_model3','cifar10_complex_model4',\
+	# 			'cifar10_real_model1','cifar10_real_model2','cifar10_real_model3','cifar10_real_model4']
+
+	# model_path_list = ['mynet/cifar10_complex_model1','mynet/cifar10_complex_model2','mynet/cifar10_complex_model3','mynet/cifar10_complex_model4',\
+	# 					'mynet/cifar10_real_model1','mynet/cifar10_real_model2','mynet/cifar10_real_model3',\
+	# 					'mynet/cifar10_real_model4']
+	# kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3],[5,3,3],[5,5,2],[5,5],[5,3]]
+	# channel_list = [[128,64,64],[128,64,64],[128,128],[128,128],[128,64,64],[128,64,64],[128,128],[128,128]]
+	# fc_list =[[100],[128],[100,50],[100,50],[100],[128],[100,50],[100,50]]
+	# is_complex = True
+	# i = 0
+	# generate_sigle_model(model_path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
 
 
 
