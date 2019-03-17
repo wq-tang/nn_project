@@ -276,16 +276,16 @@ if __name__=='__main__':
 				'real_model1','real_model2','real_model3','real_model4']
 
 
-	kernel_list = [[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3],[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3]]
-	channel_list = [[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64],[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64]]
-	fc_list =[[192],[192],[192,81],[192,81],[192],[192],[192,81],[192,81]]
-	i = 0
-	if i>=4:
-		is_complex = False
-	else:
-		is_complex = True
-	generate_sigle_summary(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
-	# restore(['complex_model1','complex_model2','complex_model3','complex_model4'])
+	# kernel_list = [[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3],[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3]]
+	# channel_list = [[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64],[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64]]
+	# fc_list =[[192],[192],[192,81],[192,81],[192],[192],[192,81],[192,81]]
+	# i = 0
+	# if i>=4:
+	# 	is_complex = False
+	# else:
+	# 	is_complex = True
+	# generate_sigle_summary(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+	restore(['complex_model1','complex_model2','complex_model3','complex_model'])
 
 
 
