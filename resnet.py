@@ -9,103 +9,9 @@ import time
 import math
 from model import alexNet
 from functools import reduce
+from cifar100 import read_cifar100
 
 
-
-class Cifar100DataReader():  
-    def __init__(self,cifar_folder,onehot=False):  
-        self.cifar_folder=cifar_folder  
-        self.onehot=onehot  
-        self.data_label_train=None            # 训练集
-        self.data_label_test=None             # 测试集
-        self.batch_index=0                    # 训练数据的batch块索引
-        self.test_batch_index=0                # 测试数据的batch_size
-        f=os.path.join(self.cifar_folder,"train")  # 训练集有50000张图片，100个类，每个类500张
-        print ('read: %s'%f  )
-        fo = open(f, 'rb')
-        self.dic_train = pickle.load(fo,encoding='bytes')
-        fo.close()
-        self.data_label_train=list(zip(self.dic_train[b'data'],self.dic_train[b'fine_labels']) ) #label 0~99  
-        np.random.shuffle(self.data_label_train)           
- 
-    
-    def dataInfo(self):
-        print (self.data_label_train[0:2] )# 每个元素为二元组，第一个是numpy数组大小为32*32*3，第二是label
-        print (self.dic_train.keys())
-        print (b"coarse_labels:",len(self.dic_train[b"coarse_labels"]))
-        print (b"filenames:",len(self.dic_train[b"filenames"]))
-        print (b"batch_label:",len(self.dic_train[b"batch_label"]))
-        print (b"fine_labels:",len(self.dic_train[b"fine_labels"]))
-        print (b"data_shape:",np.shape((self.dic_train[b"data"])))
-        print (b"data0:",type(self.dic_train[b"data"][0]))
- 
- 
-    # 得到下一个batch训练集，块大小为100
-    def next_train_data(self,batch_size=100):  
-        """ 
-        return list of numpy arrays [na,...,na] with specific batch_size 
-                na: N dimensional numpy array  
-        """            
-        if self.batch_index<len(self.data_label_train)/batch_size:  
-            # print ("batch_index:",self.batch_index  )
-            datum=self.data_label_train[self.batch_index*batch_size:(self.batch_index+1)*batch_size]  
-            self.batch_index+=1  
-            return self._decode(datum,self.onehot)  
-        else:  
-            self.batch_index=0  
-            np.random.shuffle(self.data_label_train)  
-            datum=self.data_label_train[self.batch_index*batch_size:(self.batch_index+1)*batch_size]  
-            self.batch_index+=1  
-            return self._decode(datum,self.onehot)  
-              
-    
-    # 把一个batch的训练数据转换为可以放入神经网络训练的数据 
-    def _decode(self,datum,onehot):  
-        rdata=list()     # batch训练数据
-        rlabel=list()  
-        if onehot:  
-            for d,l in datum:  
-                rdata.append(np.reshape(np.reshape(d,[3,1024]).T,[32,32,3]))   # 转变形状为：32*32*3
-                hot=np.zeros(100)    
-                hot[int(l)]=1            # label设为100维的one-hot向量
-                rlabel.append(hot)  
-        else:  
-            for d,l in datum:  
-                rdata.append(np.reshape(np.reshape(d,[3,1024]).T,[32,32,3]))  
-                rlabel.append(int(l))  
-        return rdata,np.array(rlabel)  
-    
- 
-    # 得到下一个测试数据 ，供神经网络计算模型误差用         
-    def next_test_data(self,batch_size=100):  
-        ''''' 
-        return list of numpy arrays [na,...,na] with specific batch_size 
-                na: N dimensional numpy array  
-        '''  
-        if self.data_label_test is None:  
-            f=os.path.join(self.cifar_folder,"test")  
-            print ('read: %s'%f  )
-            fo = open(f, 'rb')
-            dic_test = pickle.load(fo,encoding='bytes')
-            fo.close()           
-            data=dic_test[b'data']            
-            labels=dic_test[b'fine_labels']   # 0 ~ 99  
-            self.data_label_test=list(zip(data,labels) )
-            self.batch_index=0
- 
-        if self.test_batch_index<len(self.data_label_test)/batch_size:  
-            # print ("test_batch_index:",self.test_batch_index )
-            datum=self.data_label_test[self.test_batch_index*batch_size:(self.test_batch_index+1)*batch_size]  
-            self.test_batch_index+=1  
-            return self._decode(datum,self.onehot)  
-        else:  
-            self.test_batch_index=0  
-            np.random.shuffle(self.data_label_test)  
-            datum=self.data_label_test[self.test_batch_index*batch_size:(self.test_batch_index+1)*batch_size]  
-            self.test_batch_index+=1  
-            return self._decode(datum,self.onehot)    
- 
- 
 
 
 class Block(collections.namedtuple('Block',['scope','unit_fn','args'])):
@@ -231,6 +137,8 @@ class Resnet_v2_50(alexNet):
 			return tf.sqrt(tf.square(R)+tf.square(I))
 		return self.resnet_v2(blocks,self.CLASSNUM,global_pool,include_root_block=True,reuse=reuse,scope=scope)
 
+
+
 def resnet(path):
 
 	def loss(logits,y):
@@ -240,23 +148,24 @@ def resnet(path):
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
 
-	def test():
+	def test(test_batch):
 		precision=[]
-		for i in range(40):
-			test_x,test_y = cifar100.next_test_data(1000)
+		for i in range(10):
+			test_x,test_y = next(test_batch)
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'resnet_board/'+path)
-	data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-100/cifar-100-python')
+	# data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'cifar-100/cifar-100-python')
 	
 	cifar100 = Cifar100DataReader(data_dir)
 
 
 	max_epoch = 50000
 	batch_step = 128
+	train_batch,test_batch=read_cifar100(batch_step,1000)
 	with tf.name_scope("inputs"):
-		x = tf.placeholder(tf.float32, [None, 32, 32, 3])
+		x = tf.placeholder(tf.float32, [None, 24, 24, 3])
 	tf.summary.image('inputs', x, 10)
 	y = tf.placeholder(tf.int32, [None])
 
@@ -276,23 +185,23 @@ def resnet(path):
 		accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
 	tf.summary.scalar('accuracy', accuracy)
 	sess = tf.InteractiveSession()
-	merged = tf.summary.merge_all()
-	train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
-	test_writer = tf.summary.FileWriter(log_dir + '/test')
+	# merged = tf.summary.merge_all()
+	# train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
+	# test_writer = tf.summary.FileWriter(log_dir + '/test')
 
 	tf.global_variables_initializer().run()
-	tf.train.start_queue_runners()
+	# tf.train.start_queue_runners()
 
 	ans=[]
-	test_x,test_y = cifar100.next_test_data()
+	test_x,test_y = next(test_batch)
 	for i in range(max_epoch):
 		start_time = time.time()
-		train_x,train_y = cifar100.next_train_data(batch_step)
+		train_x,train_y = next(train_batch)
 		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
 		if i%200 ==0:
 			summary,loss_value = sess.run([merged,gloss], feed_dict={x:train_x,y:train_y})
-			train_writer.add_summary(summary, i)
+			# train_writer.add_summary(summary, i)
 			examples_per_sec = batch_step/duration
 			sec_per_batch = float(duration)
 			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch)')
@@ -300,9 +209,9 @@ def resnet(path):
 
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			model.training = False
-			summary, acc = sess.run([merged, accuracy], feed_dict={x:test_x,y:test_y})
-			test_writer.add_summary(summary, i)
-			test_accuracy = test()
+			acc = sess.run([ accuracy], feed_dict={x:test_x,y:test_y})
+			# test_writer.add_summary(summary, i)
+			test_accuracy = test(test_batch)
 			ans.append(test_accuracy)
 			# test_accuracy = accuracy.eval(feed_dict={x:test_x, y: test_y})
 			model.training = True

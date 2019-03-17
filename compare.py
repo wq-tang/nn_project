@@ -7,7 +7,7 @@ import math
 from comparable_model import complex_net
 from tensorflow.examples.tutorials.mnist import input_data
 import sys
-from CIFAR100 import read_cifar100
+from cifar100 import read_cifar100
 ##cifar batch =128  epoch = 50000
 ##mnist epoch=50  batch = 60000
 def count():

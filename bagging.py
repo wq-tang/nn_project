@@ -130,21 +130,22 @@ def generate_sigle_model(local_path,kernel_list,channel_list,fc_list,is_complex=
 class ImportGraph():
     """  Importing and running isolated TF graph """
     def __init__(self, loc):
+    	model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),loc)
         # Create local graph and use it in the session
         self.graph = tf.Graph()
         self.sess = tf.Session(graph=self.graph)
         with self.graph.as_default():
             # Import saved model from location 'loc' into local graph
             # 从指定路径加载模型到局部图中
-            saver = tf.train.import_meta_graph(loc + '.meta',
+            saver = tf.train.import_meta_graph(model_path + '.meta',
                                                clear_devices=True)
-            saver.restore(self.sess, loc)
+            saver.restore(self.sess, model_path)
             # There are TWO options how to get activation operation:
             # 两种方式来调用运算或者参数
               # FROM SAVED COLLECTION:            
-            self.activation = tf.get_collection('activation')[0]
+            self.activation = tf.get_collection('model_out')[0]
               # BY NAME:
-            self.activation = self.graph.get_operation_by_name('activation_opt').outputs[0]
+            # self.activation = self.graph.get_operation_by_name('activation_opt').outputs[0]
 
     def run(self, data):
         """ Running the activation operation previously imported """
@@ -154,13 +155,15 @@ class ImportGraph():
 
 
 
-def restore(local_path):
+def restore(path_list):
 	### Using the class ###
-	# 测试样例
-	data = 50         # random data
-	model = ImportGraph('models/model_name')
-	result = model.run(data)
-	print(result)
+	_,test_batch = read_cifar10(1,1000)
+	data,lable  = next(test_batch)
+	for i in range(len(path_list)):
+		model = ImportGraph(path_list[i])
+		result.append(model.run(data))
+	
+
 
 
 
