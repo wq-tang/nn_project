@@ -45,7 +45,7 @@ def generate_sigle_model(path,kernel_list,channel_list,fc_list,is_complex=True):
 		return np.mean(precision)
 
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar100_meta/'+path)
-	max_epoch = 35000
+	max_epoch = 30000
 	batch_step = 128 
 	train_batch,test_batch = read_cifar100(batch_step,1000)
 	with tf.name_scope("inputs"):
@@ -287,8 +287,8 @@ if __name__=='__main__':
 	# 	is_complex = False
 	# else:
 	# 	is_complex = True
-	# generate_sigle_summary(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
-	restore(['real_model1','real_model2','real_model3','real_model4'])
+	# generate_sigle_model(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+	restore(['complex_model1','complex_model2','complex_model3'])
 
 
 

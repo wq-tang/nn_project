@@ -5,8 +5,7 @@ import numpy as np
 import tensorflow as tf
 
 import Preproc
-import Layer
-import Net
+
 
 def loadHDF5():
     with h5py.File('MNIST.h5', 'r') as f:
