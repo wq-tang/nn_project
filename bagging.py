@@ -44,7 +44,7 @@ def generate_model_cifar(path,kernel_list,channel_list,fc_list,file_name,is_comp
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
-	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta/'+path)
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta_bagging/'+path)
 	max_epoch = 30000
 	batch_step = 128 
 	file_name = 'CIFAR10_model'+path[-1]+'.h5'
@@ -115,7 +115,7 @@ def generate_model_cifar(path,kernel_list,channel_list,fc_list,file_name,is_comp
 	sess.close()
 
 
-def generate_sigle_summary(path,kernel_list,channel_list,fc_list,is_complex=True):
+def generate_summary_cifar(path,kernel_list,channel_list,fc_list,is_complex=True):
 
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
@@ -130,7 +130,7 @@ def generate_sigle_summary(path,kernel_list,channel_list,fc_list,is_complex=True
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_sigle_board/'+path)
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_board_bagging/'+path)
 	max_epoch = 50000
 	batch_step = 128 
 	file_name = 'CIFAR10_model'+path[-1]+'.h5'
@@ -162,7 +162,6 @@ def generate_sigle_summary(path,kernel_list,channel_list,fc_list,is_complex=True
 	tf.summary.scalar('accuracy', accuracy)
 	sess = tf.InteractiveSession()
 
-	max_acc=0
 
 	tf.global_variables_initializer().run()
 	tf.train.start_queue_runners()
@@ -290,7 +289,7 @@ if __name__=='__main__':
 		is_complex = False
 	else:
 		is_complex = True
-	generate_sigle_model(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+	generate_summary_cifar(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
 	# restore(['complex_model1','complex_model2','complex_model3'])
 
 
