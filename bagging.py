@@ -48,7 +48,7 @@ def generate_model_cifar(path,kernel_list,channel_list,fc_list,file_name,is_comp
 	max_epoch = 30000
 	batch_step = 128 
 	file_name = 'CIFAR10_model'+path[-1]+'.h5'
-	train_batch,test_batch = read_cifar10(file_name,batch_step,1000)
+	train_batch,test_batch = read_cifar10('data/'+file_name,batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3],name = 'input_x')
 	tf.summary.image('input_x', x, 10)
@@ -134,7 +134,7 @@ def generate_summary_cifar(path,kernel_list,channel_list,fc_list,is_complex=True
 	max_epoch = 50000
 	batch_step = 128 
 	file_name = 'CIFAR10_model'+path[-1]+'.h5'
-	train_batch,test_batch = read_cifar10(file_name,batch_step,1000)
+	train_batch,test_batch = read_cifar10('data/'+file_name,batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3],name = 'input_x')
 	tf.summary.image('input_x', x, 10)
@@ -234,7 +234,7 @@ class ImportGraph():
 def restore(model_path_list):
 	### Using the class ###
 	file_name = 'CIFAR10.h5'
-	_,test_batch = read_cifar10(file_name,1,1000)
+	_,test_batch = read_cifar10('data/'+file_name,1,1000)
 	accuracy=0.0
 	for k in range(10):
 		data,lable  = next(test_batch)

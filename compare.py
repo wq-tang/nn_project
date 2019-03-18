@@ -45,7 +45,7 @@ def cifar(path,is_complex,model_num):
 	batch_step = 128
 	file_name = 'CIFAR10.h5'
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'resnet/cifar10_board/'+path)
-	train_batch,test_batch=read_cifar10(file_name,batch_step,1000)
+	train_batch,test_batch=read_cifar10('data/'+file_name,batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3])
 	tf.summary.image('inputs', x, 10)
@@ -110,18 +110,18 @@ def cifar(path,is_complex,model_num):
 
 
 def mnist(path,is_complex,model_num):
-	def test(images,labels,accuracy):
-		p = 0
+	def test(test_batch):
+		precision=[]
 		for i in range(10):
-			xs = images[i*1000:(i+1)*1000]
-			ys = labels[i*1000:(i+1)*1000]
-			p+= accuracy.eval(feed_dict={x:xs, y:ys})
-		return p/10
+			test_x,test_y = next(test_batch)
+			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
+		return np.mean(precision)
 
-	mnist_data_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mnist') 
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/mnist_board/'+path)
 	epoch = 50
 	batch = 128
+	file_name = 'MNIST.h5'
+	train_batch,test_batch=read_cifar10('data/'+file_name,batch_step,1000)
 	x  = tf.placeholder(tf.float32,[None,784])
 	y = tf.placeholder(tf.int32,[None,10])
 	with tf.name_scope('input_reshape'):
@@ -154,9 +154,10 @@ def mnist(path,is_complex,model_num):
 	tf.train.start_queue_runners()
 
 	ans = []
+	test_x,test_y = next(test_batch)
 	for i in range(epoch*600):
 		start_time = time.time()
-		train_x, train_y = mnist.train.next_batch(batch)
+		train_x, train_y =  next(train_batch)
 		_ = sess.run( train_step, feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
 		if i%200 ==0:
@@ -168,9 +169,9 @@ def mnist(path,is_complex,model_num):
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
 			model.training = False
-			summary, acc = sess.run([merged, accuracy], feed_dict={x:mnist.test.images,y:mnist.test.labels})
+			summary, acc = sess.run([merged, accuracy], feed_dict={x:test_x,y:test_y})
 			test_writer.add_summary(summary, i)
-			test_accuracy = test(mnist.test.images,mnist.test.labels,accuracy)
+			test_accuracy = test(test_batch)
 			ans.append(test_accuracy)
 			model.training = True
 			print( "step %d, training accuracy %g"%(i, train_accuracy))

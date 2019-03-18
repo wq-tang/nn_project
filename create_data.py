@@ -5,14 +5,15 @@ import Preproc
 
 
 
-def loadHDF5(file_name):
+
+def loadHDF5Adv(file_name):
     with h5py.File(file_name, 'r') as f:
-        dataTrain   = np.expand_dims(np.array(f['Train']['images'])[:, :, :, 0], axis=-1)
-        labelsTrain = np.array(f['Train']['labels']).reshape([-1])
-        dataTest    = np.expand_dims(np.array(f['Test']['images'])[:, :, :, 0], axis=-1)
-        labelsTest  = np.array(f['Test']['labels']).reshape([-1])
+        dataTrain         = np.array(f['Train']['data'])
+        labelsFineTrain   = np.array(f['Train']['labelsFine'])
+        dataTest          = np.array(f['Test']['data'])
+        labelsFineTest    = np.array(f['Test']['labelsFine'])
         
-    return (dataTrain, labelsTrain, dataTest, labelsTest)
+    return (dataTrain, labelsFineTrain,dataTest, labelsFineTest)
 
 def Bootstrap(data,label):
 	index = np.random.randint(0,data.shape[0],data.shape[0])
@@ -40,10 +41,10 @@ def wrrite_file(train_data,test_data,file_name):
 	with h5py.File(file_name,'w') as f:
 		f.create_group('Train')
 		f.create_group('Test')
-		f.create_dataset('Train/images',data = train_data[0])
-		f.create_dataset('Train/labels',data = train_data[1])
-		f.create_dataset('Test/images',data = test_data[0])
-		f.create_dataset('Test/labels',data = test_data[1])
+		f.create_dataset('Train/data',data = train_data[0])
+		f.create_dataset('Train/labelsFine',data = train_data[1])
+		f.create_dataset('Test/data',data = test_data[0])
+		f.create_dataset('Test/labelsFine',data = test_data[1])
 
 def Bootstrap_file(file_name):
 	dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5(file_name)
@@ -53,13 +54,13 @@ def Bootstrap_file(file_name):
 
 
 def k_flod(file_name):
-	dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5(file_name)
-	for i in range(6):
+	dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5Adv(file_name)
+	for i in range(5):
 		k = i+2
 		data_list=divide_equally(k,dataTrain,labelsTrain)
-		for p,item in enumrate(data_list):
-			wrrite_file(item,[dataTest, labelsTest],file_name[:-3]+'st'+str(k)+str(p+1))
+		for p,item in enumerate(data_list):
+			wrrite_file(item,[dataTest, labelsTest],file_name[:-3]+'_st'+str(k)+str(p+1)+'.h5')
 
 if __name__=="__main__":
-	k_flod('MNIST.h5')
+	k_flod('CIFAR100.h5')
 
