@@ -16,13 +16,11 @@ def load_base_h5(filename):
 def Bootstrap(data,label):
 	images = []
 	labels = []
-	for i in range(data.shape[0]):
-		index = np.random.randint(0,data.shape[0])
-		indexAnchor = next(index)
-		imageAnchor = data[indexAnchor]
-		labelAnchor = label[indexAnchor]
-		images.append(imageAnchor)
-		labels.append(labelAnchor)
+	index = np.random.randint(0,data.shape[0],data.shape[0])
+	imageAnchor = data[index]
+	labelAnchor = label[index]
+	images.append(imageAnchor)
+	labels.append(labelAnchor)
 	return np.array(images),np.array(labels)
 
 
