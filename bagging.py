@@ -1,14 +1,17 @@
 import os
-from cifar10 import read_cifar10
-from cifar100 import read_cifar100
 import numpy as np 
 import tensorflow as tf 
 import time
-import cifar10_input
 import math
-from comparable_model import complex_net
-from tensorflow.examples.tutorials.mnist import input_data
 import sys
+
+from alexnet_model import complex_net
+from resnet_model import Resnet
+
+from CIFAR100 import read_cifar100
+from FashionMNIST import read_fashion
+from CIFAR10 import read_cifar10
+from MNIST import read_mnist
 ##cifar batch =128  epoch = 50000
 ##mnist epoch=50  batch = 60000
 def count():
