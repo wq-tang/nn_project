@@ -234,7 +234,7 @@ def restore(model_path_list):
 	### Using the class ###
 	_,test_batch = read_cifar100(1,1000)
 	accuracy=0.0
-	for i in range(10):
+	for k in range(10):
 		data,lable  = next(test_batch)
 		result = []
 		for i in range(len(model_path_list)):
