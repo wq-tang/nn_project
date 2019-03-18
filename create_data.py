@@ -3,15 +3,16 @@ import numpy as np
 import tensorflow as tf
 import Preproc
 
-def load_base_h5(filename):
-    with h5py.File(filename, 'r') as f:
-        dataTrain   = np.array(f['Train']['images'])
-        labelsTrain = np.array(f['Train']['labels'])
-        dataTest    = np.array(f['Test']['images'])
-        labelsTest  = np.array(f['Test']['labels'])
-        
-    return dataTrain, labelsTrain, dataTest, labelsTest
 
+
+def loadHDF5(file_name):
+    with h5py.File(file_name, 'r') as f:
+        dataTrain   = np.expand_dims(np.array(f['Train']['images'])[:, :, :, 0], axis=-1)
+        labelsTrain = np.array(f['Train']['labels']).reshape([-1])
+        dataTest    = np.expand_dims(np.array(f['Test']['images'])[:, :, :, 0], axis=-1)
+        labelsTest  = np.array(f['Test']['labels']).reshape([-1])
+        
+    return (dataTrain, labelsTrain, dataTest, labelsTest)
 
 def Bootstrap(data,label):
 	index = np.random.randint(0,data.shape[0],data.shape[0])
@@ -44,11 +45,11 @@ def wrrite_file(train_data,test_data,filename):
 		f.create_dataset('Test/labels',data = test_data[1])
 
 def Bootstrap_file(filename):
-	dataTrain, labelsTrain, dataTest, labelsTest = load_base_h5(filename)
+	dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5(filename)
 	for i in range(4):
 		train_image,train_lable = Bootstrap(dataTrain,labelsTrain)
 		wrrite_file([train_image,train_lable],[dataTest,labelsTest],filename[:-3]+'_model'+str(i+1)+'.h5')
 
 if __name__=="__main__":
-	Bootstrap_file(filename)
+	Bootstrap_file('MNIST.h5')
 

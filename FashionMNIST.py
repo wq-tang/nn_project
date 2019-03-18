@@ -86,7 +86,7 @@ def generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 1], numSame=1,
     Return:
         genTrain: an iterator for the training set
         genTest:  an iterator for the test set'''
-    (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5()
+    (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5(file_name)
         
     def genTrainDatum():
         index = Preproc.genIndex(dataTrain.shape[0], shuffle=True)

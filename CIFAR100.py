@@ -108,8 +108,7 @@ def loadHDF5Adv(file_name):
         dataTest          = np.array(f['Test']['data'])
         labelsFineTest    = np.array(f['Test']['labelsFine'])
         
-    return (dataTrain, labelsFineTrain, \
-            dataTest, labelsFineTest)
+    return (dataTrain, labelsFineTrain,dataTest, labelsFineTest)
 
 def generators(file_name,Train_batchSize, Test_batchSize,preprocSize=[32, 32, 3]):
     ''' generators for multi-let
