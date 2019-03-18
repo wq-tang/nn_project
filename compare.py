@@ -43,8 +43,9 @@ def cifar(path,is_complex,model_num):
 
 	max_epoch = 50000
 	batch_step = 128
+	file_name = 'CIFAR10.h5'
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'resnet/cifar10_board/'+path)
-	train_batch,test_batch=read_cifar10(batch_step,1000)
+	train_batch,test_batch=read_cifar10(file_name,batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3])
 	tf.summary.image('inputs', x, 10)

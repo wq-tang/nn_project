@@ -26,11 +26,11 @@ def divide_equally(k,data,label):
 	np.random.shuffle(index)
 	for i in range(k):
 		if i != k-1:
-			images = data[i*step:(i+1)*step]
-			labels = label[i*step:(i+1)*step]
+			images = data[index][i*step:(i+1)*step]
+			labels = label[index][i*step:(i+1)*step]
 		else:
-			images = data[i*step:]
-			labels = label[i*step:]
+			images = data[index][i*step:]
+			labels = label[index][i*step:]
 		result.append((images,labels))
 
 

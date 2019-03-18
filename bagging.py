@@ -29,11 +29,11 @@ def count():
         total_parameters += variable_parameters
     print(total_parameters)
 
-def generate_sigle_model(path,kernel_list,channel_list,fc_list,file_name,is_complex=True):
+def generate_model_cifar(path,kernel_list,channel_list,fc_list,file_name,is_complex=True):
 
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
-		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
+		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels = y,name='cross_entropy_per_example')
 		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
@@ -44,16 +44,17 @@ def generate_sigle_model(path,kernel_list,channel_list,fc_list,file_name,is_comp
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
-	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar100_meta/'+path)
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta/'+path)
 	max_epoch = 30000
 	batch_step = 128 
-	train_batch,test_batch = read_cifar100(batch_step,1000)
+	file_name = 'CIFAR10_model'+path[-1]+'.h5'
+	train_batch,test_batch = read_cifar10(file_name,batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3],name = 'input_x')
 	tf.summary.image('input_x', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = complex_net(x,100,0,is_complex=is_complex)
+	model = complex_net(x,10,0,is_complex=is_complex)
 	model.diff_net(x,name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
 	out_result= tf.add(model.out,0.0,name = 'out')
 	if is_complex:
@@ -129,16 +130,17 @@ def generate_sigle_summary(path,kernel_list,channel_list,fc_list,is_complex=True
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
 
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar100_sigle_board/'+path)
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_sigle_board/'+path)
 	max_epoch = 50000
 	batch_step = 128 
-	train_batch,test_batch = read_cifar100(batch_step,1000)
+	file_name = 'CIFAR10_model'+path[-1]+'.h5'
+	train_batch,test_batch = read_cifar10(file_name,batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3],name = 'input_x')
 	tf.summary.image('input_x', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = complex_net(x,100,0,is_complex=is_complex)
+	model = complex_net(x,10,0,is_complex=is_complex)
 	model.diff_net(x,name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
 	out_result= tf.add(model.out,0.0,name = 'out')
 	if is_complex:
@@ -205,7 +207,7 @@ def generate_sigle_summary(path,kernel_list,channel_list,fc_list,is_complex=True
 class ImportGraph():
 	"""  Importing and running isolated TF graph """
 	def __init__(self, loc):
-		model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar100_meta/'+loc)
+		model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta/'+loc)
 		# Create local graph and use it in the session
 		self.graph = tf.Graph()
 		self.sess = tf.Session(graph=self.graph)
@@ -232,7 +234,8 @@ class ImportGraph():
 
 def restore(model_path_list):
 	### Using the class ###
-	_,test_batch = read_cifar100(1,1000)
+	file_name = 'CIFAR10.h5'
+	_,test_batch = read_cifar10(file_name,1,1000)
 	accuracy=0.0
 	for k in range(10):
 		data,lable  = next(test_batch)
