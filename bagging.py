@@ -29,7 +29,7 @@ def count():
         total_parameters += variable_parameters
     print(total_parameters)
 
-def generate_sigle_model(path,kernel_list,channel_list,fc_list,is_complex=True):
+def generate_sigle_model(path,kernel_list,channel_list,fc_list,file_name,is_complex=True):
 
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
@@ -279,16 +279,16 @@ if __name__=='__main__':
 				'real_model1','real_model2','real_model3','real_model4']
 
 
-	# kernel_list = [[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3],[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3]]
-	# channel_list = [[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64],[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64]]
-	# fc_list =[[192],[192],[192,81],[192,81],[192],[192],[192,81],[192,81]]
-	# i = 0
-	# if i>=4:
-	# 	is_complex = False
-	# else:
-	# 	is_complex = True
-	# generate_sigle_model(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
-	restore(['complex_model1','complex_model2','complex_model3'])
+	kernel_list = [[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3],[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3]]
+	channel_list = [[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64],[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64]]
+	fc_list =[[192],[192],[192,81],[192,81],[192],[192],[192,81],[192,81]]
+	i = 0
+	if i>=4:
+		is_complex = False
+	else:
+		is_complex = True
+	generate_sigle_model(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+	# restore(['complex_model1','complex_model2','complex_model3'])
 
 
 

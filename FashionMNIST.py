@@ -7,8 +7,8 @@ import tensorflow as tf
 import Preproc
 
 
-def loadHDF5():
-    with h5py.File('FashionMNIST.h5', 'r') as f:
+def loadHDF5(file_name):
+    with h5py.File(file_name, 'r') as f:
         dataTrain   = np.expand_dims(np.array(f['Train']['images'])[:, :, :, 0], axis=-1)
         labelsTrain = np.array(f['Train']['labels']).reshape([-1])
         dataTest    = np.expand_dims(np.array(f['Test']['images'])[:, :, :, 0], axis=-1)
@@ -169,7 +169,7 @@ def generatorsAdv(BatchSize, preprocSize=[28, 28, 1]):
     Return:
         genTrain: an iterator for the training set
         genTest:  an iterator for the test set'''
-    (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5()
+    (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5(file_name)
         
     def genTrainDatum():
         index = Preproc.genIndex(dataTrain.shape[0], shuffle=True)
@@ -254,8 +254,8 @@ def generatorsAdv(BatchSize, preprocSize=[28, 28, 1]):
 
 
             
-def read_fashion(TrainBatchSize,TestBatchSize):
-    batchTrain, batchTest = generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 1], numSame=0, numDiff=0)
+def read_fashion(file_name,TrainBatchSize,TestBatchSize):
+    batchTrain, batchTest = generators(file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 1], numSame=0, numDiff=0)
     return batchTrain, batchTest
 
 

@@ -4,8 +4,8 @@ import numpy as np
 import tensorflow as tf
 import Preproc
 
-def loadHDF5():
-    with h5py.File('CIFAR10.h5', 'r') as f:
+def loadHDF5(file_name):
+    with h5py.File(file_name, 'r') as f:
         dataTrain   = np.array(f['Train']['images'])
         labelsTrain = np.array(f['Train']['labels'])
         dataTest    = np.array(f['Test']['images'])
@@ -35,13 +35,13 @@ def allData(preprocSize=[28, 28, 3]):
     return preproc(data, preprocSize), labels, invertedIdx
 
 
-def generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3]):
+def generators(file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3]):
     ''' generators for multi-let
     Args:
     Return:
         genTrain: an iterator for the training set
         genTest:  an iterator for the test set'''
-    (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5()
+    (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5(file_name)
         
     def genTrainDatum():
         index = Preproc.genIndex(dataTrain.shape[0], shuffle=True)
@@ -120,8 +120,8 @@ def generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3]):
 
 
             
-def read_cifar10(TrainBatchSize,TestBatchSize):
-    batchTrain, batchTest = generators(TrainBatchSize,TestBatchSize, preprocSize=[24, 24, 3])
+def read_cifar10(file_name,TrainBatchSize,TestBatchSize):
+    batchTrain, batchTest = generators(file_name,TrainBatchSize,TestBatchSize, preprocSize=[24, 24, 3])
     return batchTrain, batchTest
     
     # SimpleV1C: 0.9064, 23400

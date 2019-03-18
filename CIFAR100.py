@@ -89,8 +89,8 @@ def saveHDF5():
         test['labelsFine']    = labelsFineTest
         print('Test set saved. ')
         
-def loadHDF5():
-    with h5py.File('CIFAR100.h5', 'r') as f:
+def loadHDF5(file_name):
+    with h5py.File(file_name, 'r') as f:
         dataTrain         = np.array(f['Train']['data'])
         labelsCoarseTrain = np.array(f['Train']['labelsCoarse'])
         labelsFineTrain   = np.array(f['Train']['labelsFine'])
@@ -101,25 +101,23 @@ def loadHDF5():
     return (dataTrain, labelsCoarseTrain, labelsFineTrain, \
             dataTest, labelsCoarseTest, labelsFineTest)
         
-def loadHDF5Adv():
-    with h5py.File('CIFAR100.h5', 'r') as f:
+def loadHDF5Adv(file_name):
+    with h5py.File(file_name, 'r') as f:
         dataTrain         = np.array(f['Train']['data'])
-        labelsCoarseTrain = np.array(f['Train']['labelsCoarse'])
         labelsFineTrain   = np.array(f['Train']['labelsFine'])
         dataTest          = np.array(f['Test']['data'])
-        labelsCoarseTest  = np.array(f['Test']['labelsCoarse'])
         labelsFineTest    = np.array(f['Test']['labelsFine'])
         
-    return (dataTrain, labelsCoarseTrain, \
-            dataTest, labelsCoarseTest)
+    return (dataTrain, labelsFineTrain, \
+            dataTest, labelsFineTest)
 
-def generators(Train_batchSize, Test_batchSize,preprocSize=[32, 32, 3]):
+def generators(file_name,Train_batchSize, Test_batchSize,preprocSize=[32, 32, 3]):
     ''' generators for multi-let
     Args:
     Return:
         genTrain: an iterator for the training set
         genTest:  an iterator for the test set'''
-    (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5Adv()
+    (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5Adv(file_name)
         
     def genTrainDatum():
         index = Preproc.genIndex(dataTrain.shape[0], shuffle=True)
@@ -196,7 +194,7 @@ def generators(Train_batchSize, Test_batchSize,preprocSize=[32, 32, 3]):
         
     return genTrainBatch(Train_batchSize), genTestBatch(Test_batchSize)
             
-def read_cifar100(Train_batchSize,Test_batchSize):
-    batchTrain, batchTest = generators(Train_batchSize=Train_batchSize, Test_batchSize=Test_batchSize,preprocSize=[24, 24, 3])
+def read_cifar100(file_name,Train_batchSize,Test_batchSize):
+    batchTrain, batchTest = generators(file_name,Train_batchSize=Train_batchSize, Test_batchSize=Test_batchSize,preprocSize=[24, 24, 3])
     return   batchTrain,batchTest      
         

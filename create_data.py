@@ -14,15 +14,10 @@ def load_base_h5(filename):
 
 
 def Bootstrap(data,label):
-	images = []
-	labels = []
 	index = np.random.randint(0,data.shape[0],data.shape[0])
-	imageAnchor = data[index]
-	labelAnchor = label[index]
-	images.append(imageAnchor)
-	labels.append(labelAnchor)
-	return np.array(images),np.array(labels)
-
+	images = data[index]
+	labels = label[index]
+	return images,labels
 
 def divide_equally(k,data,label):
 	result = []
@@ -40,17 +35,20 @@ def divide_equally(k,data,label):
 
 
 def wrrite_file(train_data,test_data,filename):
-	with h5py.File(filename,'r') as f:
+	with h5py.File(filename,'w') as f:
 		f.create_group('Train')
 		f.create_group('Test')
-		f.create_dataset('Train/images',train_data[0])
-		f.create_dataset('Train/labels',train_data[1])
-		f.create_dataset('Test/images',test_data[0])
-		f.create_dataset('Test/labels',test_data[1])
+		f.create_dataset('Train/images',data = train_data[0])
+		f.create_dataset('Train/labels',data = train_data[1])
+		f.create_dataset('Test/images',data = test_data[0])
+		f.create_dataset('Test/labels',data = test_data[1])
 
-if __name__=="__main__":
-	dataTrain, labelsTrain, dataTest, labelsTest = load_base_h5("CIFAR10.h5")
+def Bootstrap_file(filename):
+	dataTrain, labelsTrain, dataTest, labelsTest = load_base_h5(filename)
 	for i in range(4):
 		train_image,train_lable = Bootstrap(dataTrain,labelsTrain)
-		wrrite_file([train_image,train_lable],[dataTest,labelsTest],"CIFAR10"+'_model'+str(i+1)+'.h5')
+		wrrite_file([train_image,train_lable],[dataTest,labelsTest],filename[:-3]+'_model'+str(i+1)+'.h5')
+
+if __name__=="__main__":
+	Bootstrap_file(filename)
 
