@@ -33,10 +33,11 @@ def divide_equally(k,data,label):
 			images = data[index][i*step:]
 			labels = label[index][i*step:]
 		result.append((images,labels))
+	return result
 
 
-def wrrite_file(train_data,test_data,filename):
-	with h5py.File(filename,'w') as f:
+def wrrite_file(train_data,test_data,file_name):
+	with h5py.File(file_name,'w') as f:
 		f.create_group('Train')
 		f.create_group('Test')
 		f.create_dataset('Train/images',data = train_data[0])
@@ -44,12 +45,21 @@ def wrrite_file(train_data,test_data,filename):
 		f.create_dataset('Test/images',data = test_data[0])
 		f.create_dataset('Test/labels',data = test_data[1])
 
-def Bootstrap_file(filename):
-	dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5(filename)
+def Bootstrap_file(file_name):
+	dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5(file_name)
 	for i in range(4):
 		train_image,train_lable = Bootstrap(dataTrain,labelsTrain)
-		wrrite_file([train_image,train_lable],[dataTest,labelsTest],filename[:-3]+'_model'+str(i+1)+'.h5')
+		wrrite_file([train_image,train_lable],[dataTest,labelsTest],file_name[:-3]+'_model'+str(i+1)+'.h5')
+
+
+def k_flod(file_name):
+	dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5(file_name)
+	for i in range(6):
+		k = i+2
+		data_list=divide_equally(k,dataTrain,labelsTrain)
+		for p,item in enumrate(data_list):
+			wrrite_file(item,[dataTest, labelsTest],file_name[:-3]+'st'+str(k)+str(p+1))
 
 if __name__=="__main__":
-	Bootstrap_file('MNIST.h5')
+	k_flod('MNIST.h5')
 
