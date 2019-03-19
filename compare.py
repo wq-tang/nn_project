@@ -12,6 +12,12 @@ from FashionMNIST import read_fashion
 from CIFAR10 import read_cifar10
 from MNIST import read_mnist
 
+
+#修改模型以及对应的方法
+#修改读取文件的函数以及文件名称
+#修改输出路径
+#修改模型中的输出参数
+
 def count():
     total_parameters = 0
     for variable in tf.trainable_variables():
@@ -30,7 +36,7 @@ def count():
 def cifar(path,is_complex,model_num):
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
-		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
+		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels = y,name='cross_entropy_per_example')
 		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
@@ -43,19 +49,19 @@ def cifar(path,is_complex,model_num):
 
 	max_epoch = 50000
 	batch_step = 128
-	file_name = 'CIFAR10.h5'
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'resnet/cifar10_board/'+path)
-	train_batch,test_batch=read_cifar10('data/'+file_name,batch_step,1000)
+	file_name = 'CIFAR100.h5'
+	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar100_board/'+path)
+	train_batch,test_batch=read_cifar100('data/'+file_name,batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3])
 	tf.summary.image('inputs', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = Resnet(x,10,0,is_complex=is_complex)
+	model = complex_net(x,100,0,is_complex=is_complex)
 	if path[:7] == 'compare':
-		model.build_compare_resnet(model_num)
+		model.build_compare_for_cifar10(model_num)
 	else:
-		model.build_resnet(model_num)
+		model.build_CNN_for_cifar10(model_num)
 	models_result =model.out
 	with tf.name_scope('loss'):
 		loss  = loss(models_result,y)

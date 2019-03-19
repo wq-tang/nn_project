@@ -29,7 +29,7 @@ def count():
         total_parameters += variable_parameters
     print(total_parameters)
 
-def generate_model_cifar(path,kernel_list,channel_list,fc_list,file_name,is_complex=True):
+def generate_model_cifar(path,kernel_list,channel_list,fc_list,is_complex=True):
 
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
@@ -204,9 +204,10 @@ def generate_summary_cifar(path,kernel_list,channel_list,fc_list,is_complex=True
 
 
 class ImportGraph():
+	#修改模型读取路径
 	"""  Importing and running isolated TF graph """
 	def __init__(self, loc):
-		model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta/'+loc)
+		model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta_bagging/'+loc)
 		# Create local graph and use it in the session
 		self.graph = tf.Graph()
 		self.sess = tf.Session(graph=self.graph)
@@ -232,6 +233,7 @@ class ImportGraph():
 
 
 def restore(model_path_list):
+	#修改文件读取名字，读取函数
 	### Using the class ###
 	file_name = 'CIFAR10.h5'
 	_,test_batch = read_cifar10('data/'+file_name,1,1000)
@@ -280,17 +282,18 @@ if __name__=='__main__':
 	path_list = ['complex_model1','complex_model2','complex_model3','complex_model4',\
 				'real_model1','real_model2','real_model3','real_model4']
 
-
 	kernel_list = [[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3],[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3]]
 	channel_list = [[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64],[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64]]
 	fc_list =[[192],[192],[192,81],[192,81],[192],[192],[192,81],[192,81]]
-	i = 0
+	i = 4
 	if i>=4:
 		is_complex = False
 	else:
 		is_complex = True
-	generate_summary_cifar(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
-	# restore(['complex_model1','complex_model2','complex_model3'])
+	generate_model_cifar(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+
+
+	# restore(['complex_model1','complex_model2','complex_model3','complex_model4'])
 
 
 
