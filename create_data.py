@@ -37,15 +37,6 @@ def divide_equally(k,data,label):
 	return result
 
 
-def wrrite_file(train_data,test_data,file_name):
-	with h5py.File(file_name,'w') as f:
-		f.create_group('Train')
-		f.create_group('Test')
-		f.create_dataset('Train/data',data = train_data[0])
-		f.create_dataset('Train/labelsFine',data = train_data[1])
-		f.create_dataset('Test/data',data = test_data[0])
-		f.create_dataset('Test/labelsFine',data = test_data[1])
-
 def Bootstrap_file(file_name):
 	dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5(file_name)
 	for i in range(4):
@@ -61,6 +52,41 @@ def k_flod(file_name):
 		for p,item in enumerate(data_list):
 			wrrite_file(item,[dataTest, labelsTest],file_name[:-3]+'_st'+str(k)+str(p+1)+'.h5')
 
+
+
+
+
+def merge_data(file_head,model_tag):
+	data = []
+	lable = []
+	k = int(file_head[-1])
+	merge_list = list(range(1,k+1)):
+	merge_list.remove(model_tag)
+	for i in merge_list:
+		file_name = file_head+str(i)+'.h5'
+		dataTrain, labelsTrain, dataTest, labelsTest = load_mnist(file_name)
+		data.append(dataTrain)
+		label.append(labelsTrain)
+	data = np.concatenate(data, axis=0)
+	label = np.concatenate(label, axis=0)
+	return dataTrain, labelsTrain, dataTest, labelsTest
+
+def wrrite_file(train_data,test_data,file_name):
+	with h5py.File(file_name,'w') as f:
+		f.create_group('Train')
+		f.create_group('Test')
+		f.create_dataset('Train/data',data = train_data[0])
+		f.create_dataset('Train/labelsFine',data = train_data[1])
+		f.create_dataset('Test/data',data = test_data[0])
+		f.create_dataset('Test/labelsFine',data = test_data[1])
+def merge_all(file_head):
+	for k in range(3,7):
+		file_head+=str(k)
+		for tag in range(1,k+1):
+			dataTrain, labelsTrain, dataTest, labelsTest = merge_data(file_head,tag)
+			wrrite_file([dataTrain,labelsTrain],[dataTest,labelsTest],file_head+'-'+str(tag)+'.h5')
+
+
 if __name__=="__main__":
-	k_flod('CIFAR100.h5')
+	merge_all('MNIST_st')
 

@@ -42,10 +42,10 @@ def cifar(path,is_complex,model_num):
 			test_x,test_y = next(test_batch)
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
-#修改模型以及对应的方法
-#修改读取文件的函数以及文件名称
-#修改输出路径
-#修改模型中的输出参数
+	#修改模型以及对应的方法
+	#修改读取文件的函数以及文件名称
+	#修改输出路径
+	#修改模型中的输出参数
 
 	max_epoch = 50000
 	batch_step = 128
@@ -122,10 +122,10 @@ def mnist(path,is_complex,model_num):
 			test_x,test_y = next(test_batch)
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
-#修改模型以及对应的方法
-#修改读取文件的函数以及文件名称
-#修改输出路径
-#修改模型中的输出参数
+	#修改模型以及对应的方法
+	#修改读取文件的函数以及文件名称
+	#修改输出路径
+	#修改模型中的输出参数
 
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/mnist_board/'+path)
 	epoch = 50

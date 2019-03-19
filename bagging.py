@@ -43,6 +43,10 @@ def generate_model_cifar(path,kernel_list,channel_list,fc_list,is_complex=True):
 			test_x,test_y = next(test_batch)
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
+	#修改模型以及对应的方法
+	#修改读取文件的函数以及文件名称
+	#修改输出路径
+	#修改模型中的输出参数
 
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta_bagging/'+path)
 	max_epoch = 30000
@@ -117,6 +121,7 @@ def generate_model_cifar(path,kernel_list,channel_list,fc_list,is_complex=True):
 
 def generate_summary_cifar(path,kernel_list,channel_list,fc_list,is_complex=True):
 
+
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
 		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits+0.1**8,labels = y,name='cross_entropy_per_example')
@@ -129,7 +134,10 @@ def generate_summary_cifar(path,kernel_list,channel_list,fc_list,is_complex=True
 			test_x,test_y = next(test_batch)
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
-
+	#修改模型以及对应的方法
+	#修改读取文件的函数以及文件名称
+	#修改输出路径
+	#修改模型中的输出参数
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_board_bagging/'+path)
 	max_epoch = 50000
 	batch_step = 128 
