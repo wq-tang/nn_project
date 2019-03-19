@@ -9,11 +9,10 @@ import Preproc
 
 def loadHDF5(file_name):
     with h5py.File(file_name, 'r') as f:
-        dataTrain   = np.expand_dims(np.array(f['Train']['images'])[:, :, :, 0], axis=-1)
-        labelsTrain = np.array(f['Train']['labels']).reshape([-1])
-        dataTest    = np.expand_dims(np.array(f['Test']['images'])[:, :, :, 0], axis=-1)
-        labelsTest  = np.array(f['Test']['labels']).reshape([-1])
-        
+        dataTrain   = np.array(f['Train']['images'])
+        labelsTrain = np.array(f['Train']['labels'])
+        dataTest    = np.array(f['Test']['images'])
+        labelsTest  = np.array(f['Test']['labels'])
     return (dataTrain, labelsTrain, dataTest, labelsTest)
 
 def preproc(images, size): 

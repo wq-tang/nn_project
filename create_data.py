@@ -5,7 +5,6 @@ import Preproc
 
 
 
-
 def loadHDF5Adv(file_name):
     with h5py.File(file_name, 'r') as f:
         dataTrain         = np.array(f['Train']['data'])
@@ -14,6 +13,7 @@ def loadHDF5Adv(file_name):
         labelsFineTest    = np.array(f['Test']['labelsFine'])
         
     return (dataTrain, labelsFineTrain,dataTest, labelsFineTest)
+
 
 def Bootstrap(data,label):
 	index = np.random.randint(0,data.shape[0],data.shape[0])
@@ -58,13 +58,13 @@ def k_flod(file_name):
 
 def merge_data(file_head,model_tag):
 	data = []
-	lable = []
+	label = []
 	k = int(file_head[-1])
-	merge_list = list(range(1,k+1)):
+	merge_list = list(range(1,k+1))
 	merge_list.remove(model_tag)
 	for i in merge_list:
 		file_name = file_head+str(i)+'.h5'
-		dataTrain, labelsTrain, dataTest, labelsTest = load_mnist(file_name)
+		dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5Adv('data/'+file_name)
 		data.append(dataTrain)
 		label.append(labelsTrain)
 	data = np.concatenate(data, axis=0)
@@ -79,8 +79,9 @@ def wrrite_file(train_data,test_data,file_name):
 		f.create_dataset('Train/labelsFine',data = train_data[1])
 		f.create_dataset('Test/data',data = test_data[0])
 		f.create_dataset('Test/labelsFine',data = test_data[1])
-def merge_all(file_head):
+def merge_all(file_heads):
 	for k in range(3,7):
+		file_head = file_heads
 		file_head+=str(k)
 		for tag in range(1,k+1):
 			dataTrain, labelsTrain, dataTest, labelsTest = merge_data(file_head,tag)
@@ -88,5 +89,7 @@ def merge_all(file_head):
 
 
 if __name__=="__main__":
-	merge_all('MNIST_st')
+	merge_all('CIFAR100_st')
+
+	
 
