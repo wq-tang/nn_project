@@ -13,10 +13,6 @@ from CIFAR10 import read_cifar10
 from MNIST import read_mnist
 
 
-#修改模型以及对应的方法
-#修改读取文件的函数以及文件名称
-#修改输出路径
-#修改模型中的输出参数
 
 def count():
     total_parameters = 0
@@ -46,6 +42,10 @@ def cifar(path,is_complex,model_num):
 			test_x,test_y = next(test_batch)
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
+#修改模型以及对应的方法
+#修改读取文件的函数以及文件名称
+#修改输出路径
+#修改模型中的输出参数
 
 	max_epoch = 50000
 	batch_step = 128
@@ -122,18 +122,20 @@ def mnist(path,is_complex,model_num):
 			test_x,test_y = next(test_batch)
 			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
 		return np.mean(precision)
+#修改模型以及对应的方法
+#修改读取文件的函数以及文件名称
+#修改输出路径
+#修改模型中的输出参数
 
 	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/mnist_board/'+path)
 	epoch = 50
-	batch = 128
+	batch_step = 128
 	file_name = 'MNIST.h5'
-	train_batch,test_batch=read_cifar10('data/'+file_name,batch_step,1000)
+	train_batch,test_batch=read_mnist('data/'+file_name,batch_step,1000)
 	x  = tf.placeholder(tf.float32,[None,784])
 	y = tf.placeholder(tf.int32,[None,10])
-	with tf.name_scope('input_reshape'):
-		image_shaped_input = tf.reshape(x, [-1, 28, 28, 1])
-		tf.summary.image('input', image_shaped_input, 10)
-	model = complex_net(image_shaped_input,10,0,is_complex=is_complex)
+	tf.summary.image('input', x, 10)
+	model = complex_net(x,10,0,is_complex=is_complex)
 	if path[:7] == 'compare':
 		model.build_compare_for_mnist(model_num)
 	else:
@@ -189,10 +191,11 @@ def mnist(path,is_complex,model_num):
 
 
 if __name__=='__main__':
-	path = sys.argv[1]
-	is_complex = bool(int(sys.argv[2]))
-	model_num = int(sys.argv[3])
-	print(path)
-	print(is_complex)
-	print(model_num)
-	cifar(path=path,is_complex=is_complex,model_num=model_num)
+	# path = sys.argv[1]
+	# is_complex = bool(int(sys.argv[2]))
+	# model_num = int(sys.argv[3])
+	# print(path)
+	# print(is_complex)
+	# print(model_num)
+	# cifar(path=path,is_complex=is_complex,model_num=model_num)
+	mnist('test',True,1)	
