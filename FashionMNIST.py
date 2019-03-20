@@ -78,7 +78,7 @@ def allData(preprocSize=[28, 28, 1]):
     return preproc(data, preprocSize), labels, invertedIdx
 
 
-def generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 1], numSame=1, numDiff=1):
+def generators(file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 1], numSame=1, numDiff=1):
     ''' generators for multi-let
     Args:
         numSame: number of samples in the same coarse class; 
@@ -138,7 +138,7 @@ def generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 1], numSame=1,
         while True:
             batchImages = []
             batchLabels = []
-            for _ in range(BatchSize):
+            for _ in range(TrainBatchSize):
                 images, labels = next(datum)
                 batchImages.append(images)
                 batchLabels.append(labels)
@@ -152,7 +152,7 @@ def generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 1], numSame=1,
         while True:
             batchImages = []
             batchLabels = []
-            for _ in range(BatchSize):
+            for _ in range(TestBatchSize):
                 images, labels = next(datum)
                 batchImages.append(images)
                 batchLabels.append(labels)
@@ -163,94 +163,6 @@ def generators(TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 1], numSame=1,
         
     return genTrainBatch(TrainBatchSize), genTestBatch(TestBatchSize)
 
-def generatorsAdv(BatchSize, preprocSize=[28, 28, 1]):
-    ''' generators for multi-let
-    Args:
-    Return:
-        genTrain: an iterator for the training set
-        genTest:  an iterator for the test set'''
-    (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5(file_name)
-        
-    def genTrainDatum():
-        index = Preproc.genIndex(dataTrain.shape[0], shuffle=True)
-        while True:
-            indexAnchor = next(index)
-            imageAnchor = dataTrain[indexAnchor]
-            labelAnchor = labelsTrain[indexAnchor]
-            images      = [imageAnchor]
-            labels      = [labelAnchor]
-            
-            yield images, labels
-        
-    def genTestDatum():
-        index = Preproc.genIndex(dataTest.shape[0], shuffle=False)
-        while True:
-            indexAnchor = next(index)
-            imageAnchor = dataTest[indexAnchor]
-            labelAnchor = labelsTest[indexAnchor]
-            images      = [imageAnchor]
-            labels      = [labelAnchor]
-            
-            yield images, labels
-    
-    def preprocTrain(images, size): 
-        results = np.ndarray([images.shape[0]]+size, np.uint8)
-        for idx in range(images.shape[0]): 
-            distorted     = Preproc.randomFlipH(images[idx])
-            distorted     = Preproc.randomShift(distorted, rng=4)
-            #distorted     = Preproc.randomRotate(distorted, rng=30)
-            # distorted     = Preproc.randomRotate(images[idx], rng=30)
-            #distorted     = Preproc.randomCrop(distorted, size)
-            #distorted     = Preproc.randomContrast(distorted, 0.5, 1.5)
-            #distorted     = Preproc.randomBrightness(distorted, 32)
-            results[idx]  = distorted.reshape([28, 28, 1])
-        
-        return results
-    
-    def preprocTest(images, size): 
-        results = np.ndarray([images.shape[0]]+size, np.uint8)
-        for idx in range(images.shape[0]): 
-            distorted = images[idx]
-            distorted     = Preproc.centerCrop(distorted, size)
-            results[idx]  = distorted
-        
-        return results
-    
-    def genTrainBatch(BatchSize):
-        datum = genTrainDatum()
-        while True:
-            batchImages = []
-            batchLabels = []
-            batchTargets = []
-            for _ in range(BatchSize):
-                images, labels = next(datum)
-                batchImages.append(images)
-                batchLabels.append(labels)
-                batchTargets.append(random.randint(0, 9))
-            batchImages = preprocTrain(np.concatenate(batchImages, axis=0), preprocSize)
-            batchLabels = np.concatenate(batchLabels, axis=0)
-            batchTargets = np.array(batchTargets)
-            
-            yield batchImages, batchLabels, batchTargets
-            
-    def genTestBatch(BatchSize):
-        datum = genTestDatum()
-        while True:
-            batchImages = []
-            batchLabels = []
-            batchTargets = []
-            for _ in range(BatchSize):
-                images, labels = next(datum)
-                batchImages.append(images)
-                batchLabels.append(labels)
-                batchTargets.append(random.randint(0, 9))
-            batchImages = preprocTest(np.concatenate(batchImages, axis=0), preprocSize)
-            batchLabels = np.concatenate(batchLabels, axis=0)
-            batchTargets = np.array(batchTargets)
-            
-            yield batchImages, batchLabels, batchTargets
-        
-    return genTrainBatch(BatchSize), genTestBatch(BatchSize)
 
 
             

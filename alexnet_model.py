@@ -100,7 +100,7 @@ class complex_net(base_class):
                 inputs=self.X
             out = 0
             for i in range(model_num):
-                out += self.conv_block(inputs,'conv_block',[5,3],[16,8])
+                out += self.conv_block(inputs,'conv_block'+str(i+1),[5,3],[16,8])
             self.out=self.fc_block(out,'fc_block',[30,self.CLASSNUM])
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
