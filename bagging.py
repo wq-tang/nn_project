@@ -122,7 +122,7 @@ def generate_model_mnist(path,kernel_list,channel_list,fc_list,is_complex=True):
 	sess.close()
 
 
-def generate_model_cifar(path,kernel_list,channel_list,fc_list,is_complex=True):
+def generate_model_cifar(path,kernel_list,channel_list,is_complex=True):
 
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
@@ -141,18 +141,19 @@ def generate_model_cifar(path,kernel_list,channel_list,fc_list,is_complex=True):
 	#修改输出路径
 	#修改模型中的输出参数
 
-	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta_bagging_boot/'+path)
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'resnet/cifar10_meta_bagging/'+path)
 	max_epoch = 50000
 	batch_step = 128 
-	file_name = 'CIFAR10_model'+path[-1]+'.h5'
+	# file_name = 'CIFAR10_model'+path[-1]+'.h5'
+	file_name = 'CIFAR10.h5'
 	train_batch,test_batch = read_cifar10('data/'+file_name,batch_step,1000)
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,24,24,3],name = 'input_x')
 	tf.summary.image('input_x', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = complex_net(x,10,0,is_complex=is_complex)
-	model.diff_net(x,name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
+	model = resnet(x,10,0,is_complex=is_complex)
+	model.diff_sigle_model(x,name=path,kernel_list =kernel_list ,channel_list=channel_list)
 	out_result= tf.add(model.out,0.0,name = 'out')
 	if is_complex:
 		models_result = tf.sqrt(tf.square(out_result[0])+tf.square(out_result[1]))
@@ -366,21 +367,6 @@ def restore(model_path_list):
 
 
 if __name__=='__main__':
-	# path = sys.argv[1]
-	# local_path=sys.argv[2]
-	# is_complex = bool(int(sys.argv[3]))
-	# is_training = bool(int(sys.argv[5]))
-	# print(('board_path:%s\nmodel_path:%s')%(path,local_path))
-	# print("is_complex:",is_complex)
-	# print("is_training:",is_training)
-	# cifar10(path,local_path,is_complex=True,is_training=True)
-
-
-
-	# model_path_list = ['complex_model1','complex_model2']
-	# restore(model_path_list)
-
-
 	path_list = ['complex_model1','complex_model2','complex_model3','complex_model4',\
 				'real_model1','real_model2','real_model3','real_model4']
 	#cifar100
@@ -398,13 +384,21 @@ if __name__=='__main__':
 	# channel_list = [[16,8],[8,16,16],[32],[32]]
 	# fc_list =[[30],[50],[30],[60,30]]
 
-	i = 0
-	if i>=4:
-		is_complex = False
-	else:
-		is_complex = True
-	generate_model_mnist(path_list[i],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+	###****************************************88
 
+	###resent*******
+	#cifar100
+	kernel_list = [[3,3,3,3],[5,5,5,5],[5,5,3,3],[5,3,3]]
+	channel_list = [[64,128,256,512],[64,128,128,256],[64,64,128,256],[128,256,512]]
+	acc = {}
+	for i in range(len(kernel_list)):
+		k=i
+		if not is_complex:
+			k=i+4
+		graph = tf.Graph()
+		with graph.as_default():
+			acc[path_list[k]]=generate_model_cifar(path_list[k],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+	print(acc)
 	# tag = [['1','2','3','4'],['1','2','3'],['1','2','4'],['1','3','4'],['2','3','4'],['1','2'],['1','3'],['1','4'],['2','3'],['2','4'],['3','4']]
 	# ans = []
 	# for head in ['real_model','complex_model']:
