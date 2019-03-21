@@ -410,12 +410,11 @@ if __name__=='__main__':
 			train_data_set.append(train_data)
 			train_label_set.append(train_label)
 			test_data_set.append(test_data)
-			time.sleep(2)
 		train_data_set = np.concatenate(train_data_set,axis = axis)
 		train_label_set = np.concatenate(train_label_set,axis = 0)
 
 		test_data_set = np.mean(test_data_set,axis=0)
 			#写操作
-		wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],file_head)
+		wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],file_head+'.h5')
 	print(acc)
 
