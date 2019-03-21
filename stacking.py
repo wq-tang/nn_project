@@ -4,6 +4,7 @@ import tensorflow as tf
 import time
 import math
 import sys
+import h5py
 
 from alexnet_model import complex_net
 from resnet_model import Resnet
@@ -13,14 +14,23 @@ from FashionMNIST import read_fashion
 from CIFAR10 import read_cifar10
 from MNIST import read_mnist
 
+# def wrrite_file(train_data,test_data,file_name):
+# 	with h5py.File(file_name,'w') as f:
+# 		f.create_group('Train')
+# 		f.create_group('Test')
+# 		f.create_dataset('Train/data',data = train_data[0])
+# 		f.create_dataset('Train/labelsFine',data = train_data[1])
+# 		f.create_dataset('Test/data',data = test_data[0])
+# 		f.create_dataset('Test/labelsFine',data = test_data[1])
+
 def wrrite_file(train_data,test_data,file_name):
 	with h5py.File(file_name,'w') as f:
 		f.create_group('Train')
 		f.create_group('Test')
-		f.create_dataset('Train/data',data = train_data[0])
-		f.create_dataset('Train/labelsFine',data = train_data[1])
-		f.create_dataset('Test/data',data = test_data[0])
-		f.create_dataset('Test/labelsFine',data = test_data[1])
+		f.create_dataset('Train/images',data = train_data[0])
+		f.create_dataset('Train/labels',data = train_data[1])
+		f.create_dataset('Test/images',data = test_data[0])
+		f.create_dataset('Test/labels',data = test_data[1])
 
 def stacking(path,kernel_list,channel_list,fc_list,is_complex=True):
 	def loss(logits,y):
@@ -138,14 +148,8 @@ class ImportGraph():
 
 
 
-def prepare_data():
-	data_list = []
-	for i in range(1,k+1):
-		file_name = file_head+str(i)
-		data_list.append(read_cifar10('data/'+file_name,,1000))
-	return data_list
 
-def generate_Primary_net(model_shape,model_tag,is_complex):
+def generate_Primary_net_cifar(model_shape,model_tag,is_complex):
 	#修改文件读取名字，读取函数
 	### Using the class ###
 	def loss(logits,y):
@@ -249,6 +253,119 @@ def generate_Primary_net(model_shape,model_tag,is_complex):
 	np.concatenate(test_data,axis=0),np.concatenate(test_label,axis=0)
 
 
+def generate_Primary_net_mnist(model_shape,model_tag,is_complex):
+	#修改文件读取名字，读取函数
+	### Using the class ###
+	def loss(logits,y):
+		labels =tf.cast(y,tf.int64)
+		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels = y,name='cross_entropy_per_example')
+		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
+		tf.add_to_collection('losses',cross_entropy_mean)
+		return tf.add_n(tf.get_collection('losses'),name='total_loss')
+	def test(test_batch):
+		precision=[]
+		for i in range(10):
+			test_x,test_y = next(test_batch)
+			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y}))
+		return np.mean(precision)
+	#修改模型以及对应的方法
+	#修改读取文件的函数以及文件名称
+	#修改输出路径
+	#修改模型中的输出参数
+	if is_complex:
+		local_path = 'complex'+model_shape[0]
+	else:
+		local_path = 'real'+model_shape[0]
+
+	path,kernel_list,channel_list,fc_list = model_shape
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),\
+		'mynet/stacking/mnist/'+local_path+str(model_tag))
+	max_epoch = 30000
+	batch_step = 128 
+	file_name = 'MNIST_st4-'+str(model_tag)+'.h5'
+	validation_name =  'MNIST_st4'+str(model_tag)+'.h5'
+	valid_train,_ = read_mnist('k_data/'+validation_name,1500,1000)#10次取完
+	train_batch,test_batch = read_mnist('k_data/'+file_name,batch_step,1000)
+	with tf.name_scope("inputs"):
+		x  = tf.placeholder(tf.float32,[None,28,28,1],name = 'input_x')
+	tf.summary.image('input_x', x, 10)
+	y = tf.placeholder(tf.int32,[None])
+
+	model = complex_net(x,10,0,is_complex=is_complex)
+	model.diff_net(x,name=local_path+str(model_tag),kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
+	out_result= tf.add(model.out,0.0,name = 'out')
+	if is_complex:
+		models_result = tf.sqrt(tf.square(out_result[0])+tf.square(out_result[1]))
+	else:
+		models_result =out_result
+	tf.add_to_collection("model_out", out_result)
+	with tf.name_scope('loss'):
+		loss  = loss(models_result,y)
+	tf.summary.scalar('loss', loss)
+	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+	with tf.control_dependencies(update_ops):
+		train_op = tf.train.AdamOptimizer(0.1**3).minimize(loss)
+		tf.add_to_collection("train_op", train_op)
+		# train_op = tf.train.GradientDescentOptimizer(0.1).minimize(loss)
+	top_k_op = tf.nn.in_top_k(models_result,y,1)
+	with tf.name_scope('accuracy'):
+		accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
+	tf.summary.scalar('accuracy', accuracy)
+	sess = tf.InteractiveSession()
+
+	saver=tf.train.Saver(max_to_keep=1)
+
+	tf.global_variables_initializer().run()
+	tf.train.start_queue_runners()
+	
+	ans=[]
+	test_x,test_y = next(test_batch)
+	for i in range(max_epoch):
+		start_time = time.time()
+		train_x,train_y = next(train_batch)
+		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
+		duration = time.time() - start_time
+		if i%1000 ==0:
+			loss_value = sess.run(loss, feed_dict={x:train_x,y:train_y})
+			examples_per_sec = batch_step/duration
+			sec_per_batch = float(duration)
+			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch)')
+			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
+			model.training = False
+			acc = sess.run(accuracy, feed_dict={x:test_x,y:test_y})
+			test_accuracy = test(test_batch)
+			ans.append(test_accuracy)
+			model.training = True
+			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
+			print( "step %d, training accuracy %g"%(i, train_accuracy))
+			print( "step %d,test accuracy %g"%(i,test_accuracy))
+	
+	saver.save(sess,model_path+'.ckpt')
+
+	if is_complex:
+		axis = 1
+	else:
+		axis=0
+
+	valid_data=[]
+	valid_label = []
+	test_data=[]
+	test_label = []
+	for i in range(10):
+		test_x,test_y = next(test_batch)
+		valid_train_data,valid_train_label = next(valid_train)
+		valid_data.append((sess.run(out_result,feed_dict={x:valid_train_data})))
+		valid_label.append(valid_train_label)
+		test_label.append(test_y)
+		test_data.append((sess.run(out_result,feed_dict={x:test_x})))
+
+	print('precision @1 = %.5f'%np.mean(ans[-5:]))
+	sess.close()
+
+
+	return np.mean(ans[-5:]), np.concatenate(valid_data,axis=axis),np.concatenate(valid_label,axis=0),\
+	np.concatenate(test_data,axis=axis),np.concatenate(test_label,axis=0)
+
 
 #cifar100
 # kernel_list = [[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3],[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3]]
@@ -256,43 +373,49 @@ def generate_Primary_net(model_shape,model_tag,is_complex):
 # fc_list =[[192],[192],[192,81],[192,81],[192],[192],[192,81],[192,81]]
 
 #cifar10
-kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3]]
-channel_list = [[128,64,64],[128,64,64],[128,128],[128,64]]
-fc_list =[[100],[128],[100,50],[100,50]]
+# kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3]]
+# channel_list = [[128,64,64],[128,64,64],[128,128],[128,64]]
+# fc_list =[[100],[128],[100,50],[100,50]]
 
 #mnist
-# kernel_list = [[5,3],[5,3,3],[5],[3]]
-# channel_list = [[16,8],[8,16,16],[32],[32]]
-# fc_list =[[30],[50],[30],[60,30]]
+kernel_list = [[5,3],[5,3,3],[5],[3]]
+channel_list = [[16,8],[8,16,16],[32],[32]]
+fc_list =[[30],[50],[30],[60,30]]
 
 path_list = ['1','2','3','4']
 
 shape_list = [path_list,kernel_list,channel_list,fc_list]
+
 if __name__=='__main__':
 	is_complex =True
-	for i in range(len(shape_list[0]))
+	acc = {}
+	if is_complex:
+		axis =1
+	else:
+		axis=0
+	for i in range(len(shape_list[0])):
 		train_data_set = []
 		train_label_set=[]
 		test_data_set =[]
 		model_shape = [k[i] for k in shape_list]
+		if is_complex:
+			file_head = 'MNIST_complex'+model_shape[0]
+		else:
+			file_head = 'MNIST_real'+model_shape[0]
 		for tag in range(1,5):
-			train_data,train_label,test_data,test_label = generate_Primary_net(model_shape,tag,is_complex)
+			graph = tf.Graph()
+			with graph.as_default():
+				accuracy,train_data,train_label,test_data,test_label = generate_Primary_net_mnist(model_shape,tag,is_complex)
+			acc[file_head+str(tag)] = accuracy
 			train_data_set.append(train_data)
 			train_label_set.append(train_label)
 			test_data_set.append(test_data)
 			time.sleep(2)
-		train_data_set = np.concatenate(train_data_set,axis = 0)
+		train_data_set = np.concatenate(train_data_set,axis = axis)
 		train_label_set = np.concatenate(train_label_set,axis = 0)
-		test_data_set = np.sum(test_data_set,axis=0)
+
+		test_data_set = np.mean(test_data_set,axis=0)
 			#写操作
+		wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],file_head)
+	print(acc)
 
-
-
-def wrrite_file(train_data,test_data,file_name):
-	with h5py.File(file_name,'w') as f:
-		f.create_group('Train')
-		f.create_group('Test')
-		f.create_dataset('Train/images',data = train_data[0])
-		f.create_dataset('Train/labels',data = train_data[1])
-		f.create_dataset('Test/images',data = test_data[0])
-		f.create_dataset('Test/labels',data = test_data[1])

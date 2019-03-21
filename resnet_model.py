@@ -140,7 +140,7 @@ class Resnet(base_class):
 		 for i in range(len(channel_list))]
 
 		net = 0.0
-		with tf.variable_scope('resnet'):
+		with tf.variable_scope(name):
 			net = self.stacks_block_dense(self.inputs,blocks,scope ='BLOCK'+str(i+1))
 			if self.is_complex:
 				R = tf.reduce_mean(net[0],[1,2],name='reduceR',keep_dims=False)
