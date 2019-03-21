@@ -103,10 +103,10 @@ def loadHDF5(file_name):
         
 def loadHDF5Adv(file_name):
     with h5py.File(file_name, 'r') as f:
-        dataTrain         = np.array(f['Train']['data'])
-        labelsFineTrain   = np.array(f['Train']['labelsFine'])
-        dataTest          = np.array(f['Test']['data'])
-        labelsFineTest    = np.array(f['Test']['labelsFine'])
+        dataTrain         = np.array(f['Train']['images'])
+        labelsFineTrain   = np.array(f['Train']['labels'])
+        dataTest          = np.array(f['Test']['images'])
+        labelsFineTest    = np.array(f['Test']['labels'])
         
     return (dataTrain, labelsFineTrain,dataTest, labelsFineTest)
 
