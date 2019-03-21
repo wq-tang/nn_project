@@ -142,7 +142,7 @@ def generate_model_cifar(path,kernel_list,channel_list,is_complex=True):
 	#修改模型中的输出参数
 
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'resnet/cifar10_meta_bagging/'+path)
-	max_epoch = 50000
+	max_epoch = 5
 	batch_step = 128 
 	# file_name = 'CIFAR10_model'+path[-1]+'.h5'
 	file_name = 'CIFAR10.h5'
@@ -152,7 +152,7 @@ def generate_model_cifar(path,kernel_list,channel_list,is_complex=True):
 	tf.summary.image('input_x', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = resnet(x,10,0,is_complex=is_complex)
+	model = Resnet(x,10,0,is_complex=is_complex)
 	model.diff_sigle_model(x,name=path,kernel_list =kernel_list ,channel_list=channel_list)
 	out_result= tf.add(model.out,0.0,name = 'out')
 	if is_complex:
@@ -211,6 +211,7 @@ def generate_model_cifar(path,kernel_list,channel_list,is_complex=True):
 
 	print('precision @1 = %.5f'%np.mean(ans[-5:]))
 	sess.close()
+	return np.mean(ans[-5:])
 
 
 def generate_summary_cifar(path,kernel_list,channel_list,fc_list,is_complex=True):
@@ -391,13 +392,14 @@ if __name__=='__main__':
 	kernel_list = [[3,3,3,3],[5,5,5,5],[5,5,3,3],[5,3,3]]
 	channel_list = [[64,128,256,512],[64,128,128,256],[64,64,128,256],[128,256,512]]
 	acc = {}
+	is_complex=False
 	for i in range(len(kernel_list)):
 		k=i
 		if not is_complex:
 			k=i+4
 		graph = tf.Graph()
 		with graph.as_default():
-			acc[path_list[k]]=generate_model_cifar(path_list[k],kernel_list[i],channel_list[i],fc_list[i],is_complex)
+			acc[path_list[k]]=generate_model_cifar(path_list[k],kernel_list[i],channel_list[i],is_complex)
 	print(acc)
 	# tag = [['1','2','3','4'],['1','2','3'],['1','2','4'],['1','3','4'],['2','3','4'],['1','2'],['1','3'],['1','4'],['2','3'],['2','4'],['3','4']]
 	# ans = []

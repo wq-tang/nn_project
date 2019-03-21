@@ -139,9 +139,8 @@ class Resnet(base_class):
 		blocks = [Block('block'+str(i),self.bottleneck,[(kernel_list[i],channel_list[i])]*2)\
 		 for i in range(len(channel_list))]
 
-		net = 0.0
 		with tf.variable_scope(name):
-			net = self.stacks_block_dense(self.inputs,blocks,scope ='BLOCK'+str(i+1))
+			net = self.stacks_block_dense(self.inputs,blocks,scope ='BLOCK')
 			if self.is_complex:
 				R = tf.reduce_mean(net[0],[1,2],name='reduceR',keep_dims=False)
 				I = tf.reduce_mean(net[0],[1,2],name='reduceI',keep_dims=False)
@@ -151,7 +150,7 @@ class Resnet(base_class):
 				net = tf.reduce_mean(net,[1,2],name='pool5',keep_dims=False)
 				tensor=net
 			dim = tensor.get_shape().as_list()[-1]
-			self.out = self.connect(net,dim,self.classNum,name='fc-100')
+			self.out = self.connect(net,dim,self.CLASSNUM,name='fc-100')
 
 
 	def pad(self,net,inputs):
