@@ -13,7 +13,7 @@ from CIFAR100 import read_cifar100
 from FashionMNIST import read_fashion
 from CIFAR10 import read_cifar10
 from MNIST import read_mnist
-from READ_DATA import read_data
+
 # def wrrite_file(train_data,test_data,file_name):
 # 	with h5py.File(file_name,'w') as f:
 # 		f.create_group('Train')
@@ -367,150 +367,6 @@ def generate_Primary_net_mnist(model_shape,model_tag,is_complex):
 	np.concatenate(test_data,axis=axis),np.concatenate(test_label,axis=0)
 
 
-def generate_secondary_data(shape_list,is_complex):
-	is_complex =True
-	acc = {}
-	if is_complex:
-		axis =1
-	else:
-		axis=0
-	for i in range(len(shape_list[0])):
-		train_data_set = []
-		train_label_set=[]
-		test_data_set =[]
-		model_shape = [k[i] for k in shape_list]
-		if is_complex:
-			file_head = 'MNIST_complex'+model_shape[0]  ####修改
-		else:
-			file_head = 'MNIST_real'+model_shape[0]
-		accuracy=0
-		for tag in range(1,5):
-			graph = tf.Graph()
-			with graph.as_default():
-				accu,train_data,train_label,test_data,test_label = generate_Primary_net_mnist(model_shape,tag,is_complex)
-			accuracy+=accu
-			train_data_set.append(train_data)
-			train_label_set.append(train_label)
-			test_data_set.append(test_data)
-		train_data_set = np.concatenate(train_data_set,axis = axis)
-		train_label_set = np.concatenate(train_label_set,axis = 0)
-
-		test_data_set = np.mean(test_data_set,axis=0)
-		acc[file_head] = accuracy/4
-			#写操作
-		wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],file_head+'.h5')
-	print(acc)
-
-def Secondary_net(model_name,is_complex):
-	#修改文件读取名字，读取函数
-	### Using the class ###
-	def loss(logits,y):
-		labels =tf.cast(y,tf.int64)
-		cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,labels = y,name='cross_entropy_per_example')
-		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
-		tf.add_to_collection('losses',cross_entropy_mean)
-		return tf.add_n(tf.get_collection('losses'),name='total_loss')
-	def test(test_batch):
-		precision=[]
-		for i in range(10):
-			test_x1,_ = next(test_data[0])
-			test_x2,_ = next(test_data[1])
-			test_x3,_ = next(test_data[2])
-			test_x4,test_y = next(test_data[3])
-			precision.append(accuracy.eval(feed_dict={x1:test_x1,x2:test_x2,x3:test_x3,x4:test_x4, y: test_y}))
-		return np.mean(precision)
-	#修改模型以及对应的方法
-	#修改读取文件的函数以及文件名称
-	#修改输出路径
-	#修改模型中的输出参数
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/stacking/mnist_real_board')
-	if is_complex:
-		tail = 'complex'
-	else:
-		tail = 'real'
-	max_epoch = 30000
-	batch_step = 128
-	class_num = 10
-	train_data = []
-	test_data = []
-	for i in range(4):
-		batchTrain, batchTest = read_data(model_name+'_'+tail+str(i+1)+'.h5',batch_step,1000)
-		train_data.append(batchTrain)
-		test_data.append(batchTest)
-	x1 = tf.placeholder(tf.float32,[None,class_num],name = 'input_x1')
-	x2 = tf.placeholder(tf.float32,[None,class_num],name = 'input_x2')
-	x3 = tf.placeholder(tf.float32,[None,class_num],name = 'input_x3')
-	x4 = tf.placeholder(tf.float32,[None,class_num],name = 'input_x4')
-	y = tf.placeholder(tf.int32,[None])
-
-	w1 = tf.get_variable("w1", shape = [1, class_num], dtype = tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True,dtype=tf.float32))
-	w2 = tf.get_variable("w2", shape = [1, class_num], dtype = tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, dtype=tf.float32))
-	w3 = tf.get_variable("w3", shape = [1, class_num], dtype = tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, dtype=tf.float32))
-	w4 = tf.get_variable("w4", shape = [1, class_num], dtype = tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, dtype=tf.float32))
-	out = tf.multiply(x1,w1)+tf.multiply(x2,w2)+tf.multiply(x3,w3)+tf.multiply(x4,w4)
-
-
-	with tf.name_scope('loss'):
-		loss  = loss(out,y)
-	tf.summary.scalar('loss', loss)
-	update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-	with tf.control_dependencies(update_ops):
-		train_op = tf.train.AdamOptimizer(0.1**3).minimize(loss)
-		# train_op = tf.train.GradientDescentOptimizer(0.1).minimize(loss)
-	top_k_op = tf.nn.in_top_k(out,y,1)
-	with tf.name_scope('accuracy'):
-		accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
-	tf.summary.scalar('accuracy', accuracy)
-
-
-	sess = tf.InteractiveSession()
-	merged = tf.summary.merge_all()
-	train_writer = tf.summary.FileWriter(log_dir + '/train', sess.graph)
-	test_writer = tf.summary.FileWriter(log_dir + '/test')
-	tf.global_variables_initializer().run()
-	tf.train.start_queue_runners()
-
-	ans = []
-	test_x1,_ = next(test_data[0])
-	test_x2,_ = next(test_data[1])
-	test_x3,_ = next(test_data[2])
-	test_x4,test_y = next(test_data[3])
-
-	for i in range(max_epoch):
-		start_time = time.time()
-		train_x1,_ = next(train_data[0])
-		train_x2,_ = next(train_data[1])
-		train_x3,_ = next(train_data[2])
-		train_x4,train_y = next(train_data[3])
-		_ = sess.run( train_op, feed_dict={x1:train_x1,x2:train_x2,x3:train_x3,x4:train_x4,y:train_y})
-		duration = time.time() - start_time
-		if i%400 ==0:
-			examples_per_sec = batch_step/duration
-			sec_per_batch = float(duration)
-			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch_step)')
-			summary,loss_value = sess.run([merged,loss], feed_dict={x1:train_x1,x2:train_x2,x3:train_x3,x4:train_x4,y:train_y})
-			train_writer.add_summary(summary, i)
-			train_accuracy = accuracy.eval(feed_dict={x1:train_x1,x2:train_x2,x3:train_x3,x4:train_x4, y:train_y})
-			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
-			summary, acc = sess.run([merged, accuracy], feed_dict={x1:test_x1,x2:test_x2,x3:test_x3,x4:test_x4,y:test_y})
-			test_writer.add_summary(summary, i)
-			test_accuracy = test(test_data)
-			ans.append(test_accuracy)
-			print( "step %d, training accuracy %g"%(i, train_accuracy))
-			print( "step %d,test accuracy %g"%(i,test_accuracy))
-	train_writer.close()
-	test_writer.close()
-	print('precision @1 = %.5f'%np.mean(ans[-10:]))
-
-
-
-
-
-
 #cifar100
 # kernel_list = [[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3],[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3]]
 # channel_list = [[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64],[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64]]
@@ -531,6 +387,35 @@ path_list = ['1','2','3','4']
 shape_list = [path_list,kernel_list,channel_list,fc_list]
 
 if __name__=='__main__':
-	# generate_secondary_data(shape_list,is_complex=True)
-	Secondary_net('MNIST',is_complex=False)
+	is_complex =False
+	acc = {}
+	if is_complex:
+		axis =1
+	else:
+		axis=0
+	for i in range(len(shape_list[0])):
+		train_data_set = []
+		train_label_set=[]
+		test_data_set =[]
+		model_shape = [k[i] for k in shape_list]
+		if is_complex:
+			file_head = 'MNIST_complex'+model_shape[0]
+		else:
+			file_head = 'MNIST_real'+model_shape[0]
+		for tag in range(1,5):
+			graph = tf.Graph()
+			with graph.as_default():
+				accuracy,train_data,train_label,test_data,test_label = generate_Primary_net_mnist(model_shape,tag,is_complex)
+			acc[file_head+str(tag)] = accuracy
+			train_data_set.append(train_data)
+			train_label_set.append(train_label)
+			test_data_set.append(test_data)
+			time.sleep(2)
+		train_data_set = np.concatenate(train_data_set,axis = axis)
+		train_label_set = np.concatenate(train_label_set,axis = 0)
+
+		test_data_set = np.mean(test_data_set,axis=0)
+			#写操作
+		wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],file_head+'.h5')
+	print(acc)
 

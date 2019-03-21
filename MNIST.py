@@ -15,6 +15,7 @@ def loadHDF5(file_name):
         labelsTest  = np.array(f['Test']['labels'])
     return (dataTrain, labelsTrain, dataTest, labelsTest)
 
+
 def preproc(images, size): 
     results = np.ndarray([images.shape[0]]+size, np.uint8)
     for idx in range(images.shape[0]): 
