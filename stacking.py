@@ -402,11 +402,12 @@ if __name__=='__main__':
 			file_head = 'MNIST_complex'+model_shape[0]
 		else:
 			file_head = 'MNIST_real'+model_shape[0]
+		accuracy=0
 		for tag in range(1,5):
 			graph = tf.Graph()
 			with graph.as_default():
-				accuracy,train_data,train_label,test_data,test_label = generate_Primary_net_mnist(model_shape,tag,is_complex)
-			acc[file_head+str(tag)] = accuracy
+				accu,train_data,train_label,test_data,test_label = generate_Primary_net_mnist(model_shape,tag,is_complex)
+			accuracy+=accu
 			train_data_set.append(train_data)
 			train_label_set.append(train_label)
 			test_data_set.append(test_data)
@@ -414,6 +415,7 @@ if __name__=='__main__':
 		train_label_set = np.concatenate(train_label_set,axis = 0)
 
 		test_data_set = np.mean(test_data_set,axis=0)
+		acc[file_head] = accuracy/4
 			#写操作
 		wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],file_head+'.h5')
 	print(acc)
