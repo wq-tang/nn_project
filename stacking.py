@@ -529,5 +529,6 @@ path_list = ['1','2','3','4']
 shape_list = [path_list,kernel_list,channel_list,fc_list]
 
 if __name__=='__main__':
-	generate_secondary_data(shape_list,is_complex=True)
+	# generate_secondary_data(shape_list,is_complex=True)
+	Secondary_net('MNIST',is_complex=False)
 
