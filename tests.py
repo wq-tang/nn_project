@@ -13,7 +13,7 @@ from CIFAR100 import read_cifar100
 from FashionMNIST import read_fashion
 from CIFAR10 import read_cifar10
 from MNIST import read_mnist
-
+from READ_DATA import read_data
 # def wrrite_file(train_data,test_data,file_name):
 # 	with h5py.File(file_name,'w') as f:
 # 		f.create_group('Train')
@@ -119,32 +119,6 @@ def stacking(path,kernel_list,channel_list,fc_list,is_complex=True):
 	print('precision @1 = %.5f'%np.mean(ans[-5:]))
 	sess.close()
 
-
-class ImportGraph():
-	#修改模型读取路径
-	"""  Importing and running isolated TF graph """
-	def __init__(self, loc):
-		model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta_bagging/'+loc)
-		# Create local graph and use it in the session
-		self.graph = tf.Graph()
-		self.sess = tf.Session(graph=self.graph)
-		with self.graph.as_default():
-			# Import saved model from location 'loc' into local graph
-			# 从指定路径加载模型到局部图中
-			saver = tf.train.import_meta_graph(model_path+ '.ckpt.meta',
-												clear_devices=True)
-			saver.restore(self.sess, model_path+'.ckpt')
-			# There are TWO options how to get activation operation:
-			# 两种方式来调用运算或者参数
-				# FROM SAVED COLLECTION:
-			self.activation = tf.get_collection('model_out')[0]
-				# BY NAME:
-			# self.activation = self.graph.get_operation_by_name('inputs').outputs[0]
-
-	def run(self, data):
-		""" Running the activation operation previously imported """
-		# The 'x' corresponds to name of input placeholder
-		return self.sess.run(self.activation, feed_dict={"inputs/input_x:0": data})
 
 
 
@@ -279,20 +253,20 @@ def generate_Primary_net_mnist(model_shape,model_tag,is_complex):
 
 	path,kernel_list,channel_list,fc_list = model_shape
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),\
-		'mynet/stacking/mnist/'+local_path+str(model_tag))
-	max_epoch = 30000
+		'mynet/stacking/fashion/'+local_path+str(model_tag))   ##修改
+	max_epoch = 50000                                        ##修改
 	batch_step = 128 
-	file_name = 'MNIST_st4-'+str(model_tag)+'.h5'
-	validation_name =  'MNIST_st4'+str(model_tag)+'.h5'
-	valid_train,_ = read_mnist('k_data/'+validation_name,1500,1000)#10次取完
-	train_batch,test_batch = read_mnist('k_data/'+file_name,batch_step,1000)
+	file_name = 'FashionMNIST_st4-'+str(model_tag)+'.h5'            ##修改
+	validation_name =  'FashionMNIST_st4'+str(model_tag)+'.h5'      ##修改
+	valid_train,_ = read_fashion('k_data/'+validation_name,1500,1000)#10次取完  ##修改
+	train_batch,test_batch = read_fashion('k_data/'+file_name,batch_step,1000) ##修改
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,28,28,1],name = 'input_x')
 	tf.summary.image('input_x', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = complex_net(x,10,0,is_complex=is_complex)
-	model.diff_net(x,name=local_path+str(model_tag),kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
+	model = complex_net(x,10,0,is_complex=is_complex)       ##修改
+	model.diff_net(x,name=local_path+str(model_tag),kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)##修改
 	out_result= tf.add(model.out,0.0,name = 'out')
 	if is_complex:
 		models_result = tf.sqrt(tf.square(out_result[0])+tf.square(out_result[1]))
@@ -367,6 +341,44 @@ def generate_Primary_net_mnist(model_shape,model_tag,is_complex):
 	np.concatenate(test_data,axis=axis),np.concatenate(test_label,axis=0)
 
 
+def generate_secondary_data(shape_list,is_complex):
+	acc = {}
+	if is_complex:
+		axis =1
+	else:
+		axis=0
+	for i in range(len(shape_list[0])):
+		train_data_set = []
+		train_label_set=[]
+		test_data_set =[]
+		model_shape = [k[i] for k in shape_list]
+		if is_complex:
+			file_head = 'FashionMNIST_complex'+model_shape[0]  ####修改
+		else:
+			file_head = 'FashionMNIST_real'+model_shape[0]
+		accuracy=0
+		for tag in range(1,5):
+			graph = tf.Graph()
+			with graph.as_default():
+				accu,train_data,train_label,test_data,test_label = generate_Primary_net_mnist(model_shape,tag,is_complex)
+			accuracy+=accu
+			train_data_set.append(train_data)
+			train_label_set.append(train_label)
+			test_data_set.append(test_data)
+		train_data_set = np.concatenate(train_data_set,axis = axis)
+		train_label_set = np.concatenate(train_label_set,axis = 0)
+
+		test_data_set = np.mean(test_data_set,axis=0)
+		acc[file_head] = accuracy/4
+			#写操作
+		wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],file_head+'.h5')
+	print(acc)
+
+
+
+
+
+
 #cifar100
 # kernel_list = [[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3],[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3]]
 # channel_list = [[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64],[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64]]
@@ -387,35 +399,5 @@ path_list = ['1','2','3','4']
 shape_list = [path_list,kernel_list,channel_list,fc_list]
 
 if __name__=='__main__':
-	is_complex =False
-	acc = {}
-	if is_complex:
-		axis =1
-	else:
-		axis=0
-	for i in range(len(shape_list[0])):
-		train_data_set = []
-		train_label_set=[]
-		test_data_set =[]
-		model_shape = [k[i] for k in shape_list]
-		if is_complex:
-			file_head = 'MNIST_complex'+model_shape[0]
-		else:
-			file_head = 'MNIST_real'+model_shape[0]
-		for tag in range(1,5):
-			graph = tf.Graph()
-			with graph.as_default():
-				accuracy,train_data,train_label,test_data,test_label = generate_Primary_net_mnist(model_shape,tag,is_complex)
-			acc[file_head+str(tag)] = accuracy
-			train_data_set.append(train_data)
-			train_label_set.append(train_label)
-			test_data_set.append(test_data)
-			time.sleep(2)
-		train_data_set = np.concatenate(train_data_set,axis = axis)
-		train_label_set = np.concatenate(train_label_set,axis = 0)
-
-		test_data_set = np.mean(test_data_set,axis=0)
-			#写操作
-		wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],file_head+'.h5')
-	print(acc)
+	generate_secondary_data(shape_list,is_complex=False)
 

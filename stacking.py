@@ -253,20 +253,20 @@ def generate_Primary_net_mnist(model_shape,model_tag,is_complex):
 
 	path,kernel_list,channel_list,fc_list = model_shape
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),\
-		'mynet/stacking/mnist/'+local_path+str(model_tag))
-	max_epoch = 30000
+		'mynet/stacking/fashion/'+local_path+str(model_tag))   ##修改
+	max_epoch = 50000                                        ##修改
 	batch_step = 128 
-	file_name = 'MNIST_st4-'+str(model_tag)+'.h5'
-	validation_name =  'MNIST_st4'+str(model_tag)+'.h5'
-	valid_train,_ = read_mnist('k_data/'+validation_name,1500,1000)#10次取完
-	train_batch,test_batch = read_mnist('k_data/'+file_name,batch_step,1000)
+	file_name = 'FashionMNIST_st4-'+str(model_tag)+'.h5'            ##修改
+	validation_name =  'FashionMNIST_st4'+str(model_tag)+'.h5'      ##修改
+	valid_train,_ = read_fashion('k_data/'+validation_name,1500,1000)#10次取完  ##修改
+	train_batch,test_batch = read_fashion('k_data/'+file_name,batch_step,1000) ##修改
 	with tf.name_scope("inputs"):
 		x  = tf.placeholder(tf.float32,[None,28,28,1],name = 'input_x')
 	tf.summary.image('input_x', x, 10)
 	y = tf.placeholder(tf.int32,[None])
 
-	model = complex_net(x,10,0,is_complex=is_complex)
-	model.diff_net(x,name=local_path+str(model_tag),kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
+	model = complex_net(x,10,0,is_complex=is_complex)       ##修改
+	model.diff_net(x,name=local_path+str(model_tag),kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)##修改
 	out_result= tf.add(model.out,0.0,name = 'out')
 	if is_complex:
 		models_result = tf.sqrt(tf.square(out_result[0])+tf.square(out_result[1]))
@@ -342,7 +342,6 @@ def generate_Primary_net_mnist(model_shape,model_tag,is_complex):
 
 
 def generate_secondary_data(shape_list,is_complex):
-	is_complex =True
 	acc = {}
 	if is_complex:
 		axis =1
@@ -354,9 +353,9 @@ def generate_secondary_data(shape_list,is_complex):
 		test_data_set =[]
 		model_shape = [k[i] for k in shape_list]
 		if is_complex:
-			file_head = 'MNIST_complex'+model_shape[0]  ####修改
+			file_head = 'FashionMNIST_complex'+model_shape[0]  ####修改
 		else:
-			file_head = 'MNIST_real'+model_shape[0]
+			file_head = 'FashionMNIST_real'+model_shape[0]   #修改
 		accuracy=0
 		for tag in range(1,5):
 			graph = tf.Graph()
@@ -400,5 +399,5 @@ path_list = ['1','2','3','4']
 shape_list = [path_list,kernel_list,channel_list,fc_list]
 
 if __name__=='__main__':
-	generate_secondary_data(shape_list,is_complex=True)
+	generate_secondary_data(shape_list,is_complex=True) #修改
 

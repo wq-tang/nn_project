@@ -142,7 +142,7 @@ def generate_model_cifar10(path,kernel_list,channel_list,is_complex=True):
 	#修改模型中的输出参数
 
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'resnet/cifar10_meta_bagging/'+path)
-	max_epoch = 5
+	max_epoch = 50000
 	batch_step = 128 
 	# file_name = 'CIFAR10_model'+path[-1]+'.h5'
 	file_name = 'CIFAR10.h5'
@@ -188,7 +188,7 @@ def generate_model_cifar10(path,kernel_list,channel_list,is_complex=True):
 		train_x,train_y = next(train_batch)
 		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
-		if i%500 ==0:
+		if i%1 ==0:
 			loss_value = sess.run(loss, feed_dict={x:train_x,y:train_y})
 			examples_per_sec = batch_step/duration
 			sec_per_batch = float(duration)
@@ -199,7 +199,7 @@ def generate_model_cifar10(path,kernel_list,channel_list,is_complex=True):
 			model.training = False
 			acc = sess.run(accuracy, feed_dict={x:test_x,y:test_y})
 			test_accuracy = test(test_batch)
-			if i>max_epoch*0.8 and test_accuracy>max_acc:
+			if i>max_epoch*0.5 and test_accuracy>max_acc:
 				max_acc=test_accuracy
 				saver.save(sess,model_path+'.ckpt')
 			ans.append(test_accuracy)
@@ -388,18 +388,18 @@ if __name__=='__main__':
 	###****************************************88
 
 	###resent*******
-	#cifar100
+	#cifar100 and 10
 	kernel_list = [[3,3,3,3],[5,5,5,5],[5,5,3,3],[5,3,3]]
 	channel_list = [[64,128,256,512],[64,128,128,256],[64,64,128,256],[128,256,512]]
 	acc = {}
-	is_complex=False
+	is_complex=True
 	for i in range(len(kernel_list)):
 		k=i
 		if not is_complex:
 			k=i+4
 		graph = tf.Graph()
 		with graph.as_default():
-			acc[path_list[k]]=generate_model_cifar(path_list[k],kernel_list[i],channel_list[i],is_complex)
+			acc[path_list[k]]=generate_model_cifar10(path_list[k],kernel_list[i],channel_list[i],is_complex)
 	print(acc)
 	# tag = [['1','2','3','4'],['1','2','3'],['1','2','4'],['1','3','4'],['2','3','4'],['1','2'],['1','3'],['1','4'],['2','3'],['2','4'],['3','4']]
 	# ans = []
