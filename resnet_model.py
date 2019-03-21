@@ -102,7 +102,7 @@ class Resnet(base_class):
 				net = tf.reduce_mean(net,[1,2],name='pool5',keep_dims=False)
 				tensor=net
 			dim = tensor.get_shape().as_list()[-1]
-			self.out = self.connect(net,dim,self.classNum,name='fc-100')
+			self.out = self.connect(net,dim,self.CLASSNUM,name='fc-100')
 			if self.is_complex:
 				self.out= tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
