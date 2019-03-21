@@ -122,7 +122,7 @@ def generate_model_mnist(path,kernel_list,channel_list,fc_list,is_complex=True):
 	sess.close()
 
 
-def generate_model_cifar(path,kernel_list,channel_list,is_complex=True):
+def generate_model_cifar10(path,kernel_list,channel_list,is_complex=True):
 
 	def loss(logits,y):
 		labels =tf.cast(y,tf.int64)
