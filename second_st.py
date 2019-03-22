@@ -138,14 +138,12 @@ def Secondary_net(model_name,combine_list,is_complex):
 	else:
 		train_feed_dicts={x1:train_x1,x2:train_x2,y:train_y}
 		test_feed_dicts = {x1:test_x1,x2:test_x2,y:test_y}
-
+	trains = locals()
 	for i in range(max_epoch):
 		start_time = time.time()
-		trains = locals()
 		for i in range(len(combine_list)-1):
 			trains['train_x' + str(i+1) ] ,_ = next(train_data[i])
 		trains['train_x' + str(len(combine_list)+1) ],test_y = next(train_data[len(combine_list)])
-		
 		_ = sess.run( train_op, feed_dict=train_feed_dicts)
 		duration = time.time() - start_time
 		if i%400 ==0:
@@ -168,4 +166,6 @@ def Secondary_net(model_name,combine_list,is_complex):
 
 if __name__=='__main__':
 	combine_list = ['1','2','3','4']
-	Secondary_net('MNIST',combine_list,is_complex=False)
+	model_name='MNIST'
+	is_complex = True
+	Secondary_net(model_name,combine_list=combine_list,is_complex)
