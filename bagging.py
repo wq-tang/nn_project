@@ -188,7 +188,7 @@ def generate_model_cifar10(path,kernel_list,channel_list,is_complex=True):
 		train_x,train_y = next(train_batch)
 		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y})
 		duration = time.time() - start_time
-		if i%1 ==0:
+		if i%500 ==0:
 			loss_value = sess.run(loss, feed_dict={x:train_x,y:train_y})
 			examples_per_sec = batch_step/duration
 			sec_per_batch = float(duration)
@@ -199,7 +199,7 @@ def generate_model_cifar10(path,kernel_list,channel_list,is_complex=True):
 			model.training = False
 			acc = sess.run(accuracy, feed_dict={x:test_x,y:test_y})
 			test_accuracy = test(test_batch)
-			if i>max_epoch*0.5 and test_accuracy>max_acc:
+			if i>max_epoch*0.8 and test_accuracy>max_acc:
 				max_acc=test_accuracy
 				saver.save(sess,model_path+'.ckpt')
 			ans.append(test_accuracy)
