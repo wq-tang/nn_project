@@ -121,8 +121,6 @@ def stacking(path,kernel_list,channel_list,fc_list,is_complex=True):
 
 
 
-
-
 def generate_Primary_net_cifar(model_shape,model_tag,is_complex):
 	#修改文件读取名字，读取函数
 	### Using the class ###
@@ -143,9 +141,9 @@ def generate_Primary_net_cifar(model_shape,model_tag,is_complex):
 	#修改输出路径
 	#修改模型中的输出参数
 	if is_complex:
-		local_path = 'complex'+path
+		local_path = 'complex'+model_shape[0]
 	else:
-		local_path = 'real'+path
+		local_path = 'real'+model_shape[0]
 
 	path,kernel_list,channel_list,fc_list = model_shape
 	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),\
@@ -162,7 +160,7 @@ def generate_Primary_net_cifar(model_shape,model_tag,is_complex):
 	y = tf.placeholder(tf.int32,[None])
 
 	model = complex_net(x,10,0,is_complex=is_complex)
-	model.diff_net(x,name=path,kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
+	model.diff_net(x,name=local_path+str(model_tag),kernel_list =kernel_list ,channel_list=channel_list,fc_list=fc_list)
 	out_result= tf.add(model.out,0.0,name = 'out')
 	if is_complex:
 		models_result = tf.sqrt(tf.square(out_result[0])+tf.square(out_result[1]))
@@ -189,7 +187,8 @@ def generate_Primary_net_cifar(model_shape,model_tag,is_complex):
 	tf.train.start_queue_runners()
 	
 
-
+	ans = []
+	test_x,test_y = next(test_batch)
 	for i in range(max_epoch):
 		start_time = time.time()
 		train_x,train_y = next(train_batch)
@@ -201,12 +200,22 @@ def generate_Primary_net_cifar(model_shape,model_tag,is_complex):
 			sec_per_batch = float(duration)
 			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch)')
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
-
+			model.training=False
+			test_accuracy = test(test_batch)
+			ans.append(test_accuracy)
+			model.training = False
 			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y})
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
+			print( "step %d, test accuracy %g"%(i, test_accuracy))
 
 	
 	saver.save(sess,model_path+'.ckpt')
+
+	if is_complex:
+		axis = 1
+	else:
+		axis=0
+
 	valid_data=[]
 	valid_label = []
 	test_data=[]
@@ -214,7 +223,6 @@ def generate_Primary_net_cifar(model_shape,model_tag,is_complex):
 	for i in range(10):
 		test_x,test_y = next(test_batch)
 		valid_train_data,valid_train_label = next(valid_train)
-
 		valid_data.append((sess.run(out_result,feed_dict={x:valid_train_data})))
 		valid_label.append(valid_train_label)
 		test_label.append(test_y)
@@ -223,8 +231,9 @@ def generate_Primary_net_cifar(model_shape,model_tag,is_complex):
 	print('precision @1 = %.5f'%np.mean(ans[-5:]))
 	sess.close()
 
-	return np.concatenate(valid_data,axis=0),np.concatenate(valid_label,axis=0),\
-	np.concatenate(test_data,axis=0),np.concatenate(test_label,axis=0)
+
+	return np.mean(ans[-5:]), np.concatenate(valid_data,axis=axis),np.concatenate(valid_label,axis=0),\
+	np.concatenate(test_data,axis=axis),np.concatenate(test_label,axis=0)
 
 
 def generate_Primary_net_mnist(model_shape,model_tag,is_complex):
@@ -341,38 +350,36 @@ def generate_Primary_net_mnist(model_shape,model_tag,is_complex):
 	np.concatenate(test_data,axis=axis),np.concatenate(test_label,axis=0)
 
 
-def generate_secondary_data(shape_list,is_complex):
+def generate_secondary_data(model_shape,is_complex):
 	acc = {}
 	if is_complex:
 		axis =1
 	else:
 		axis=0
-	for i in range(len(shape_list[0])):
-		train_data_set = []
-		train_label_set=[]
-		test_data_set =[]
-		model_shape = [k[i] for k in shape_list]
-		if is_complex:
-			file_head = 'FashionMNIST_complex'+model_shape[0]  ####修改
-		else:
-			file_head = 'FashionMNIST_real'+model_shape[0]   #修改
-		accuracy=0
-		for tag in range(1,5):
-			graph = tf.Graph()
-			with graph.as_default():
-				accu,train_data,train_label,test_data,test_label = generate_Primary_net_mnist(model_shape,tag,is_complex)
-			accuracy+=accu
-			train_data_set.append(train_data)
-			train_label_set.append(train_label)
-			test_data_set.append(test_data)
-		train_data_set = np.concatenate(train_data_set,axis = axis)
-		train_label_set = np.concatenate(train_label_set,axis = 0)
+	train_data_set = []
+	train_label_set=[]
+	test_data_set =[]
+	if is_complex:
+		file_head = 'CIFAR10_complex'+model_shape[0]  ####修改
+	else:
+		file_head = 'CIFAR10_real'+model_shape[0]   #修改
+	accuracy=0
+	for tag in range(1,5):
+		graph = tf.Graph()
+		with graph.as_default():
+			accu,train_data,train_label,test_data,test_label = generate_Primary_net_cifar(model_shape,tag,is_complex)
+		accuracy+=accu
+		train_data_set.append(train_data)
+		train_label_set.append(train_label)
+		test_data_set.append(test_data)
+	train_data_set = np.concatenate(train_data_set,axis = axis)
+	train_label_set = np.concatenate(train_label_set,axis = 0)
 
-		test_data_set = np.mean(test_data_set,axis=0)
-		acc[file_head] = accuracy/4
-			#写操作
-		wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],file_head+'.h5')
+	test_data_set = np.mean(test_data_set,axis=0)
+	acc[file_head] = accuracy/4
 	print(acc)
+		#写操作
+	wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],file_head+'.h5')
 
 
 
@@ -385,19 +392,25 @@ def generate_secondary_data(shape_list,is_complex):
 # fc_list =[[192],[192],[192,81],[192,81],[192],[192],[192,81],[192,81]]
 
 #cifar10
-# kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3]]
-# channel_list = [[128,64,64],[128,64,64],[128,128],[128,64]]
-# fc_list =[[100],[128],[100,50],[100,50]]
+kernel_list = [[5,3,3],[5,5,2],[5,5],[5,3]]
+channel_list = [[128,64,64],[128,64,64],[128,128],[128,64]]
+fc_list =[[100],[128],[100,50],[100,50]]
 
 #mnist
-kernel_list = [[5,3],[5,3,3],[5],[3]]
-channel_list = [[16,8],[8,16,16],[32],[32]]
-fc_list =[[30],[50],[30],[60,30]]
+# kernel_list = [[5,3],[5,3,3],[5],[3]]
+# channel_list = [[16,8],[8,16,16],[32],[32]]
+# fc_list =[[30],[50],[30],[60,30]]
+
+#cifar100 and 10
+# kernel_list = [[3,3,3,3],[5,5,5,5],[5,5,3,3],[5,3,3]]
+# channel_list = [[64,128,256,512],[64,128,128,256],[64,64,128,256],[128,256,512]]
 
 path_list = ['1','2','3','4']
 
 shape_list = [path_list,kernel_list,channel_list,fc_list]
 
 if __name__=='__main__':
-	generate_secondary_data(shape_list,is_complex=True) #修改
+	model_index = 0
+	is_complex = True
+	generate_secondary_data([k[model_index] for k in  shape_list],is_complex) #修改
 
