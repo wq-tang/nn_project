@@ -204,4 +204,4 @@ if __name__=='__main__':
 	print(path)
 	print(is_complex)
 	print(model_num)
-	mnist(path=path,is_complex=is_complex,model_num=model_num)
+	cifar(path=path,is_complex=is_complex,model_num=model_num)

@@ -4,6 +4,7 @@ import tensorflow as tf
 import time
 import math
 import sys
+import h5py
 
 from alexnet_model import complex_net
 from resnet_model import Resnet
@@ -29,6 +30,14 @@ def count():
         total_parameters += variable_parameters
     print(total_parameters)
 
+def wrrite_file(train_data,test_data,file_name):
+	with h5py.File(file_name,'w') as f:
+		f.create_group('Train')
+		f.create_group('Test')
+		f.create_dataset('Train/images',data = train_data[0])
+		f.create_dataset('Train/labels',data = train_data[1])
+		f.create_dataset('Test/images',data = test_data[0])
+		f.create_dataset('Test/labels',data = test_data[1])
 
 def generate_model_mnist(path,kernel_list,channel_list,fc_list,is_complex=True):
 
@@ -309,8 +318,7 @@ def generate_summary_cifar(path,kernel_list,channel_list,fc_list,is_complex=True
 class ImportGraph():
 	#修改模型读取路径
 	"""  Importing and running isolated TF graph """
-	def __init__(self, loc):
-		model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/cifar10_meta_bagging/'+loc)
+	def __init__(self, model_path): 
 		# Create local graph and use it in the session
 		self.graph = tf.Graph()
 		self.sess = tf.Session(graph=self.graph)
@@ -338,8 +346,8 @@ class ImportGraph():
 def restore(model_path_list):
 	#修改文件读取名字，读取函数
 	### Using the class ###
-	file_name = 'CIFAR10.h5'
-	_,test_batch = read_cifar10('data/'+file_name,1,1000)
+	file_name = 'CIFAR100.h5'
+	_,test_batch = read_cifar100('data/'+file_name,1,1000)
 	accuracy=0.0
 	for k in range(10):
 		data,lable  = next(test_batch)
@@ -362,15 +370,69 @@ def restore(model_path_list):
 	print(model_path_list)
 	print("%.4f"%(acc))
 	return acc
-	
+
+def generate_data(model_path_list,is_complex):
+	#修改文件读取名字，读取函数
+	### Using the class ###
+	if is_complex:
+		is_complexs = '_complex'
+	else:
+		is_complexs = '_real'
+	file_name = 'CIFAR10.h5'###############
+	train_batch,test_batch = read_cifar10('data/'+file_name,2000,400)######
+	h5file_name = 'after_bagging/'+file_name[:-3] +is_complexs + model_path_list[-1]+'.h5'
+	accuracy=0.0
+	train_data_result = []
+	test_data_result = []
+	train_label_result = []
+	test_label_result = []
+	for k in range(25):
+		train_data,train_lable  = next(train_batch)
+		test_data,test_lable  = next(test_batch) 
+
+		model = ImportGraph(model_path_list)
+
+		train_data_result.append(model.run(train_data))
+		test_data_result.append(model.run(test_data))
+
+		train_label_result.append(train_lable)
+		test_label_result.append(test_lable)
+	if is_complex:
+		axis=1
+	else:
+		axis =0
+	train_data_result = np.concatenate(train_data_result,axis=axis)
+	test_data_result = np.concatenate(test_data_result,axis=axis)
+	train_label_result = np.concatenate(train_label_result,axis=0)
+	test_label_result = np.concatenate(test_label_result,axis=0)
+
+
+	if is_complex:
+		models_result = tf.sqrt(tf.square(test_data_result[0])+tf.square(test_data_result[1]))
+	else:
+		models_result = test_data_result
+
+	top_k_op = tf.nn.in_top_k(models_result,test_label_result,1)
+	accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
+
+	sess = tf.InteractiveSession()
+	acc = sess.run(accuracy)
+	print(model_path_list)
+	print("%.4f"%(acc))
+
+	wrrite_file([train_data_result,train_label_result],[test_data_result,test_label_result],h5file_name)
+
 
 
 
 
 if __name__=='__main__':
-	path_list = ['complex_model1','complex_model2','complex_model3','complex_model4',\
-				'real_model1','real_model2','real_model3','real_model4']
-	#cifar100
+	is_complex = True
+	model_path_list = '/home/tensor/project/mynet/cifar10_meta_bagging/complex_model4'
+	generate_data(model_path_list,is_complex )
+	# path_list = ['complex_model1','complex_model2','complex_model3','complex_model4',\
+	# 			'real_model1','real_model2','real_model3','real_model4']
+	# #cifar100
 	# kernel_list = [[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3],[5,5,3,3],[5,5,5,3],[5,5,3],[5,3,3]]
 	# channel_list = [[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64],[128,128,64,64],[128,64,64,64],[128,128,64],[128,64,64]]
 	# fc_list =[[192],[192],[192,81],[192,81],[192],[192],[192,81],[192,81]]
@@ -388,19 +450,22 @@ if __name__=='__main__':
 	###****************************************88
 
 	###resent*******
-	#cifar100 and 10
-	kernel_list = [[3,3,3,3],[5,5,5,5],[5,5,3,3],[5,3,3]]
-	channel_list = [[64,128,256,512],[64,128,128,256],[64,64,128,256],[128,256,512]]
-	acc = {}
-	is_complex=True
-	for i in range(len(kernel_list)):
-		k=i
-		if not is_complex:
-			k=i+4
-		graph = tf.Graph()
-		with graph.as_default():
-			acc[path_list[k]]=generate_model_cifar10(path_list[k],kernel_list[i],channel_list[i],is_complex)
-	print(acc)
+	# #cifar100 and 10
+	# kernel_list = [[3,3,3,3],[5,5,5,5],[5,5,3,3],[5,3,3]]
+	# channel_list = [[64,128,256,512],[64,128,128,256],[64,64,128,256],[128,256,512]]
+
+	# is_complex=True
+	# i=1
+
+
+
+	# k=i
+	# if not is_complex:
+	# 	k=i+4
+	# graph = tf.Graph()
+	# with graph.as_default():
+	# 	acc=generate_model_cifar10(path_list[k],kernel_list[i],channel_list[i],is_complex)
+	# print(acc)
 	# tag = [['1','2','3','4'],['1','2','3'],['1','2','4'],['1','3','4'],['2','3','4'],['1','2'],['1','3'],['1','4'],['2','3'],['2','4'],['3','4']]
 	# ans = []
 	# for head in ['real_model','complex_model']:
