@@ -80,8 +80,12 @@ def complex_standardization(input_centred, Vrr, Vii, Vri,axis=-1):
     cat_W_4_real = K.concatenate([broadcast_Wrr, broadcast_Wii], axis=axis)
     cat_W_4_imag = K.concatenate([broadcast_Wri, broadcast_Wri], axis=axis)
 
-    centred_real = input_centred[:, :, :, :input_dim]
-    centred_imag = input_centred[:, :, :, input_dim:]
+    if ndim == 2:
+        centred_real = input_centred[:, :input_dim]
+        centred_imag = input_centred[:, input_dim:]
+    else:
+        centred_real = input_centred[:, :, :, :input_dim]
+        centred_imag = input_centred[:, :, :, input_dim:]
 
     rolled_input = K.concatenate([centred_imag, centred_real], axis=axis)
 
@@ -128,9 +132,12 @@ def ComplexBN(input_centred, Vrr, Vii, Vri, beta,gamma_rr, gamma_ri, gamma_ii, s
 
         cat_gamma_4_real = K.concatenate([broadcast_gamma_rr, broadcast_gamma_ii], axis=axis)
         cat_gamma_4_imag = K.concatenate([broadcast_gamma_ri, broadcast_gamma_ri], axis=axis)
-
-        centred_real = standardized_output[:, :, :, :input_dim]
-        centred_imag = standardized_output[:, :, :, input_dim:]
+        if ndim==2:
+            centred_real = input_centred[:, :input_dim]
+            centred_imag = input_centred[:, input_dim:]
+        else:
+            centred_real = standardized_output[:, :, :, :input_dim]
+            centred_imag = standardized_output[:, :, :, input_dim:]
 
         rolled_standardized_output = K.concatenate([centred_imag, centred_real], axis=axis)
         if center:
@@ -230,11 +237,16 @@ class ComplexBatchNormalization(object):
         else:
             input_centred = inputs
         centred_squared = input_centred ** 2
-
-        centred_squared_real = centred_squared[:, :, :, :input_dim]
-        centred_squared_imag = centred_squared[:, :, :, input_dim:]
-        centred_real = input_centred[:, :, :, :input_dim]
-        centred_imag = input_centred[:, :, :, input_dim:]
+        if ndim==2:
+            centred_squared_real = centred_squared[:, :input_dim]
+            centred_squared_imag = centred_squared[:, input_dim:]
+            centred_real = input_centred[:, :input_dim]
+            centred_imag = input_centred[:, input_dim:]
+        else:
+            centred_squared_real = centred_squared[:, :, :, :input_dim]
+            centred_squared_imag = centred_squared[:, :, :, input_dim:]
+            centred_real = input_centred[:, :, :, :input_dim]
+            centred_imag = input_centred[:, :, :, input_dim:]
 
         if self.scale:
             Vrr = K.mean(
