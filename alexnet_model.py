@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from .base_class import base_class
+from base_class import base_class
 from functools import reduce
 
 
@@ -9,8 +9,8 @@ from functools import reduce
 
 class complex_net(base_class):
     """docstring for complex_net"""
-    def __init__(self, x, classNum, seed,modelPath = "complexnet"):
-        super(complex_net,self).__init__(x, classNum, seed,modelPath)
+    def __init__(self, x, classNum,seed,is_training,is_complex,modelPath = "complexnet"):
+        super(complex_net,self).__init__(x, classNum, seed,is_training,is_complex,modelPath)
         self.relu_fun = tf.nn.relu
         if is_complex:
             self.conv = self.complex_convLayer
@@ -49,7 +49,10 @@ class complex_net(base_class):
             return net
 
     def fc_block(self,inputs,name,layer):
-        shapes = inputs.get_shape().as_list()[1:]
+        if self.is_complex:
+            shapes = inputs[0].get_shape().as_list()[1:]
+        else:
+            shapes = inputs.get_shape().as_list()[1:]
         mul = reduce(lambda x,y:x * y,shapes)
         pre = mul
         if self.is_complex:

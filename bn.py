@@ -1,11 +1,11 @@
-
+import tensorflow as tf
 import numpy as np
-from keras import initializers
-import keras.backend as K
+from tensorflow.keras import initializers
+import tensorflow.keras.backend as K
 
 
-def sqrt_init(shape, dtype=None):
-    value = (1 / K.sqrt(2)) * K.ones(shape)
+def sqrt_init(shape, dtype=None,partition_info=None):
+    value = (1 / np.sqrt(2)) * K.ones(shape,dtype=dtype)
     return value
 
 
@@ -41,8 +41,8 @@ def complex_standardization(input_centred, Vrr, Vii, Vri,axis=-1):
     # delta = (Vrr * Vii) - (Vri ** 2) = Determinant. Guaranteed >= 0 because SPD
     delta = (Vrr * Vii) - (Vri ** 2)
 
-    s = np.sqrt(delta) # Determinant of square root matrix
-    t = np.sqrt(tau + 2 * s)
+    s = tf.sqrt(delta) # Determinant of square root matrix
+    t = tf.sqrt(tau + 2 * s)
 
     # The square root matrix could now be explicitly formed as
     #       [ Vrr+s Vri   ]
@@ -169,9 +169,9 @@ class ComplexBatchNormalization(object):
         self.gamma_diag_initializer        = sanitizedInitGet(gamma_diag_initializer)
         self.gamma_off_initializer         = sanitizedInitGet(gamma_off_initializer)
 
-        input_x = tf.concatenate([input_R,input_I],axis = self.axis)
+        input_x = K.concatenate([input_R,input_I],axis = self.axis)
         self.build(input_x.get_shape().as_list())
-        return self.call(input_x,is_training = self.is_training)
+        self.out = self.call(input_x,is_training = self.is_training)
 
     def build(self, input_shape):  #构建可学习的参数
 
@@ -218,7 +218,7 @@ class ComplexBatchNormalization(object):
     def call(self, inputs, is_training=None): #计算input_ceter 和 vrr、vii等
         input_shape = inputs.get_shape().as_list()
         ndim = len(input_shape)
-        reduction_axes = list(range(ndim)-1)#【1，2，3，4】
+        reduction_axes = list(range(ndim-1))#【1，2，3，4】
         input_dim = input_shape[self.axis] // 2
         mu,_ = tf.nn.moments(inputs,reduction_axes,name='moments')
         broadcast_mu_shape = [1] * len(input_shape)

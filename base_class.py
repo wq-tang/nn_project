@@ -9,7 +9,7 @@
 import tensorflow as tf
 import numpy as np
 from functools import reduce
-from .bn import ComplexBatchNormalization
+from bn import ComplexBatchNormalization
 
 # define different layer functions
 # we usually don't do convolution and pooling on batch and channel
@@ -102,7 +102,7 @@ class base_class(object):
 
     def complex_batch_normalization(self,C):
         R,I = C
-        R,I = ComplexBatchNormalization(R,I,is_training=self.training)
+        R,I=ComplexBatchNormalization(R,I,is_training=self.training).out
         return [R,I]
 
     def complex_fcLayer(self,x, input_size, output_size, name,seed = None,norm=True, relu_fun =tf.nn.relu):

@@ -7,7 +7,7 @@ import os
 # import matplotlib.pyplot as plt
 import time
 import math
-from .base_class import base_class
+from base_class import base_class
 from functools import reduce
 
 
@@ -19,8 +19,8 @@ class Block(collections.namedtuple('Block',['scope','unit_fn','args'])):
 
 class Resnet(base_class):
 	"""docstring for Resnet_v2_18"""
-	def __init__(self, x, classNum, seed,is_complex = True,modelPath = "Resnet_v2"):
-		super(Resnet,self).__init__(x, classNum, seed,modelPath)
+	def __init__(self, x, classNum, seed,is_training,is_complex = True,modelPath = "Resnet_v2"):
+		super(Resnet,self).__init__(x, classNum, seed,is_training,is_complex,modelPath)
 
 		if is_complex:
 			self.conv = self.complex_convLayer

@@ -4,13 +4,13 @@ import tensorflow as tf
 import time
 import math
 import sys
-from .alexnet_model import complex_net
-from .resnet_model import Resnet
+from alexnet_model import complex_net
+from resnet_model import Resnet
 
-from .CIFAR100 import read_cifar100
-from .FashionMNIST import read_fashion
-from .CIFAR10 import read_cifar10
-from .MNIST import read_mnist
+from CIFAR100 import read_cifar100
+from FashionMNIST import read_fashion
+from CIFAR10 import read_cifar10
+from MNIST import read_mnist
 
 
 
@@ -40,7 +40,7 @@ def cifar(path,is_complex,model_num):
 		precision=[]
 		for i in range(10):
 			test_x,test_y = next(test_batch)
-			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y,is_training=False}))
+			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y,is_training:False}))
 		return np.mean(precision)
 
 	#修改模型以及对应的方法
@@ -91,10 +91,10 @@ def cifar(path,is_complex,model_num):
 	for i in range(max_epoch):
 		start_time = time.time()
 		train_x,train_y = next(train_batch)
-		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y,is_training=True})
+		_ = sess.run(train_op, feed_dict={x:train_x,y:train_y,is_training:True})
 		duration = time.time() - start_time
 		if i%500 ==0:
-			summary,loss_value = sess.run([merged,loss], feed_dict={x:train_x,y:train_y,is_training=True})
+			summary,loss_value = sess.run([merged,loss], feed_dict={x:train_x,y:train_y,is_training:True})
 			train_writer.add_summary(summary, i)
 			examples_per_sec = batch_step/duration
 			sec_per_batch = float(duration)
@@ -128,7 +128,7 @@ def mnist(path,is_complex,model_num):
 		precision=[]
 		for i in range(10):
 			test_x,test_y = next(test_batch)
-			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y,is_training=False}))
+			precision.append(accuracy.eval(feed_dict={x:test_x, y: test_y,is_training:False}))
 		return np.mean(precision)
 	#修改模型以及对应的方法
 	#修改读取文件的函数以及文件名称
@@ -175,18 +175,18 @@ def mnist(path,is_complex,model_num):
 	for i in range(epoch*600):
 		start_time = time.time()
 		train_x, train_y =  next(train_batch)
-		_ = sess.run( train_op, feed_dict={x:train_x,y:train_y,is_training=True})
+		_ = sess.run( train_op, feed_dict={x:train_x,y:train_y,is_training:True})
 		duration = time.time() - start_time
 		if i%500 ==0:
 			examples_per_sec = batch_step/duration
 			sec_per_batch = float(duration)
 			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch_step)')
-			summary,loss_value = sess.run([merged,loss], feed_dict={x:train_x,y:train_y,is_training =True})
+			summary,loss_value = sess.run([merged,loss], feed_dict={x:train_x,y:train_y,is_training :True})
 			train_writer.add_summary(summary, i)
-			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y,is_training=True})
+			train_accuracy = accuracy.eval(feed_dict={x:train_x, y:train_y,is_training:True})
 			print(format_str %(i,loss_value,examples_per_sec,sec_per_batch))
 			model.training = False
-			summary, acc = sess.run([merged, accuracy], feed_dict={x:test_x,y:test_y,is_training=False})
+			summary, acc = sess.run([merged, accuracy], feed_dict={x:test_x,y:test_y,is_training:False})
 			test_writer.add_summary(summary, i)
 			test_accuracy = test(test_batch)
 			ans.append(test_accuracy)
@@ -200,10 +200,11 @@ def mnist(path,is_complex,model_num):
 
 
 if __name__=='__main__':
-	path = sys.argv[1]
-	is_complex = bool(int(sys.argv[2]))
-	model_num = int(sys.argv[3])
-	print(path)
-	print(is_complex)
-	print(model_num)
-	cifar(path=path,is_complex=is_complex,model_num=model_num)
+	# path = sys.argv[1]
+	# is_complex = bool(int(sys.argv[2]))
+	# model_num = int(sys.argv[3])
+	# print(path)
+	# print(is_complex)
+	# print(model_num)
+	# cifar(path=path,is_complex=is_complex,model_num=model_num)
+	cifar(path='test',is_complex=True,model_num=2)
