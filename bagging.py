@@ -6,13 +6,13 @@ import math
 import sys
 import h5py
 
-from alexnet_model import complex_net
-from resnet_model import Resnet
+from .alexnet_model import complex_net
+from .resnet_model import Resnet
 
-from CIFAR100 import read_cifar100
-from FashionMNIST import read_fashion
-from CIFAR10 import read_cifar10
-from MNIST import read_mnist
+from .CIFAR100 import read_cifar100
+from .FashionMNIST import read_fashion
+from .CIFAR10 import read_cifar10
+from .MNIST import read_mnist
 ##cifar batch =128  epoch = 50000
 ##mnist epoch=50  batch = 60000
 def count():

@@ -1,43 +1,32 @@
 import tensorflow as tf
 import numpy as np
-from base_class import base_class
+from .base_class import base_class
 from functools import reduce
 
 
-def sign(x):
-    e = 0.1**8
-    return tf.nn.relu(x)/(tf.nn.relu(x)+e)
 
-def variable_summaries(var):
-    """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
-    with tf.name_scope('summaries'):
-        mean = tf.reduce_mean(var)
-        tf.summary.scalar('mean', mean)
-        with tf.name_scope('stddev'):
-            stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
-        tf.summary.scalar('stddev', stddev)
-        tf.summary.scalar('max', tf.reduce_max(var))
-        tf.summary.scalar('min', tf.reduce_min(var))
-        tf.summary.histogram('histogram', var)
 
 
 class complex_net(base_class):
     """docstring for complex_net"""
-    def __init__(self, x, classNum, seed,modelPath = "complexnet",is_complex=True):
+    def __init__(self, x, classNum, seed,modelPath = "complexnet"):
         super(complex_net,self).__init__(x, classNum, seed,modelPath)
-        tf.set_random_seed(seed)
-        self.is_complex=is_complex
         self.relu_fun = tf.nn.relu
-        # self.relu_fun = self.Learnable_angle_relu
+        if is_complex:
+            self.conv = self.complex_convLayer
+            self.pool = self.complex_maxPoolLayer
+            self.connect = self.complex_fcLayer
+            self.batch_normalization = self.complex_batch_normalization
+            self.inputs = self.X_com
+        else:
+            self.conv = self.convLayer
+            self.pool = self.maxPoolLayer
+            self.connect = self.fcLayer
+            self.batch_normalization = tf.layers.batch_normalization
+            self.inputs = self.X
 
 
     def conv_block(self,inputs,name,kernel,channel,pool_size=2,pool_strides=2,strides = 1,same = False):
-        if self.is_complex:
-            conv_f = self.complex_convLayer
-            pool_f = self.complex_maxPoolLayer
-        else:
-            conv_f = self.convLayer
-            pool_f = self.maxPoolLayer
         net = inputs
         with tf.variable_scope(name):
             for i in range(len(kernel)):
@@ -51,8 +40,8 @@ class complex_net(base_class):
                 else:
                     channel_num=int(channel[i]*1.41)+1
 
-                conv = conv_f(net, [kernel_size, kernel_size], [stride_size, stride_size], channel_num, "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
-                net = pool_f(conv,[pool_size, pool_size],[ pool_strides,pool_strides], "pool"+str(i+1), "SAME")
+                conv = self.conv(net, [kernel_size, kernel_size], [stride_size, stride_size], channel_num, "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
+                net = self.pool(conv,[pool_size, pool_size],[ pool_strides,pool_strides], "pool"+str(i+1), "SAME")
             if same == True:
                 net = self.tile(net,inputs)
             if self.is_complex:
@@ -60,13 +49,7 @@ class complex_net(base_class):
             return net
 
     def fc_block(self,inputs,name,layer):
-        if self.is_complex:
-            fc_connect = self.complex_fcLayer
-            cnnout = inputs[0]
-        else:
-            fc_connect = self.fcLayer
-            cnnout=inputs
-        shapes = cnnout.get_shape().as_list()[1:]
+        shapes = inputs.get_shape().as_list()[1:]
         mul = reduce(lambda x,y:x * y,shapes)
         pre = mul
         if self.is_complex:
@@ -84,9 +67,9 @@ class complex_net(base_class):
                 else:
                     now=int(layer[i]*1.41)+1
 
-                net = fc_connect(net, pre, now,"fc"+str(i+1),relu_fun = self.relu_fun)
+                net = self.connect(net, pre, now,"fc"+str(i+1),relu_fun = self.relu_fun)
                 pre = now
-            net = fc_connect(net, pre, layer[-1],"fc"+str(len(layer)),relu_fun = self.relu_fun)
+            net = self.connect(net, pre, layer[-1],"fc"+str(len(layer)),relu_fun = self.relu_fun)
             if self.is_complex:
                 return np.array(net)
             return net
@@ -94,25 +77,16 @@ class complex_net(base_class):
 
     def build_CNN_for_mnist(self,model_num=1):
         with tf.variable_scope('mnist'):
-            if self.is_complex:
-                inputs = self.X_com
-            else:
-                inputs=self.X
             out = 0
             for i in range(model_num):
-                out += self.conv_block(inputs,'conv_block'+str(i+1),[5,3],[16,8])
+                out += self.conv_block(self.inputs,'conv_block'+str(i+1),[5,3],[16,8])
             self.out=self.fc_block(out,'fc_block',[30,self.CLASSNUM])
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
 
     def build_compare_for_mnist(self,model_num=1):
         with tf.variable_scope('mnist'):
-            if self.is_complex:
-                inputs = self.X_com
-            else:
-                inputs=self.X
-            net = inputs
-
+            net = self.inputs
             for i in range(model_num-1):
                 net = self.conv_block(net,'conv_block'+str(i+1),[5,3],[16,8],same=True)
             net = self.conv_block(net,'conv_block'+str(model_num),[5,3],[16,8])
@@ -122,13 +96,9 @@ class complex_net(base_class):
 
     def build_CNN_for_cifar10(self,model_num=1):
         with tf.variable_scope('cifar10'):
-            if self.is_complex:
-                inputs = self.X_com
-            else:
-                inputs=self.X
             out = 0
             for i in range(model_num):
-                out += self.conv_block(inputs,'conv_block'+str(i+1),[5,5,3,3],[128,128,64,64])
+                out += self.conv_block(self.inputs,'conv_block'+str(i+1),[5,5,3,3],[128,128,64,64])
             self.out=self.fc_block(out,'fc_block',[384,192,self.CLASSNUM])
             if self.is_complex:
                 self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
@@ -137,12 +107,7 @@ class complex_net(base_class):
 
     def build_compare_for_cifar10(self,model_num=1):
         with tf.variable_scope('compare_cifar10'):
-            if self.is_complex:
-                inputs = self.X_com
-            else:
-                inputs=self.X
-            net = inputs
-
+            net = self.inputs
             for i in range(model_num-1):
                 net = self.conv_block(net,'conv_block'+str(i+1),[5,3,3],[128,64,64],same=True)
             net = self.conv_block(net,'conv_block'+str(model_num),[5,3,3],[128,64,64])
@@ -190,24 +155,15 @@ class complex_net(base_class):
         return self.pad(net,inputs)
 
     def diff_net(self,inputs,name,kernel_list,channel_list,fc_list):
-        if self.is_complex:
-            fc_connect = self.complex_fcLayer
-            conv_f = self.complex_convLayer
-            pool_f = self.complex_maxPoolLayer
-            net = [inputs,inputs]
-        else:
-            conv_f = self.convLayer
-            pool_f = self.maxPoolLayer
-            fc_connect = self.fcLayer
-            net = inputs
+        net = self.inputs
         if not self.is_complex:
             channel_list =[int(chanel*1.41)+1 for chanel in channel_list[:-1]] + [channel_list[-1]]
             fc_list = [int(fc*1.41)+1 for fc in fc_list[:-1]] + [fc_list[-1]]
         fc_list+=[self.CLASSNUM]
         with tf.variable_scope(name):
             for i in range(len(kernel_list)):
-                conv = conv_f(net, [kernel_list[i], kernel_list[i]], [1, 1], channel_list[i], "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
-                net = pool_f(conv,[2, 2],[ 2,2], "pool"+str(i+1), "SAME")
+                conv = self,conv(net, [kernel_list[i], kernel_list[i]], [1, 1], channel_list[i], "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
+                net = self.pool(conv,[2, 2],[ 2,2], "pool"+str(i+1), "SAME")
 
             if self.is_complex:
                 cnnout = net[0]
@@ -227,7 +183,7 @@ class complex_net(base_class):
 
             for i in range(len(fc_list)):
                 now = fc_list[i]
-                net = fc_connect(net, pre, now,"fc"+str(i+1),relu_fun = self.relu_fun)
+                net = self.connect(net, pre, now,"fc"+str(i+1),relu_fun = self.relu_fun)
                 pre = now
             self.out = net
 

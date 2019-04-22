@@ -7,7 +7,7 @@ import os
 # import matplotlib.pyplot as plt
 import time
 import math
-from base_class import base_class
+from .base_class import base_class
 from functools import reduce
 
 
@@ -21,19 +21,16 @@ class Resnet(base_class):
 	"""docstring for Resnet_v2_18"""
 	def __init__(self, x, classNum, seed,is_complex = True,modelPath = "Resnet_v2"):
 		super(Resnet,self).__init__(x, classNum, seed,modelPath)
-		tf.set_random_seed(seed)
-		self.is_complex=is_complex
+
 		if is_complex:
 			self.conv = self.complex_convLayer
 			self.pool = self.complex_maxPoolLayer
 			self.connect = self.complex_fcLayer
-			self.batch_normalization = self.complex_batch_normalization
 			self.inputs = self.X_com
 		else:
 			self.conv = self.convLayer
 			self.pool = self.maxPoolLayer
 			self.connect = self.fcLayer
-			self.batch_normalization = tf.layers.batch_normalization
 			self.inputs = self.X
 
 	def subsample(self,inputs,factors,scope = None):

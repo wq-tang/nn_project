@@ -9,6 +9,7 @@
 import tensorflow as tf
 import numpy as np
 from functools import reduce
+from .bn import ComplexBatchNormalization
 
 # define different layer functions
 # we usually don't do convolution and pooling on batch and channel
@@ -20,12 +21,6 @@ def sign(x):
     # x = tf.cast(x,tf.float32)
     # return x
 
-def safe_division(numerator,denominator):
-    e = 0.1**8
-    ab = (tf.abs(denominator)<e/2)
-    ab = tf.cast(ab,tf.float32)
-    denominator += ab*e
-    return numerator/denominator
 
 def variable_summaries(var):
     """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
@@ -43,13 +38,13 @@ def variable_summaries(var):
 
 class base_class(object):
     """alexNet model"""
-    def __init__(self, x, classNum, seed,modelPath = "alexnet"):
-        self.keep_prob = 0.5
+    def __init__(self, x, classNum, seed,is_training,is_complex,modelPath = "alexnet"):
         self.X_com = [x,x]
         self.X = x
+        self.is_complex=is_complex
         self.CLASSNUM = classNum
         self.MODELPATH = modelPath
-        self.training = True
+        self.training = is_training
         tf.set_random_seed(seed)  
         self.seed = seed
         #build CNN
@@ -105,10 +100,9 @@ class base_class(object):
             tf.summary.histogram('activations', activations)
             return activations
 
-    def complex_batch_normalization(self,C,training=None):
+    def complex_batch_normalization(self,C):
         R,I = C
-        R=tf.layers.batch_normalization(R,training=self.training)
-        I=tf.layers.batch_normalization(I,training=self.training)
+        R,I = ComplexBatchNormalization(R,I,is_training=self.training)
         return [R,I]
 
     def complex_fcLayer(self,x, input_size, output_size, name,seed = None,norm=True, relu_fun =tf.nn.relu):
