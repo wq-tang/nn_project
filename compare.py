@@ -142,8 +142,9 @@ def mnist(path,is_complex,model_num):
 	train_batch,test_batch=read_fashion('data/'+file_name,batch_step,1000)
 	x  = tf.placeholder(tf.float32,[None,28,28,1])
 	y = tf.placeholder(tf.int32,[None])
+	is_training = tf.placeholder(tf.bool)
 	tf.summary.image('input', x, 10)
-	model = complex_net(x,10,0,is_complex=is_complex)
+	model = complex_net(x,10,0,is_training=is_training,is_complex=is_complex)
 	if path[:7] == 'compare':
 		model.build_compare_for_mnist(model_num)
 	else:
@@ -207,4 +208,4 @@ if __name__=='__main__':
 	# print(is_complex)
 	# print(model_num)
 	# cifar(path=path,is_complex=is_complex,model_num=model_num)
-	cifar(path='test',is_complex=True,model_num=2)
+	mnist(path='test',is_complex=True,model_num=2)

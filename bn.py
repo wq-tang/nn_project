@@ -285,4 +285,7 @@ class ComplexBatchNormalization(object):
             self.beta, self.gamma_rr, self.gamma_ri,
             self.gamma_ii, self.scale, self.center,
             axis=self.axis)
-        return input_bn[:, :, :, :input_dim],input_bn[:, :, :, input_dim:]
+        if ndim==2:
+            return input_bn[:, :input_dim],input_bn[ :, input_dim:]
+        else:
+            return input_bn[:, :, :, :input_dim],input_bn[:, :, :, input_dim:]
