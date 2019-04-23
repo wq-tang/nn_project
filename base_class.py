@@ -50,7 +50,8 @@ class base_class(object):
         #build CNN
         # self.buildCNN()
         # self.build_complex_CNN()
-
+'''
+    这几个函数以后要用再用 暂时用不到
     def Learnable_angle_relu(self,C,name):
         with tf.variable_scope(name) as scope:
             with tf.variable_scope('alpha'):
@@ -99,10 +100,15 @@ class base_class(object):
             activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
             tf.summary.histogram('activations', activations)
             return activations
+'''
+
+
 
     def complex_batch_normalization(self,C):
         R,I = C
-        R,I=ComplexBatchNormalization(R,I,is_training=self.training).out
+        # R,I=ComplexBatchNormalization(R,I,is_training=self.training).out
+        R=tf.layers.batch_normalization(R,training=self.training)
+        I=tf.layers.batch_normalization(I,training=self.training)
         return [R,I]
 
     def complex_fcLayer(self,x, input_size, output_size, name,seed = None,norm=True, relu_fun =tf.nn.relu):

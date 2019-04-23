@@ -83,10 +83,14 @@ def complex_standardization(input_centred, Vrr, Vii, Vri,axis=-1):
     if ndim == 2:
         centred_real = input_centred[:, :input_dim]
         centred_imag = input_centred[:, input_dim:]
-    else:
+    elif ndim==4:
         centred_real = input_centred[:, :, :, :input_dim]
         centred_imag = input_centred[:, :, :, input_dim:]
-
+    else:
+        raise ValueError(
+            'Incorrect Batchnorm combination of axis and dimensions. axis should be either 1 or -1. '
+            'axis: ' + str(self.axis) + '; ndim: ' + str(ndim) + '.'
+        )
     rolled_input = K.concatenate([centred_imag, centred_real], axis=axis)
 
     output = cat_W_4_real * input_centred + cat_W_4_imag * rolled_input
@@ -135,10 +139,14 @@ def ComplexBN(input_centred, Vrr, Vii, Vri, beta,gamma_rr, gamma_ri, gamma_ii, s
         if ndim==2:
             centred_real = input_centred[:, :input_dim]
             centred_imag = input_centred[:, input_dim:]
-        else:
+        elif ndim==4:
             centred_real = standardized_output[:, :, :, :input_dim]
             centred_imag = standardized_output[:, :, :, input_dim:]
-
+        else:
+            raise ValueError(
+                'Incorrect Batchnorm combination of axis and dimensions. axis should be either 1 or -1. '
+                'axis: ' + str(self.axis) + '; ndim: ' + str(ndim) + '.'
+            )
         rolled_standardized_output = K.concatenate([centred_imag, centred_real], axis=axis)
         if center:
             broadcast_beta = K.reshape(beta, broadcast_beta_shape)
@@ -242,12 +250,16 @@ class ComplexBatchNormalization(object):
             centred_squared_imag = centred_squared[:, input_dim:]
             centred_real = input_centred[:, :input_dim]
             centred_imag = input_centred[:, input_dim:]
-        else:
+        elif ndim==4:
             centred_squared_real = centred_squared[:, :, :, :input_dim]
             centred_squared_imag = centred_squared[:, :, :, input_dim:]
             centred_real = input_centred[:, :, :, :input_dim]
             centred_imag = input_centred[:, :, :, input_dim:]
-
+        else:
+            raise ValueError(
+                'Incorrect Batchnorm combination of axis and dimensions. axis should be either 1 or -1. '
+                'axis: ' + str(self.axis) + '; ndim: ' + str(ndim) + '.'
+            )
         if self.scale:
             Vrr = K.mean(
                 centred_squared_real,
@@ -278,7 +290,6 @@ class ComplexBatchNormalization(object):
 
         mean,VRR,VII,VRI = tf.cond(tf.equal(is_training, True), mean_var_with_update, lambda: (
                 ema.average(mu), ema.average(Vrr),ema.average(Vii),ema.average(Vri)))
-
 
         input_bn = ComplexBN(
             inputs - K.reshape(mean, broadcast_mu_shape), VRR, VII, VRI,
