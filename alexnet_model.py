@@ -85,7 +85,7 @@ class complex_net(base_class):
                 out += self.conv_block(self.inputs,'conv_block'+str(i+1),[5,3],[16,8])
             self.out=self.fc_block(out,'fc_block',[30,self.CLASSNUM])
             if self.is_complex:
-                self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+                self.out = tf.square(self.out[0])+tf.square(self.out[1])
 
     def build_compare_for_mnist(self,model_num=1):
         with tf.variable_scope('mnist'):
@@ -95,7 +95,8 @@ class complex_net(base_class):
             net = self.conv_block(net,'conv_block'+str(model_num),[5,3],[16,8])
             self.out=self.fc_block(net,'fc_block',[30,self.CLASSNUM])
             if self.is_complex:
-                self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+                self.out = tf.square(self.out[0])+tf.square(self.out[1])
+
 
     def build_CNN_for_cifar10(self,model_num=1):
         with tf.variable_scope('cifar10'):
@@ -104,7 +105,7 @@ class complex_net(base_class):
                 out += self.conv_block(self.inputs,'conv_block'+str(i+1),[5,5,3,3],[128,128,64,64])
             self.out=self.fc_block(out,'fc_block',[384,192,self.CLASSNUM])
             if self.is_complex:
-                self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+                self.out = tf.square(self.out[0])+tf.square(self.out[1])
 
 
 
@@ -116,7 +117,7 @@ class complex_net(base_class):
             net = self.conv_block(net,'conv_block'+str(model_num),[5,3,3],[128,64,64])
             self.out=self.fc_block(net,'fc_block',[384,192,self.CLASSNUM])
             if self.is_complex:
-                self.out = tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+                self.out = tf.square(self.out[0])+tf.square(self.out[1])
 
 
     def pad(self,net,inputs):
@@ -165,15 +166,15 @@ class complex_net(base_class):
         fc_list+=[self.CLASSNUM]
         with tf.variable_scope(name):
             for i in range(len(kernel_list)):
-                conv = self,conv(net, [kernel_list[i], kernel_list[i]], [1, 1], channel_list[i], "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
+                conv = self.conv(net, [kernel_list[i], kernel_list[i]],[1, 1], channel_list[i], "conv"+str(i+1), "SAME",relu_fun = self.relu_fun)
                 net = self.pool(conv,[2, 2],[ 2,2], "pool"+str(i+1), "SAME")
+
 
             if self.is_complex:
                 cnnout = net[0]
             else:
                 fc_connect = self.fcLayer
                 cnnout=net
-
             shapes = cnnout.get_shape().as_list()[1:]
             mul = reduce(lambda x,y:x * y,shapes)
             pre = mul

@@ -101,7 +101,7 @@ class Resnet(base_class):
 			dim = tensor.get_shape().as_list()[-1]
 			self.out = self.connect(net,dim,self.CLASSNUM,name='fc-100')
 			if self.is_complex:
-				self.out= tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+				self.out= tf.square(self.out[0])+tf.square(self.out[1])
 
 	def build_resnet(self,model_num=1):
 		channel_list = [64,128,256,512]
@@ -127,7 +127,7 @@ class Resnet(base_class):
 			dim = tensor.get_shape().as_list()[-1]
 			self.out = self.connect(net,dim,self.CLASSNUM,name='fc-100')
 			if self.is_complex:
-				self.out= tf.sqrt(tf.square(self.out[0])+tf.square(self.out[1]))
+				self.out= tf.square(self.out[0])+tf.square(self.out[1])
 			
 
 	def diff_sigle_model(self,inputs,name,kernel_list,channel_list):

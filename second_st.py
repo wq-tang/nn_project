@@ -26,7 +26,7 @@ def build_model(x,class_num,variable_num,is_complex):
 	if is_complex:
 		R = out[:,0,:]
 		I = out[:,1,:]
-		return tf.sqrt(tf.square(R)+tf.square(I)+0.1**9)
+		return tf.square(R)+tf.square(I)
 	return out
 
 
@@ -40,6 +40,7 @@ def Secondary_net(model_name,combine_list,is_complex):
 		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
+		
 	def test(test_data):
 		precision=[]
 		for i in range(10):

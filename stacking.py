@@ -39,6 +39,7 @@ def stacking(path,kernel_list,channel_list,fc_list,is_complex=True):
 		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
+		
 	def test(test_batch):
 		precision=[]
 		for i in range(10):
@@ -146,7 +147,7 @@ def generate_Primary_net_cifar(model_shape,model_tag,is_complex):
 		local_path = 'real'+model_shape[0]
 
 	path,kernel_list,channel_list,fc_list = model_shape
-	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),\
+	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
 		'mynet/stacking/cifar10/'+local_path+str(model_tag))
 	max_epoch = 50000
 	batch_step = 128 
