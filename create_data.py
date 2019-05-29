@@ -63,10 +63,10 @@ def k_flod(file_name,k):
 				labels = label[index][i*step:]
 			result.append((images,labels))
 		return result
-	dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5Adv(file_name)
+	dataTrain, labelsTrain, dataTest, labelsTest = loadHDF5Adv('data/'+file_name)
 	data_list = divide_equally(dataTrain,labelsTrain)
 	for p,item in enumerate(data_list):
-		wrrite_file(item,[dataTest, labelsTest],'split_file'+file_name[:-3]+'_split_'+str(k)+str(p+1)+'.h5')
+		wrrite_file(item,[dataTest, labelsTest],'split_file/'+file_name[:-3]+'_split_'+str(k)+str(p+1)+'.h5')
 
 
 #文件合并

@@ -50,65 +50,65 @@ class base_class(object):
         #build CNN
         # self.buildCNN()
         # self.build_complex_CNN()
-'''
-    这几个函数以后要用再用 暂时用不到
-    def Learnable_angle_relu(self,C,name):
-        with tf.variable_scope(name) as scope:
-            with tf.variable_scope('alpha'):
-                alpha = tf.get_variable("alpha",shape = [1],dtype=tf.float32)
-            tf.summary.histogram('alpha',alpha)
-            with tf.variable_scope('beita'):
-                beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
-            tf.summary.histogram('beita',beita)
+    """
+        这几个函数以后要用再用 暂时用不到
+        def Learnable_angle_relu(self,C,name):
+            with tf.variable_scope(name) as scope:
+                with tf.variable_scope('alpha'):
+                    alpha = tf.get_variable("alpha",shape = [1],dtype=tf.float32)
+                tf.summary.histogram('alpha',alpha)
+                with tf.variable_scope('beita'):
+                    beita = tf.get_variable("beita",shape = [1],dtype=tf.float32)
+                tf.summary.histogram('beita',beita)
 
-            activations= [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
-            C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
+                activations= [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
+                C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
 
-            tf.summary.histogram('activations', activations)
-            return activations
-    
-    def Learnable_angle_relu_per_neural(self,C,name,seed=None):
-        with tf.variable_scope(name) as scope:
-            with tf.variable_scope('alpha'):
-                alpha = tf.get_variable("alpha",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
-            variable_summaries(alpha)
-            with  tf.variable_scope('beita'):
-                beita = tf.get_variable("beita",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
-            variable_summaries(beita)
-            activations =  [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
-            C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
-            tf.summary.histogram('activations', activations)
-            return activations
+                tf.summary.histogram('activations', activations)
+                return activations
+        
+        def Learnable_angle_relu_per_neural(self,C,name,seed=None):
+            with tf.variable_scope(name) as scope:
+                with tf.variable_scope('alpha'):
+                    alpha = tf.get_variable("alpha",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
+                        initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
+                variable_summaries(alpha)
+                with  tf.variable_scope('beita'):
+                    beita = tf.get_variable("beita",shape = C[0].get_shape()[1:].as_list(),dtype=tf.float32,\
+                        initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
+                variable_summaries(beita)
+                activations =  [C[0]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0])),\
+                C[1]*sign(tf.atan(C[1]/C[0])-alpha)*sign(alpha+beita-tf.atan(C[1]/C[0]))]
+                tf.summary.histogram('activations', activations)
+                return activations
 
-    def Learnable_radius_relu(self,C,name):
-        with tf.variable_scope(name) as scope:
-            with  tf.variable_scope('radius'):
-                radius = tf.get_variable("radius",shape = [1],dtype=tf.float32)
-            # tf.summary.histogram('radius',radius)
-            activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
-            tf.summary.histogram('activations', activations)
-            return activations
+        def Learnable_radius_relu(self,C,name):
+            with tf.variable_scope(name) as scope:
+                with  tf.variable_scope('radius'):
+                    radius = tf.get_variable("radius",shape = [1],dtype=tf.float32)
+                # tf.summary.histogram('radius',radius)
+                activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
+                tf.summary.histogram('activations', activations)
+                return activations
 
-    def Learnable_radius_relu_per_neural(self,C,name,seed=None):
-        with tf.variable_scope(name) as scope:
-            with tf.variable_scope('radius'):
-                radius = tf.get_variable("radius",shape = C[0].get_shape().as_list()[1:],dtype=tf.float32,\
-                    initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
-            variable_summaries(radius)
-            activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
-            tf.summary.histogram('activations', activations)
-            return activations
-'''
+        def Learnable_radius_relu_per_neural(self,C,name,seed=None):
+            with tf.variable_scope(name) as scope:
+                with tf.variable_scope('radius'):
+                    radius = tf.get_variable("radius",shape = C[0].get_shape().as_list()[1:],dtype=tf.float32,\
+                        initializer = tf.contrib.layers.xavier_initializer( uniform=True, seed=seed,dtype=tf.float32))
+                variable_summaries(radius)
+                activations= [C[0]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius),C[1]*sign(tf.sqrt(C[0]**2+C[1]**2)-radius)]
+                tf.summary.histogram('activations', activations)
+                return activations
+    """
 
 
 
     def complex_batch_normalization(self,C):
         R,I = C
-        # R,I=ComplexBatchNormalization(R,I,is_training=self.training).out
-        R=tf.layers.batch_normalization(R,training=self.training)
-        I=tf.layers.batch_normalization(I,training=self.training)
+        R,I=ComplexBatchNormalization(R,I,is_training=self.training).out
+        # R=tf.layers.batch_normalization(R,training=self.training)
+        # I=tf.layers.batch_normalization(I,training=self.training)
         return [R,I]
 
     def complex_fcLayer(self,x, input_size, output_size, name,seed = None,norm=True, relu_fun =tf.nn.relu):
