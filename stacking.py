@@ -501,8 +501,7 @@ if __name__=='__main__':
 	model_tag=1 #第几个子模型
 	is_complex = True
 	#生成子模型
-	generate_secondary_data(model_shape,is_complex)
-	
+	generate_Primary_net_cifar([k[model_index] for k in  shape_list],model_tag,is_complex) #修改
 
 	#生成次级模型数据
-	#generate_secondary_data([k[model_index] for k in  shape_list],model_tag,is_complex) #修改 
+	# generate_secondary_data(model_shape,is_complex)
