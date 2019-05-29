@@ -13,13 +13,13 @@ def loadHDF5(file_name):
         
     return (dataTrain, labelsTrain, dataTest, labelsTest)
 
-def generators(is_complex,file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3]):
+def generators(complex_and_second,file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3]):
     ''' generators for multi-let
     Args:
     Return:
         genTrain: an iterator for the training set
         genTest:  an iterator for the test set'''
-    if is_complex:
+    if complex_and_second:
         axis = 1
     else:
         axis = 0
@@ -29,7 +29,7 @@ def generators(is_complex,file_name,TrainBatchSize,TestBatchSize, preprocSize=[2
         index = Preproc.genIndex(dataTrain.shape[axis], shuffle=True)
         while True:
             indexAnchor = next(index)
-            if is_complex:
+            if complex_and_second:
                 imageAnchor = dataTrain[:,indexAnchor,:]
             else:
                 imageAnchor = dataTrain[indexAnchor]
@@ -43,7 +43,7 @@ def generators(is_complex,file_name,TrainBatchSize,TestBatchSize, preprocSize=[2
         index = Preproc.genIndex(dataTest.shape[axis], shuffle=False)
         while True:
             indexAnchor = next(index)
-            if is_complex:
+            if complex_and_second:
                 imageAnchor = dataTest[:,indexAnchor,:]
             else:
                 imageAnchor = dataTest[indexAnchor]
@@ -83,6 +83,6 @@ def generators(is_complex,file_name,TrainBatchSize,TestBatchSize, preprocSize=[2
 
 
             
-def read_data(is_complex,file_name,TrainBatchSize,TestBatchSize):
-    batchTrain, batchTest = generators(is_complex,file_name,TrainBatchSize,TestBatchSize, preprocSize=[24, 24, 3])
+def read_data(complex_and_second,file_name,TrainBatchSize,TestBatchSize):
+    batchTrain, batchTest = generators(complex_and_second,file_name,TrainBatchSize,TestBatchSize, preprocSize=[24, 24, 3])
     return batchTrain, batchTest
