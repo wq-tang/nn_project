@@ -359,7 +359,7 @@ class ImportGraph():
     #修改模型读取路径
     """  Importing and running isolated TF graph """
     def __init__(self, loc):
-        model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'stacking_submodel/cifar10/'+loc)
+        model_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),'stacking_submodel/alex/cifar10/'+loc)
         # Create local graph and use it in the session
         self.graph = tf.Graph()
         self.sess = tf.Session(graph=self.graph)
@@ -397,7 +397,7 @@ def restore(submodel_num,k_fold,is_complex):#module_num表示子模型编号
 
     test_file_name = 'CIFAR10.h5'
     _,test_batch = read_cifar10('data/'+test_file_name,1,1000)
-    data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'stacking_data/alex/cifar10/'+local_path)
+    data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'stacking_data/alex/cifar10/'+local_path+'.h5')
 
     train_result = []
     test_result = []
@@ -406,14 +406,14 @@ def restore(submodel_num,k_fold,is_complex):#module_num表示子模型编号
 
     accuracy=0.0
     for k in range(k_fold):
-        train_file_name = 'CIFAR10'+'_split_'+str(k_fold)+str(k+1)
+        train_file_name = 'CIFAR10'+'_split_'+str(k_fold)+str(k+1)+'.h5'
         train_batch,_= read_cifar10("split_file/"+train_file_name,1250,1,train_shuffle=False)
         model = ImportGraph("complex"+str(submodel_num)+'-'+str(k+1))
         test_local_result = []
         for i in range(10):
             test_data,test_lable  = next(test_batch)
             train_data,train_lable = next(train_batch)
-            trains_lable.append(train_label)
+            trains_lable.append(train_lable)
             if k ==1:
                 tests_label.append(test_lable)
             
@@ -498,6 +498,6 @@ if __name__=='__main__':
     # generate_Primary_net_cifar([k[model_index] for k in  shape_list],model_tag,is_complex) #修改
 
     #生成次级模型数据,要自己进去修改路径和数据名称等等
-    k_fold = 4  #要修改为和之前的训练子模型时的K值相同
-    generate_secondary_data(is_complex,k_fold)
+	k_fold = 4  #要修改为和之前的训练子模型时的K值相同
+	generate_secondary_data(is_complex,k_fold)
 
