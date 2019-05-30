@@ -10,24 +10,28 @@ from alexnet_model import complex_net
 from resnet_model import Resnet
 from READ_DATA import read_data
 
-
-
-def build_model(x,class_num,variable_num,is_complex):
+def build_model(x,class_num,submodel_num,is_complex):
 	if is_complex:
-		tag =2
+		wr = [ 0 for i in range(submodel_num)]
+		wi = [ 0 for i in range(submodel_num)]
+		out = [0.0,0.0]
+		for i in range(submodel_num):
+			wr[i] = tf.get_variable("wr"+str(i+1), shape = [1, class_num], dtype = tf.float32,\
+							initializer = tf.constant_initializer(1))
+			wi[i] = tf.get_variable("wi"+str(i+1), shape = [1, class_num], dtype = tf.float32,\
+							initializer = tf.constant_initializer(0))
+			out[0] += tf.multiply(x[i][:,0,:],wr[i]) - tf.multiply(x[i][:,1,:],wi[i])
+			out[1] += tf.multiply(x[i][:,0,:],wi[i]) + tf.multiply(x[i][:,1,:],wr[i])
+
+		return tf.square(out[0])+tf.square(out[1])
 	else:
-		tag=1
-	w = [ 0 for i in range(variable_num)]
-	out = 0.0
-	for i in range(variable_num):
-		w[i] = tf.get_variable("w"+str(i+1), shape = [tag, class_num], dtype = tf.float32,\
-						initializer = tf.constant_initializer(1))
-		out += tf.multiply(x[i],w[i])
-	if is_complex:
-		R = out[:,0,:]
-		I = out[:,1,:]
-		return tf.square(R)+tf.square(I)
-	return out
+		w = [ 0 for i in range(submodel_num)]
+		out = [0.0]
+		for i in range(submodel_num):
+			w[i] = tf.get_variable("wr"+str(i+1), shape = [1, class_num], dtype = tf.float32,\
+							initializer = tf.constant_initializer(1))
+			out += tf.multiply(x[i],w[i])
+		return out
 
 
 
@@ -40,7 +44,7 @@ def Secondary_net(model_name,combine_list,is_complex):
 		cross_entropy_mean = tf.reduce_mean(cross_entropy,name='cross_entropy')
 		tf.add_to_collection('losses',cross_entropy_mean)
 		return tf.add_n(tf.get_collection('losses'),name='total_loss')
-		
+
 	def test(test_data):
 		precision=[]
 		for i in range(10):
@@ -62,22 +66,22 @@ def Secondary_net(model_name,combine_list,is_complex):
 	#修改读取文件的函数以及文件名称
 	#修改输出路径
 	if is_complex:
-		board_tail = model_name+'_complex_board'+''.join(combine_list)
+		board_tail = model_name+'/complex'+''.join(combine_list)
 	else:
-		board_tail = model_name+'_real_board'+''.join(combine_list)
+		board_tail = model_name+'/real'+''.join(combine_list)
 
-	log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'mynet/stacking/'+board_tail)
+	log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),'st_submodel/alex/'+board_tail)
 	if is_complex:
 		tail = 'complex'
 	else:
 		tail = 'real'
 	max_epoch = 30000  #修改
-	batch_step = 256
+	batch_step = 128
 	class_num = 10   ###修改
 	train_data = []
 	test_data = []
 	for i in range(len(combine_list)):
-		batchTrain, batchTest = read_data(is_complex,'after_bagging/'+model_name+'_'+tail+combine_list[i]+'.h5',batch_step,1000)
+		batchTrain, batchTest = read_data(is_complex,'stacking_data/alex/'+model_name+'/'+tail+combine_list[i]+'.h5',batch_step,1000)
 		train_data.append(batchTrain)
 		test_data.append(batchTest)
 
@@ -177,7 +181,7 @@ def Secondary_net(model_name,combine_list,is_complex):
 	print('precision @1 = %.5f'%np.mean(ans[-10:]))
 
 if __name__=='__main__':
-	combine_list = ['1','2','3','4']
-	model_name='CIFAR10'
+	combine_list = ['1','2','3','4']#集成模型编号
+	model_name='cifar10'
 	is_complex = True
 	Secondary_net(model_name,combine_list,is_complex)
