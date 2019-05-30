@@ -356,117 +356,110 @@ def generate_Primary_net_mnist(model_shape,model_tag,is_complex):
 
 #加载图，run方法是喂入数据得到输出
 class ImportGraph():
-	#修改模型读取路径
-	"""  Importing and running isolated TF graph """
-	def __init__(self, loc):
-		model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'stacking_submodel/cifar10/'+loc)
-		# Create local graph and use it in the session
-		self.graph = tf.Graph()
-		self.sess = tf.Session(graph=self.graph)
-		with self.graph.as_default():
-			# Import saved model from location 'loc' into local graph
-			# 从指定路径加载模型到局部图中
-			saver = tf.train.import_meta_graph(model_path+ '.ckpt.meta',
-												clear_devices=True)
-			saver.restore(self.sess, model_path+'.ckpt')
-			# There are TWO options how to get activation operation:
-			# 两种方式来调用运算或者参数
-				# FROM SAVED COLLECTION:            
-			self.activation = tf.get_collection('model_out')[0]
-				# BY NAME:
-			# self.activation = self.graph.get_operation_by_name('inputs').outputs[0]
+    #修改模型读取路径
+    """  Importing and running isolated TF graph """
+    def __init__(self, loc):
+        model_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'stacking_submodel/cifar10/'+loc)
+        # Create local graph and use it in the session
+        self.graph = tf.Graph()
+        self.sess = tf.Session(graph=self.graph)
+        with self.graph.as_default():
+            # Import saved model from location 'loc' into local graph
+            # 从指定路径加载模型到局部图中
+            saver = tf.train.import_meta_graph(model_path+ '.ckpt.meta',
+                                                clear_devices=True)
+            saver.restore(self.sess, model_path+'.ckpt')
+            # There are TWO options how to get activation operation:
+            # 两种方式来调用运算或者参数
+                # FROM SAVED COLLECTION:            
+            self.activation = tf.get_collection('model_out')[0]
+                # BY NAME:
+            # self.activation = self.graph.get_operation_by_name('inputs').outputs[0]
 
-	def run(self, data):
-		""" Running the activation operation previously imported """
-		# The 'x' corresponds to name of input placeholder
-		return self.sess.run(self.activation, feed_dict={"inputs/input_x:0": data})
+    def run(self, data):
+        """ Running the activation operation previously imported """
+        # The 'x' corresponds to name of input placeholder
+        return self.sess.run(self.activation, feed_dict={"inputs/input_x:0": data})
 
 
 
 #加载图恢复数据,一次完成一个子模块的k个小模块的加载,然后算出测试集均值，和本子模块对应的次级学习器的数据集
-def restore(module_num):#module_num表示子模型编号
-	#model_path_list表示每个子模块的小模块列表
-	#修改文件读取名字，读取函数
-	### Using the class ###
-	file_name = 'CIFAR10.h5'
-	_,test_batch = read_cifar10('data/'+file_name,1,1000)
-	accuracy=0.0
-	for k in range(10):
-		data,lable  = next(test_batch)
-		result = []
-		for i in range(len(model_path_list)):
-			model = ImportGraph(model_path_list[i])
-			result.append(model.run(data))
+def restore(submodel_num,k_fold,is_complex):#module_num表示子模型编号
+    #model_path_list表示每个子模块的小模块列表
+    #修改文件读取名字，读取函数
+    ### Using the class ###
+    if is_complex:
+        local_path = 'complex'+str(submodel_num)
+        axis = 1
+    else:
+        local_path = 'real'+str(submodel_num)
+        axis=0
 
-		result = np.array(result)
-		result= np.sum(result,0)
-		if model_path_list[0][:7] == 'complex':
-			models_result = tf.sqrt(tf.square(result[0])+tf.square(result[1]))
-		else:
-			models_result = result
+    test_file_name = 'CIFAR10.h5'
+    _,test_batch = read_cifar10('data/'+test_file_name,1,1000)
+    data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'stacking_data/alex/cifar10/'+local_path)
 
-		top_k_op = tf.nn.in_top_k(models_result,lable,1)
-		accuracy += tf.reduce_mean(tf.cast(top_k_op,tf.float32))
-	sess = tf.InteractiveSession()
-	acc = sess.run(accuracy/10)
-	print(model_path_list)
-	print("%.4f"%(acc))
+    train_result = []
+    test_result = []
+    trains_lable = []
+    tests_label = []
 
-	if is_complex:
-		axis = 1
-	else:
-		axis=0
+    accuracy=0.0
+    for k in range(k_fold):
+        train_file_name = 'CIFAR10'+'_split_'+str(k_fold)+str(k+1)
+        train_batch,_= read_cifar10("split_file/"+train_file_name,1250,1,train_shuffle=False)
+        model = ImportGraph("complex"+str(submodel_num)+'-'+str(k+1))
+        test_local_result = []
+        for i in range(10):
+            test_data,test_lable  = next(test_batch)
+            train_data,train_lable = next(train_batch)
+            trains_lable.append(train_label)
+            if k ==1:
+                tests_label.append(test_lable)
+            
+            train_result.append(model.run(train_data))
+            test_local_result.append(model.run(test_data))
 
-	valid_data=[]
-	valid_label = []
-	test_data=[]
-	test_label = []
-	for i in range(10):
-		test_x,test_y = next(test_batch)
-		valid_train_data,valid_train_label = next(valid_train)
-		valid_data.append((sess.run(out_result,feed_dict={x:valid_train_data})))
-		valid_label.append(valid_train_label)
-		test_label.append(test_y)
-		test_data.append((sess.run(out_result,feed_dict={x:test_x})))
+        test_result.append(np.array(test_local_result))
+    test_result = np.mean(test_result,axis = 0)
+    train_result = np.array(train_result)
 
-	print('precision @1 = %.5f'%np.mean(ans[-5:]))
-	sess.close()
 
-	return np.mean(ans[-5:]), np.concatenate(valid_data,axis=axis),np.concatenate(valid_label,axis=0),\
-	np.concatenate(test_data,axis=axis),np.concatenate(test_label,axis=0)
+    train_result = np.concatenate(train_result,axis=axis)
+    test_result = np.concatenate(test_result,axis=axis)
+    trains_lable = np.concatenate(trains_lable,axis=0)
+    tests_label = np.concatenate(tests_label,axis=0)
+
+    if is_complex:
+        models_result = tf.sqrt(tf.square(test_result[0])+tf.square(test_result[1]))
+    else:
+        models_result = test_result
+
+    top_k_op = tf.nn.in_top_k(models_result,tests_label,1)
+    accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
+
+    sess = tf.InteractiveSession()
+    acc = sess.run(accuracy)
+    print("accuracy is %.4f"%(acc))
+
+    sess.close()
+
+    wrrite_file([train_result,trains_lable],[test_result,tests_label],data_path)
+
+
+
+
+
+
+
 
 #生成次级模型的输入数据
-def generate_secondary_data(model_shape,is_complex):
-	acc = {}
-	if is_complex:
-		axis =1
-	else:
-		axis=0
-	train_data_set = []
-	train_label_set = []
-	test_data_set =[]
+def generate_secondary_data(is_complex,k_fold):
+    for submodel_num in range(1,5):
+        graph = tf.Graph()
+        with graph.as_default():
+            restore(submodel_num,k_fold,is_complex)
 
-	if is_complex:
-		file_head = 'CIFAR10_complex'+model_shape[0]  ####修改
-	else:
-		file_head = 'CIFAR10_real'+model_shape[0]   #修改
-	accuracy=0
-	for tag in range(1,5):
-		graph = tf.Graph()
-		with graph.as_default():
-			accu,train_data,train_label,test_data,test_label = restore(model_path_list)
-		accuracy+=accu
-		train_data_set.append(train_data)
-		train_label_set.append(train_label)
-		test_data_set.append(test_data)
-	train_data_set = np.concatenate(train_data_set,axis = axis)
-	train_label_set = np.concatenate(train_label_set,axis = 0)
-
-	test_data_set = np.mean(test_data_set,axis=0)
-	acc[file_head] = accuracy/4
-	print(acc)
-		#写操作
-	wrrite_file([train_data_set,train_label_set],[test_data_set,test_label],'bu/'+file_head+'.h5')
 
 
 
@@ -497,12 +490,14 @@ path_list = ['1','2','3','4']
 shape_list = [path_list,kernel_list,channel_list,fc_list]
 
 if __name__=='__main__':
-	model_index = int(sys.argv[1]) #第几个模型
-	model_tag=int(sys.argv[2]) #第几个子模型
 	is_complex = True
-	#生成子模型
-	print("index,tag = ",model_index,model_tag)
-	generate_Primary_net_cifar([k[model_index] for k in  shape_list],model_tag,is_complex) #修改
+    #生成子模型
+	# model_index = int(sys.argv[1]) #第几个模型
+	# model_tag=int(sys.argv[2]) #第几个子模型
+	# print("index,tag = ",model_index,model_tag)
+    # generate_Primary_net_cifar([k[model_index] for k in  shape_list],model_tag,is_complex) #修改
 
-	#生成次级模型数据
-	# generate_secondary_data(model_shape,is_complex)
+    #生成次级模型数据,要自己进去修改路径和数据名称等等
+    k_fold = 4  #要修改为和之前的训练子模型时的K值相同
+    generate_secondary_data(is_complex,k_fold)
+
