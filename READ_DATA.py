@@ -13,7 +13,7 @@ def loadHDF5(file_name):
         
     return (dataTrain, labelsTrain, dataTest, labelsTest)
 
-def generators(complex_and_second,file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3]):
+def generators(complex_and_second,file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3],train_shuffle=True):
     ''' generators for multi-let
     Args:
     Return:
@@ -26,7 +26,7 @@ def generators(complex_and_second,file_name,TrainBatchSize,TestBatchSize, prepro
     (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5(file_name)
         
     def genTrainDatum():
-        index = Preproc.genIndex(dataTrain.shape[axis], shuffle=True)
+        index = Preproc.genIndex(dataTrain.shape[axis], shuffle=train_shuffle)
         while True:
             indexAnchor = next(index)
             if complex_and_second:
@@ -83,6 +83,6 @@ def generators(complex_and_second,file_name,TrainBatchSize,TestBatchSize, prepro
 
 
             
-def read_data(complex_and_second,file_name,TrainBatchSize,TestBatchSize):
-    batchTrain, batchTest = generators(complex_and_second,file_name,TrainBatchSize,TestBatchSize, preprocSize=[24, 24, 3])
+def read_data(complex_and_second,file_name,TrainBatchSize,TestBatchSize,train_shuffle=True):
+    batchTrain, batchTest = generators(complex_and_second,file_name,TrainBatchSize,TestBatchSize, preprocSize=[24, 24, 3],train_shuffle=train_shuffle)
     return batchTrain, batchTest
