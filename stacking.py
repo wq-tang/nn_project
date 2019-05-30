@@ -385,68 +385,70 @@ class ImportGraph():
 
 #加载图恢复数据,一次完成一个子模块的k个小模块的加载,然后算出测试集均值，和本子模块对应的次级学习器的数据集
 def restore(submodel_num,k_fold,is_complex):#module_num表示子模型编号
-    #model_path_list表示每个子模块的小模块列表
-    #修改文件读取名字，读取函数
-    ### Using the class ###
-    if is_complex:
-        local_path = 'complex'+str(submodel_num)
-        axis = 1
-    else:
-        local_path = 'real'+str(submodel_num)
-        axis=0
+	#model_path_list表示每个子模块的小模块列表
+	#修改文件读取名字，读取函数
+	### Using the class ###
+	if is_complex:
+		local_path = 'complex'+str(submodel_num)
+		axis = 1
+	else:
+		local_path = 'real'+str(submodel_num)
+		axis=0
 
-    test_file_name = 'CIFAR10.h5'
-    _,test_batch = read_cifar10('data/'+test_file_name,1,1000)
-    data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'stacking_data/alex/cifar10/'+local_path+'.h5')
+	test_file_name = 'CIFAR10.h5'
+	_,test_batch = read_cifar10('data/'+test_file_name,1,1000)
+	data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'stacking_data/alex/cifar10/'+local_path+'.h5')
 
-    train_result = []
-    test_result = []
-    trains_lable = []
-    tests_label = []
+	train_result = []
+	test_result = []
+	trains_lable = []
+	tests_label = []
 
-    accuracy=0.0
-    for k in range(k_fold):
-        train_file_name = 'CIFAR10'+'_split_'+str(k_fold)+str(k+1)+'.h5'
-        train_batch,_= read_cifar10("split_file/"+train_file_name,1250,1,train_shuffle=False)
-        model = ImportGraph("complex"+str(submodel_num)+'-'+str(k+1))
-        test_local_result = []
-        for i in range(10):
-            test_data,test_lable  = next(test_batch)
-            train_data,train_lable = next(train_batch)
-            trains_lable.append(train_lable)
-            if k ==1:
-                tests_label.append(test_lable)
+	accuracy=0.0
+	for k in range(k_fold):
+		train_file_name = 'CIFAR10'+'_split_'+str(k_fold)+str(k+1)+'.h5'
+		train_batch,_= read_cifar10("split_file/"+train_file_name,1250,1,train_shuffle=False)
+		model = ImportGraph("complex"+str(submodel_num)+'-'+str(k+1))
+		test_local_result = []
+		for i in range(10):
+			test_data,test_lable  = next(test_batch)
+			train_data,train_lable = next(train_batch)
+			trains_lable.append(train_lable)
+			if k ==1:
+				tests_label.append(test_lable)
             
-            train_result.append(model.run(train_data))
-            test_local_result.append(model.run(test_data))
-
-        test_result.append(np.array(test_local_result))
-    test_result = np.mean(test_result,axis = 0)
-    train_result = np.array(train_result)
-
-
-    train_result = np.concatenate(train_result,axis=axis)
-    test_result = np.concatenate(test_result,axis=axis)
-    trains_lable = np.concatenate(trains_lable,axis=0)
-    tests_label = np.concatenate(tests_label,axis=0)
-
-    if is_complex:
-        models_result = tf.sqrt(tf.square(test_result[0])+tf.square(test_result[1]))
-    else:
-        models_result = test_result
-
-    top_k_op = tf.nn.in_top_k(models_result,tests_label,1)
-    accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
-
-    sess = tf.InteractiveSession()
-    acc = sess.run(accuracy)
-    print("accuracy is %.4f"%(acc))
-
-    sess.close()
-
-    wrrite_file([train_result,trains_lable],[test_result,tests_label],data_path)
+			train_result.append(model.run(train_data))
+			test_local_result.append(model.run(test_data))
+		test_local_result = np.concatenate(test_local_result,axis=1)
+		test_result.append(np.array(test_local_result))
+	test_results = np.mean(test_result,axis = 0)
+	train_result = np.array(train_result)
 
 
+	train_result = np.concatenate(train_result,axis=axis)
+	trains_lable = np.concatenate(trains_lable,axis=0)
+	tests_label = np.concatenate(tests_label,axis=0)
+
+	# if is_complex:
+	# 	models_result = tf.sqrt(tf.square(train_result[0])+tf.square(train_result[1]))
+	# else:
+	# 	models_result = test_results
+
+	if is_complex:
+		models_result = tf.sqrt(tf.square(test_result[3][0])+tf.square(test_result[3][1]))
+	else:
+		models_result = test_results
+
+	top_k_op = tf.nn.in_top_k(models_result,tests_label,1)
+	accuracy = tf.reduce_mean(tf.cast(top_k_op,tf.float32))
+
+	sess = tf.InteractiveSession()
+	acc = sess.run(accuracy)
+	print("accuracy is %.4f"%(acc))
+
+	sess.close()
+
+	wrrite_file([train_result,trains_lable],[test_results,tests_label],data_path)
 
 
 

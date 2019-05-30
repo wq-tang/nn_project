@@ -75,7 +75,7 @@ def Secondary_net(model_name,combine_list,is_complex):
 		tail = 'complex'
 	else:
 		tail = 'real'
-	max_epoch = 30000  #修改
+	max_epoch = 300  #修改
 	batch_step = 128
 	class_num = 10   ###修改
 	train_data = []
@@ -140,7 +140,7 @@ def Secondary_net(model_name,combine_list,is_complex):
 			_ = sess.run( train_op, feed_dict={x[0]:trains[0],x[1]:trains[1],y:train_y})#
 
 		duration = time.time() - start_time
-		if i%400 ==0:
+		if i%10 ==0:
 			examples_per_sec = batch_step/duration
 			sec_per_batch = float(duration)
 			format_str = ('step %d,loss=%.2f (%.1f examples/sec; %.3f sec/batch_step)')
@@ -175,13 +175,13 @@ def Secondary_net(model_name,combine_list,is_complex):
 			test_accuracy = test(test_data)
 			ans.append(test_accuracy)
 			print( "step %d, training accuracy %g"%(i, train_accuracy))
-			print( "step %d,test accuracy %g"%(i,test_accuracy))
+			print( "step %d,test accuracy %g"%(i,acc))
 	train_writer.close()
 	test_writer.close()
 	print('precision @1 = %.5f'%np.mean(ans[-10:]))
 
 if __name__=='__main__':
-	combine_list = ['1','2','3','4']#集成模型编号
+	combine_list = ['1','2']#集成模型编号
 	model_name='cifar10'
 	is_complex = True
 	Secondary_net(model_name,combine_list,is_complex)
