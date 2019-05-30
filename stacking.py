@@ -150,8 +150,8 @@ def generate_Primary_net_cifar(model_shape,model_tag,is_complex):
 	batch_step = 128 
 	#########一些路径#######
 	path,kernel_list,channel_list,fc_list = model_shape
-	model_path =os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-		'stacking_submodel/cifar10/'+local_path+'-'+str(model_tag))#model_tag 是当前子模型的第tag个分模型
+	model_path =os.path.join(os.path.dirname(os.path.abspath(__file__)),
+		'stacking_submodel/alex/cifar10/'+local_path+'-'+str(model_tag))#model_tag 是当前子模型的第tag个分模型
 	file_name = 'split_file/CIFAR10_split_4-'+str(model_tag)+'.h5'
 	# validation_name =  'split_file/CIFAR10_split4'+str(model_tag)+'.h5'
 
@@ -497,10 +497,11 @@ path_list = ['1','2','3','4']
 shape_list = [path_list,kernel_list,channel_list,fc_list]
 
 if __name__=='__main__':
-	model_index = 0 #第几个模型
-	model_tag=1 #第几个子模型
+	model_index = int(sys.argv[1]) #第几个模型
+	model_tag=int(sys.argv[2]) #第几个子模型
 	is_complex = True
 	#生成子模型
+	print("index,tag = ",model_index,model_tag)
 	generate_Primary_net_cifar([k[model_index] for k in  shape_list],model_tag,is_complex) #修改
 
 	#生成次级模型数据
