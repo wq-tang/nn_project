@@ -35,7 +35,7 @@ def allData(preprocSize=[28, 28, 3]):
     return preproc(data, preprocSize), labels, invertedIdx
 
 
-def generators(file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3]):
+def generators(file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3],train_shuffle=True):
     ''' generators for multi-let
     Args:
     Return:
@@ -44,7 +44,7 @@ def generators(file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3]):
     (dataTrain, labelsTrain,  dataTest, labelsTest) = loadHDF5(file_name)
         
     def genTrainDatum():
-        index = Preproc.genIndex(dataTrain.shape[0], shuffle=True)
+        index = Preproc.genIndex(dataTrain.shape[0], shuffle=train_shuffle)
         while True:
             indexAnchor = next(index)
             imageAnchor = dataTrain[indexAnchor]
@@ -120,8 +120,8 @@ def generators(file_name,TrainBatchSize,TestBatchSize, preprocSize=[28, 28, 3]):
 
 
             
-def read_cifar10(file_name,TrainBatchSize,TestBatchSize):
-    batchTrain, batchTest = generators(file_name,TrainBatchSize,TestBatchSize, preprocSize=[24, 24, 3])
+def read_cifar10(file_name,TrainBatchSize,TestBatchSize,train_shuffle=True):
+    batchTrain, batchTest = generators(file_name,TrainBatchSize,TestBatchSize, preprocSize=[24, 24, 3],train_shuffle)
     return batchTrain, batchTest
     
     # SimpleV1C: 0.9064, 23400
